@@ -1,0 +1,60 @@
+{
+	"identifier": "Level_1",
+	"uniqueIdentifer": "b8aad920-4ce0-11ef-abbd-6dcda695e919",
+	"x": 1440,
+	"y": -96,
+	"width": 384,
+	"height": 384,
+	"bgColor": "#000000",
+	"neighbourLevels": [
+		{
+			"levelIid": "b4d85180-4ce0-11ef-bef9-855b2d68e758",
+			"dir": "w"
+		}
+	],
+	"customFields" : {},
+	"layers": [
+		"Bg_textures.png",
+		"Collision.png",
+		"Decorations.png"
+	],
+	"entities": {
+		"Enemy": [
+			{
+				"id": "Enemy",
+				"iid": "7493c8c0-4ce0-11ef-b36d-3db5018ef21c",
+				"layer": "Entities",
+				"x": 344,
+				"y": 320,
+				"width": 16,
+				"height": 16,
+				"color": 14120515,
+				"customFields": {
+					"patrol": [
+						{
+							"cx": 12,
+							"cy": 19
+						},
+						{
+							"cx": 21,
+							"cy": 19
+						}
+					]
+				}
+			}
+		],
+		"Player": [
+			{
+				"id": "Player",
+				"iid": "7bed47e0-73f0-11ef-ba86-111b6ca424e3",
+				"layer": "Entities",
+				"x": 8,
+				"y": 224,
+				"width": 16,
+				"height": 16,
+				"color": 12470831,
+				"customFields" : {}
+			}
+		]
+	}
+}
