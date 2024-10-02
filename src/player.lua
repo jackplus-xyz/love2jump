@@ -23,6 +23,7 @@ function player.new(x, y, world)
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
 	self.gravity = 1200
+	self.health = 3
 
 	self.world = world
 	self.world:add(self, self.x - self.width / 2, self.y - self.height, self.width, self.height)

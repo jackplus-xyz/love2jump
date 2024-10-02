@@ -18,10 +18,20 @@ ui.live_bar_animations = {
 	big_heart_hit = anim8.newAnimation(big_heart_hit_grid("1-2", 1), 0.1),
 }
 
-function ui:update(dt)
-	for _, anim in pairs(self.live_bar_animations) do
-		anim:update(dt)
+ui.heart_offsets = {}
+
+function ui:init(max_health)
+	for i = 1, max_health do
+		self.heart_offsets[i] = love.math.random() * 0.1 -- Random offset between 0 and 0.1 seconds
 	end
+end
+
+function ui:update(dt)
+	for i, offset in ipairs(self.heart_offsets) do
+		local adjusted_dt = (dt + offset) % 0.8 -- 0.8 is the total duration of the animation (8 frames * 0.1 seconds)
+		self.live_bar_animations.big_heart_idle:update(adjusted_dt)
+	end
+	self.live_bar_animations.big_heart_hit:update(dt)
 end
 
 function ui:drawHUD(health)
@@ -35,12 +45,9 @@ function ui:drawHUD(health)
 	love.graphics.draw(live_bar_image, x, y)
 
 	for i = 1, health do
-		self.live_bar_animations.big_heart_idle:gotoFrame(i)
-		self.live_bar_animations.big_heart_idle:draw(
-			big_heart_idle_image,
-			x + offset_x + (i - 1) * heart_offset,
-			y + offset_y
-		)
+		local anim = self.live_bar_animations.big_heart_idle:clone()
+		anim:update(self.heart_offsets[i])
+		anim:draw(big_heart_idle_image, x + offset_x + (i - 1) * heart_offset, y + offset_y)
 	end
 
 	love.graphics.pop()

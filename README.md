@@ -185,7 +185,7 @@
   - [x] Add health bar
   - [ ] Offset health animations
 - [ ] Add SFX to attack
-- [ ] Add BGM
+- [x] Add BGM
 - [ ] Fix level transition system
 - [ ] Implement power-up system
 - [ ] Game states (load/save/pause)

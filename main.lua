@@ -1,8 +1,9 @@
 local keymaps = require("config.keymaps")
-local player = require("src.Player")
+local ui = require("src.ui")
+local bgm = require("src.bgm")
+local player = require("src.player")
 local enemy = require("src.enemy")
 local debug = require("src.debug")
-local ui = require("src.ui")
 
 IsDebug = true
 CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
@@ -126,6 +127,12 @@ function love.load()
 	love.graphics.setLineStyle("rough")
 	--load the data and resources
 	require("src.assets.fonts")
+
+	local max_health = 3
+	ui:init(max_health)
+
+	bgm:load()
+	bgm:play()
 
 	-- load ldtk maps
 	ldtk:load("assets/maps/kings-and-pigs.ldtk")
