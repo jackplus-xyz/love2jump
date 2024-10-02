@@ -14,6 +14,7 @@ local bump = require("lib.bump.bump")
 
 local world = bump.newWorld(GRID_SIZE)
 local level_elements = {}
+local enemies = {}
 local curr_level_width = 0
 local curr_level_height = 0
 local cols_len = 0 -- how many collisions are happening
@@ -74,9 +75,9 @@ local function onEntity(entity)
 		Player = require("src.Player").new(entity.x, entity.y, world)
 	elseif entity.id == "Enemy" then
 		local enemy = Enemy.new(entity.x, entity.y, world)
-		table.insert(level_elements, enemy)
+		table.insert(enemies, enemy)
 	else
-		-- Draw other entites as a rectabgle
+		-- Draw other entites as a rectangle
 		local new_object = object(entity)
 		table.insert(level_elements, new_object)
 	end
@@ -97,6 +98,7 @@ end
 local function onLevelLoaded(level)
 	--removing all objects so we have a blank level
 	level_elements = {}
+	enemies = {}
 	blocks = {}
 
 	--changing background color to the one defined in LDtk
@@ -151,6 +153,10 @@ end
 function love.update(dt)
 	Player:update(dt, world)
 
+	for _, enemy in ipairs(enemies) do
+		enemy:update(dt, world)
+	end
+
 	-- FIXME: handle level changing
 	if Player.x >= curr_level_width - GRID_SIZE * 8 then
 		ldtk:next()
@@ -169,6 +175,10 @@ function love.draw()
 
 	for _, level_element in ipairs(level_elements) do
 		level_element:draw()
+	end
+
+	for _, enemy in ipairs(enemies) do
+		enemy:draw()
 	end
 
 	Player:draw()
