@@ -120,6 +120,7 @@ function Player:setupStates()
 			-- Handle airborne movement
 			self:handleMovement(dt)
 
+			-- FIXME:check is falling
 			if self.y_velocity < -self.gravity then
 				self.currentAnimation = self.animations.jump
 			else

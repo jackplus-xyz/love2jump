@@ -132,26 +132,26 @@
 
 ## Development Timeline
 
-1. **Week 1-2: Core Mechanics and Prototyping**
+1. **Week 1-2 09/06: Core Mechanics and Prototyping**
 
    - [x] Set up development environment
    - [x] Implement basic player movement and physics
    - [x] Create prototype level
 
-2. **Week 3-4: Level Design and Enemy Implementation**
+2. **Week 3-4 09/20: Level Design and Enemy Implementation**
 
    - [x] Integrate LDTK for level design
    - [x] Implement basic enemy AI
    - [ ] Design and create 3 levels
 
-3. **Week 5-6: Gameplay Systems and Polish**
+3. **Week 5-6 10/04: Gameplay Systems and Polish**
 
    - [ ] Implement score system
    - [ ] Add game states (menu, pause, game over)
    - [ ] Create basic UI
    - [ ] Implement sound effects and background music
 
-4. **Week 7-8: Testing and Deployment**
+4. **Week 7-8 10/18: Testing and Deployment**
    - [ ] Thorough playtesting and bug fixing
    - [ ] Performance optimization
    - [ ] Prepare for deployment on target platforms
@@ -167,16 +167,27 @@
 - [x] Fix movement
 - [x] Implement camera system
 - [x] Level changing (FIXME)
-- [ ] Game states (load/save/pause)
-- [ ] Score system
 - [x] Add one enemy type
+- [-] Game states (load/save/pause)
+- [-] Score system
 
 ### 10/04/2024
 
+- [ ] Replace game assets with place holder
+- [ ] Add interaction between player and enemy(attack, damage)
+  - [ ] Research strategy for player enemy interaction
+  - [ ] Implement hitbox
+  - [ ] Fix enemy animation
+  - [ ] Add enemy logic(patrol, attack)
+- [ ] Add interactive entity(i.e. door, chest)
+- [ ] Implement basic UI elements
+  - [ ] Add health bar
+- [ ] Add SFX to attack
+- [ ] Add BGM
 - [ ] Fix level transition system
 - [ ] Implement power-up system
-- [ ] Add at least one interactable entity (door or chest)
-- [ ] Implement basic UI elements
+- [ ] Game states (load/save/pause)
+- [ ] Score system
 
 ## Notes and Ideas
 

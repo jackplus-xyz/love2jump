@@ -137,7 +137,7 @@ function love.load()
 
 	-- TODO: Improve camera dead zone logic
 	CameraManager.setDeadzone(-Player.width * 2, -Player.height, Player.width * 2, Player.height * 2)
-	CameraManager.setLerp(0.1)
+	CameraManager.setLerp(0.01)
 	CameraManager.setCoords(Player.x + Player.width / 2, Player.y - Player.height * 2)
 
 	-- TODO: Add game states(load/save/pause)
