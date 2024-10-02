@@ -173,15 +173,17 @@
 
 ### 10/04/2024
 
-- [ ] Replace game assets with place holder
-- [ ] Add interaction between player and enemy(attack, damage)
+- [x] Replace game assets with place holder
+- [-] Add interaction between player and enemy(attack, damage)
   - [ ] Research strategy for player enemy interaction
   - [ ] Implement hitbox
-  - [ ] Fix enemy animation
+  - [x] Fix enemy animation
+    - The enemy entities was in `level_elements` and wasn't updated
   - [ ] Add enemy logic(patrol, attack)
 - [ ] Add interactive entity(i.e. door, chest)
-- [ ] Implement basic UI elements
-  - [ ] Add health bar
+- [x] Implement basic UI elements
+  - [x] Add health bar
+  - [ ] Offset health animations
 - [ ] Add SFX to attack
 - [ ] Add BGM
 - [ ] Fix level transition system

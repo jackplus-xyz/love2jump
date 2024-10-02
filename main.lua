@@ -1,12 +1,14 @@
 local keymaps = require("config.keymaps")
-local Enemy = require("src.enemy")
+local player = require("src.Player")
+local enemy = require("src.enemy")
 local debug = require("src.debug")
+local ui = require("src.ui")
 
 IsDebug = true
 CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
 
 -- Constants
-local GRID_SIZE = 32
+GRID_SIZE = 32
 
 -- Libraries
 local ldtk = require("lib.ldtk-love.ldtk")
@@ -70,12 +72,11 @@ end
 
 --------- CALLBACKS FOR LOVE-LDTK ----------
 local function onEntity(entity)
-	-- Handle other entities as before
-	if entity.id == "Player" then
-		Player = require("src.Player").new(entity.x, entity.y, world)
+	if entity.id == "Player" and not Player then
+		Player = player.new(entity.x, entity.y, world)
 	elseif entity.id == "Enemy" then
-		local enemy = Enemy.new(entity.x, entity.y, world)
-		table.insert(enemies, enemy)
+		local new_enemy = enemy.new(entity.x, entity.y, world)
+		table.insert(enemies, new_enemy)
 	else
 		-- Draw other entites as a rectangle
 		local new_object = object(entity)
@@ -165,6 +166,8 @@ function love.update(dt)
 	CameraManager.setTarget(Player.x + Player.width / 2, Player.y + Player.height / 2)
 	CameraManager.update(dt)
 
+	ui:update(dt)
+
 	if IsDebug then
 		debug:update()
 	end
@@ -177,8 +180,8 @@ function love.draw()
 		level_element:draw()
 	end
 
-	for _, enemy in ipairs(enemies) do
-		enemy:draw()
+	for _, level_enemy in ipairs(enemies) do
+		level_enemy:draw()
 	end
 
 	Player:draw()
@@ -189,6 +192,7 @@ function love.draw()
 
 	CameraManager.detach()
 
+	ui:drawHUD(Player.health)
 	if IsDebug then
 		CameraManager.debug()
 		debug:draw(100)
