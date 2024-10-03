@@ -231,6 +231,7 @@ function Enemy:draw()
 	local scaleX = (self.direction == -1) and -1 or 1
 	local offsetX = (self.direction == -1) and self.width or 0 -- Shift the sprite to the correct position when flipped
 
+	-- TODO: add offset
 	-- Draw the current animation based on the last movement direction (flip horizontally when facing left)
 	self.currentAnimation:draw(
 		-- self.currentAnimation == self.animations.idle and self.idle_image

@@ -209,6 +209,7 @@ function Player:update(dt)
 	end
 
 	self.y_velocity = self.y_velocity + self.gravity * dt
+
 	local goal_y = self.y + self.y_velocity * dt
 	self:move(self.x, goal_y)
 

@@ -5,11 +5,12 @@ local player = require("src.player")
 local enemy = require("src.enemy")
 local debug = require("src.debug")
 
-IsDebug = true
+IsDebug = false
 CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
 
 -- Constants
 GRID_SIZE = 32
+SCALE = 2
 
 -- Libraries
 local ldtk = require("lib.ldtk-love.ldtk")
@@ -109,8 +110,15 @@ local function onLevelLoaded(level)
 	curr_level_width = level.width
 	curr_level_height = level.height
 
-	-- TODO: Improve camera bound logic
-	CameraManager.setBounds(-level.width / 6, -level.height, level.width, level.height)
+	local window_width = love.graphics.getWidth()
+	local window_height = love.graphics.getHeight()
+
+	CameraManager.setBounds(
+		-window_width / 2 / SCALE,
+		-window_height / 2 / SCALE,
+		level.width + window_width / 2 / SCALE,
+		level.height + window_height / 2 / SCALE
+	)
 end
 
 local function onLevelCreated(level)
@@ -134,6 +142,8 @@ function love.load()
 	bgm:load()
 	bgm:play()
 
+	-- TODO: Add game menu
+
 	-- load ldtk maps
 	ldtk:load("assets/maps/kings-and-pigs.ldtk")
 	ldtk:setFlipped(true)
@@ -143,12 +153,10 @@ function love.load()
 	ldtk.onLevelCreated = onLevelCreated
 	ldtk:goTo(1)
 
-	CameraManager.setScale(2)
-
-	-- TODO: Improve camera dead zone logic
-	CameraManager.setDeadzone(-Player.width * 2, -Player.height, Player.width * 2, Player.height * 2)
+	CameraManager.setScale(SCALE)
+	CameraManager.setDeadzone(-GRID_SIZE, -GRID_SIZE, GRID_SIZE, GRID_SIZE)
 	CameraManager.setLerp(0.01)
-	CameraManager.setCoords(Player.x + Player.width / 2, Player.y - Player.height * 2)
+	CameraManager.setCoords(Player.x + Player.width / SCALE, Player.y - Player.height * SCALE)
 
 	-- TODO: Add game states(load/save/pause)
 	-- TODO: Score system
@@ -161,14 +169,12 @@ end
 function love.update(dt)
 	Player:update(dt, world)
 
-	for _, enemy in ipairs(enemies) do
-		enemy:update(dt, world)
+	for _, level_enemy in ipairs(enemies) do
+		level_enemy:update(dt, world)
 	end
 
 	-- FIXME: handle level changing
-	if Player.x >= curr_level_width - GRID_SIZE * 8 then
-		ldtk:next()
-	end
+	-- 	ldtk:next()
 
 	CameraManager.setTarget(Player.x + Player.width / 2, Player.y + Player.height / 2)
 	CameraManager.update(dt)
@@ -200,6 +206,7 @@ function love.draw()
 	CameraManager.detach()
 
 	ui:drawHUD(Player.health)
+
 	if IsDebug then
 		CameraManager.debug()
 		debug:draw(100)
