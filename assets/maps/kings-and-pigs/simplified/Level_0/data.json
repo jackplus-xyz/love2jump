@@ -1,15 +1,15 @@
 {
 	"identifier": "Level_0",
 	"uniqueIdentifer": "b4d85180-4ce0-11ef-bef9-855b2d68e758",
-	"x": 0,
-	"y": -96,
+	"x": 1088,
+	"y": -592,
 	"width": 1952,
-	"height": 384,
+	"height": 400,
 	"bgColor": "#3F3851",
 	"neighbourLevels": [
 		{
 			"levelIid": "b8aad920-4ce0-11ef-abbd-6dcda695e919",
-			"dir": "e"
+			"dir": "s"
 		}
 	],
 	"customFields" : {},
@@ -43,32 +43,33 @@
 				"height": 16,
 				"color": 14120515,
 				"customFields": {
-					"patrol": []
+					"patrol": [
+						{
+							"cx": 50,
+							"cy": 21
+						},
+						{
+							"cx": 64,
+							"cy": 21
+						}
+					]
 				}
 			}
 		],
 		"Door": [
 			{
 				"id": "Door",
-				"iid": "9beac1f0-73f0-11ef-842d-07709f2dbed5",
+				"iid": "8014f4b0-73f0-11ef-86a8-51eed0f4b0be",
 				"layer": "Entities",
-				"x": 1272,
-				"y": 224,
-				"width": 16,
-				"height": 64,
-				"color": 9149364,
-				"customFields" : {}
-			},
-			{
-				"id": "Door",
-				"iid": "a414e810-73f0-11ef-842d-21c2dd1b9d17",
-				"layer": "Entities",
-				"x": 584,
-				"y": 256,
-				"width": 16,
-				"height": 32,
-				"color": 9149364,
-				"customFields" : {}
+				"x": 360,
+				"y": 288,
+				"width": 46,
+				"height": 56,
+				"color": 15389866,
+				"customFields": {
+					"nextLevelId": 2,
+					"Entity_ref": null
+				}
 			}
 		]
 	}

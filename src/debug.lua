@@ -1,8 +1,12 @@
 -- Used to print debugging information
 local debug = {}
 local fonts = require("src.assets.fonts")
+local ldtk = require("lib.ldtk-love.ldtk")
 
-function debug:init()
+function debug:init(world)
+	self.world = world
+	-- self.ldtk = ldtk
+
 	self.infoTable = {}
 	self:updateInfoTable()
 end
@@ -28,6 +32,10 @@ function debug:updateInfoTable()
 				.. ", "
 				.. string.format("%.0f", cam_bound_h)
 				.. ")",
+		},
+		{
+			"Current Level",
+			ldtk:getCurrent(),
 		},
 	}
 end

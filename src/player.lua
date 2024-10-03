@@ -1,12 +1,30 @@
 local anim8 = require("lib.anim8")
 local keymaps = require("config.keymaps")
 local StateMachine = require("src.utils.state_machine")
+local sfx = require("src.sfx")
 
 ---@class player
 local player = {}
 
 -- class table
 local Player = {}
+
+local playerFilter = function(item, other)
+	if other.is_coin then
+		return "cross"
+	elseif other.is_door then
+		return "cross"
+	elseif other.is_wall then
+		return "slide"
+	elseif other.is_exit then
+		return "touch"
+	elseif other.is_spring then
+		return "bounce"
+	else
+		return "slide"
+	end
+	-- else return nil
+end
 
 function player.new(x, y, world)
 	local self = {}
@@ -105,6 +123,7 @@ function Player:setupStates()
 			self.currentAnimation = self.animations.attack
 			self.currentAnimation:gotoFrame(1)
 			self.currentAnimation:resume()
+			sfx:playAttack()
 		end,
 		update = function(_)
 			if self.currentAnimation.status == "paused" then
@@ -146,6 +165,7 @@ function Player:setupStates()
 			self.currentAnimation = self.animations.attack
 			self.currentAnimation:gotoFrame(1)
 			self.currentAnimation:resume()
+			sfx:playAttack()
 		end,
 		update = function(_, dt)
 			self:handleMovement(dt) -- Update movement while attacking
@@ -189,13 +209,14 @@ function Player:handleMovement(dt)
 	self:move(goal_x, self.y)
 end
 
-function Player:move(goalX, goalY)
-	local actualX, actualY, cols, len = self.world:move(self, goalX, goalY)
+function Player:move(goal_x, goal_y)
+	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y, playerFilter)
 
-	self.x, self.y = actualX, actualY
+	self.x, self.y = actual_x, actual_y
 
 	for i = 1, len do
 		local col = cols[i]
+
 		if col.normal.y < 0 then
 			self.y_velocity = 0
 		end
@@ -217,8 +238,24 @@ function Player:update(dt)
 	self.currentAnimation:update(dt)
 end
 
-function Player:keypressed(key)
-	self.stateMachine:handleEvent("keypressed", key)
+function Player:keypressed(key, level_entities)
+	if key == keymaps.up then
+		local actual_x, actual_y, cols, len = self.world:check(self, self.x, self.y, playerFilter)
+		for i = 1, len do
+			local other = cols[i].other
+			if other.is_door then
+				other:enter()
+			end
+		end
+
+		for _, door in pairs(level_entities.doors) do
+			if self.x <= door.x + door.width / 2 and self.x >= door.x - door.width / 2 then
+				door.current_animation = door.animations.opening
+			end
+		end
+	else
+		self.stateMachine:handleEvent("keypressed", key)
+	end
 end
 
 function Player:draw()

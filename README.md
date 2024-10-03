@@ -179,14 +179,15 @@
   - [ ] Implement hitbox
   - [x] Fix enemy animation
     - The enemy entities was in `level_elements` and wasn't updated
-  - [ ] Add enemy logic(patrol, attack)
-- [ ] Add interactive entity(i.e. door, chest)
+  - [ ] Add enemy patrol
+  - [ ] Add enemy attack
+- [x] Add interactive entity(i.e. door, chest)
 - [x] Implement basic UI elements
   - [x] Add health bar
   - [ ] Offset health animations
-- [ ] Add SFX to attack
+- [x] Add SFX to attack
 - [x] Add BGM
-- [ ] Fix level transition system
+- [-] Fix level transition system
 - [ ] Implement power-up system
 - [ ] Game states (load/save/pause)
 - [ ] Score system

@@ -1,8 +1,11 @@
 local keymaps = require("config.keymaps")
+
 local ui = require("src.ui")
 local bgm = require("src.bgm")
+local sfx = require("src.sfx")
 local player = require("src.player")
 local enemy = require("src.enemy")
+local door = require("src.door")
 local debug = require("src.debug")
 
 IsDebug = false
@@ -18,10 +21,8 @@ local bump = require("lib.bump.bump")
 
 local world = bump.newWorld(GRID_SIZE)
 local level_elements = {}
+local level_entities = { doors = {} }
 local enemies = {}
-local curr_level_width = 0
-local curr_level_height = 0
-local cols_len = 0 -- how many collisions are happening
 
 --- Helper function to print the content of a table
 function PrintTable(t)
@@ -79,6 +80,10 @@ local function onEntity(entity)
 	elseif entity.id == "Enemy" then
 		local new_enemy = enemy.new(entity.x, entity.y, world)
 		table.insert(enemies, new_enemy)
+	elseif entity.id == "Door" then
+		-- PrintTable(entity.props.Entity_ref)
+		local new_door = door.new(entity.x, entity.y, world, entity.props.nextLevelId)
+		table.insert(level_entities.doors, new_door)
 	else
 		-- Draw other entites as a rectangle
 		local new_object = object(entity)
@@ -99,8 +104,13 @@ local function onLayer(layer)
 end
 
 local function onLevelLoaded(level)
+	for _, block in pairs(blocks) do
+		world:remove(block)
+	end
+
 	--removing all objects so we have a blank level
 	level_elements = {}
+	level_entities = { doors = {} }
 	enemies = {}
 	blocks = {}
 
@@ -139,6 +149,7 @@ function love.load()
 	local max_health = 3
 	ui:init(max_health)
 
+	sfx:load()
 	bgm:load()
 	bgm:play()
 
@@ -162,7 +173,7 @@ function love.load()
 	-- TODO: Score system
 
 	if IsDebug then
-		debug:init()
+		debug:init(world)
 	end
 end
 
@@ -171,6 +182,10 @@ function love.update(dt)
 
 	for _, level_enemy in ipairs(enemies) do
 		level_enemy:update(dt, world)
+	end
+
+	for _, level_door in ipairs(level_entities.doors) do
+		level_door:update(dt)
 	end
 
 	-- FIXME: handle level changing
@@ -193,6 +208,10 @@ function love.draw()
 		level_element:draw()
 	end
 
+	for _, level_door in ipairs(level_entities.doors) do
+		level_door:draw()
+	end
+
 	for _, level_enemy in ipairs(enemies) do
 		level_enemy:draw()
 	end
@@ -208,7 +227,7 @@ function love.draw()
 	ui:drawHUD(Player.health)
 
 	if IsDebug then
-		CameraManager.debug()
+		-- CameraManager.debug()
 		debug:draw(100)
 	end
 end
@@ -220,5 +239,5 @@ function love.keypressed(key)
 		IsDebug = not IsDebug
 	end
 
-	Player:keypressed(key)
+	Player:keypressed(key, level_entities)
 end

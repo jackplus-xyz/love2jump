@@ -1,15 +1,15 @@
 {
 	"identifier": "Level_1",
 	"uniqueIdentifer": "b8aad920-4ce0-11ef-abbd-6dcda695e919",
-	"x": 1952,
+	"x": 2048,
 	"y": -192,
-	"width": 384,
+	"width": 736,
 	"height": 384,
 	"bgColor": "#000000",
 	"neighbourLevels": [
 		{
 			"levelIid": "b4d85180-4ce0-11ef-bef9-855b2d68e758",
-			"dir": "w"
+			"dir": "n"
 		}
 	],
 	"customFields" : {},
@@ -24,7 +24,7 @@
 				"id": "Enemy",
 				"iid": "7493c8c0-4ce0-11ef-b36d-3db5018ef21c",
 				"layer": "Entities",
-				"x": 344,
+				"x": 536,
 				"y": 320,
 				"width": 16,
 				"height": 16,
@@ -32,11 +32,11 @@
 				"customFields": {
 					"patrol": [
 						{
-							"cx": 12,
+							"cx": 24,
 							"cy": 19
 						},
 						{
-							"cx": 21,
+							"cx": 33,
 							"cy": 19
 						}
 					]
@@ -48,12 +48,28 @@
 				"id": "Player",
 				"iid": "7bed47e0-73f0-11ef-ba86-111b6ca424e3",
 				"layer": "Entities",
-				"x": 8,
-				"y": 224,
+				"x": 152,
+				"y": 256,
 				"width": 16,
 				"height": 16,
 				"color": 12470831,
 				"customFields" : {}
+			}
+		],
+		"Door": [
+			{
+				"id": "Door",
+				"iid": "b4700550-73f0-11ef-86a8-3579b510015f",
+				"layer": "Entities",
+				"x": 120,
+				"y": 256,
+				"width": 46,
+				"height": 56,
+				"color": 15389866,
+				"customFields": {
+					"nextLevelId": 1,
+					"Entity_ref": null
+				}
 			}
 		]
 	}
