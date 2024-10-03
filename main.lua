@@ -17,6 +17,7 @@ local sfx = require("src.sfx")
 local player = require("src.player")
 local enemy = require("src.enemy")
 local door = require("src.door")
+local coin = require("src.coin")
 local debug = require("src.debug")
 
 IsDebug = false
@@ -83,9 +84,11 @@ local function onEntity(entity)
 		local new_enemy = enemy.new(entity.x, entity.y, entity.props.patrol)
 		table.insert(enemies, new_enemy)
 	elseif entity.id == "Door" then
-		-- PrintTable(entity.props.Entity_ref)
 		local new_door = door.new(entity.x, entity.y, entity.props.nextLevelId)
 		table.insert(level_entities, new_door)
+	elseif entity.id == "Coin" then
+		local new_coin = coin.new(entity.x, entity.y)
+		table.insert(level_entities, new_coin)
 	else
 		-- Draw other entites as a rectangle
 		local new_object = object(entity)

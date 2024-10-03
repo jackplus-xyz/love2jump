@@ -188,9 +188,9 @@
 - [x] Add SFX to attack
 - [x] Add BGM
 - [-] Fix level transition system
-- [ ] Implement power-up system(Coins)
+- [x] Implement power-up system(Coins)
+- [x] Score system
 - [ ] Game states (load/save/pause)
-- [ ] Score system
 
 ## Notes and Ideas
 

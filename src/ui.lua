@@ -9,6 +9,11 @@ function ui:init()
 	self.big_heart_idle_image = love.graphics.newImage("assets/sprites/12-live-and-coins/big-heart-idle.png")
 	self.big_heart_hit_image = love.graphics.newImage("assets/sprites/12-live-and-coins/big-heart-hit.png")
 
+	self.animations = {}
+	self.coin_image = love.graphics.newImage("assets/sprites/12-live-and-coins/big-diamond-idle.png")
+	self.coin_grid = anim8.newGrid(sprite_width, sprite_height, self.coin_image:getWidth(), sprite_height)
+	self.animations.coin = anim8.newAnimation(self.coin_grid("1-10", 1), 0.1)
+
 	local big_heart_idle_grid =
 		anim8.newGrid(sprite_width, sprite_height, self.big_heart_idle_image:getWidth(), sprite_height)
 	local big_heart_hit_grid =
@@ -24,9 +29,11 @@ function ui:update(dt)
 	for _, animation in pairs(self.live_bar_animations) do
 		animation:update(dt)
 	end
+	for _, animation in pairs(self.animations) do
+		animation:update(dt)
+	end
 end
 
--- TODO: add offset to the heart animations
 function ui:drawHUD()
 	local x, y = GRID_SIZE / 2, GRID_SIZE / 2
 	local offset_x, offset_y = 12, 11
@@ -34,7 +41,7 @@ function ui:drawHUD()
 
 	love.graphics.push()
 
-	love.graphics.scale(2)
+	love.graphics.scale(SCALE)
 	love.graphics.draw(self.live_bar_image, x, y)
 
 	for i = 1, Player.health do
@@ -53,6 +60,9 @@ function ui:drawHUD()
 
 		self.live_bar_animations.big_heart_idle:update(anim_offset)
 	end
+
+	self.animations.coin:draw(self.coin_image, love.graphics.getWidth() / SCALE - x * 4, y)
+	love.graphics.print(0, love.graphics.getWidth() / SCALE - x * SCALE, y)
 
 	love.graphics.pop()
 end
