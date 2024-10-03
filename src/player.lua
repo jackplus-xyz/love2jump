@@ -1,6 +1,6 @@
 local anim8 = require("lib.anim8")
 local keymaps = require("config.keymaps")
-local StateMachine = require("src.utils.state_machine")
+local stateMachine = require("src.utils.state_machine")
 local sfx = require("src.sfx")
 
 ---@class player
@@ -26,7 +26,7 @@ local playerFilter = function(item, other)
 	-- else return nil
 end
 
-function player.new(x, y, world)
+function player.new(x, y)
 	local self = {}
 	setmetatable(self, { __index = Player })
 
@@ -41,16 +41,18 @@ function player.new(x, y, world)
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
 	self.gravity = 1200
-	self.health = 3
+	self.coins = 0
 
-	self.world = world
-	self.world:add(self, self.x - self.width / 2, self.y - self.height, self.width, self.height)
+	self.health = 3
+	self.max_health = 3
+
+	World:add(self, self.x - self.width / 2, self.y - self.height, self.width, self.height)
 
 	self.current_animation = nil
 	self.animations = {}
 	self:loadAnimations()
 
-	self.stateMachine = StateMachine.new()
+	self.stateMachine = stateMachine.new()
 	self:setupStates()
 
 	return self
@@ -180,6 +182,12 @@ function Player:setupStates()
 		end,
 	})
 
+	self.stateMachine:addState("entering", {
+		enter = function()
+			self.currentAnimation = self.animations.idle
+		end,
+	})
+
 	-- Set default state
 	self.stateMachine:setState("grounded")
 end
@@ -210,7 +218,7 @@ function Player:handleMovement(dt)
 end
 
 function Player:move(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y, playerFilter)
+	local actual_x, actual_y, cols, len = World:move(self, goal_x, goal_y, playerFilter)
 
 	self.x, self.y = actual_x, actual_y
 
@@ -240,17 +248,12 @@ end
 
 function Player:keypressed(key, level_entities)
 	if key == keymaps.up then
-		local actual_x, actual_y, cols, len = self.world:check(self, self.x, self.y, playerFilter)
+		local actual_x, actual_y, cols, len = World:check(self, self.x, self.y, playerFilter)
 		for i = 1, len do
 			local other = cols[i].other
 			if other.is_door then
+				self.stateMachine:setState("entering")
 				other:enter()
-			end
-		end
-
-		for _, door in pairs(level_entities.doors) do
-			if self.x <= door.x + door.width / 2 and self.x >= door.x - door.width / 2 then
-				door.current_animation = door.animations.opening
 			end
 		end
 	else

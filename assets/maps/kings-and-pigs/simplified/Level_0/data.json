@@ -54,6 +54,19 @@
 						}
 					]
 				}
+			},
+			{
+				"id": "Enemy",
+				"iid": "2c86d7f0-73f0-11ef-86a8-8d7c1603f22e",
+				"layer": "Entities",
+				"x": 168,
+				"y": 288,
+				"width": 16,
+				"height": 16,
+				"color": 14120515,
+				"customFields": {
+					"patrol": []
+				}
 			}
 		],
 		"Door": [
@@ -70,6 +83,19 @@
 					"nextLevelId": 2,
 					"Entity_ref": null
 				}
+			}
+		],
+		"Coin": [
+			{
+				"id": "Coin",
+				"iid": "f02ae400-73f0-11ef-86a8-07a581be19b2",
+				"layer": "Entities",
+				"x": 72,
+				"y": 288,
+				"width": 32,
+				"height": 32,
+				"color": 14984818,
+				"customFields" : {}
 			}
 		]
 	}

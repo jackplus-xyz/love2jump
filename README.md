@@ -175,20 +175,20 @@
 
 - [x] Replace game assets with place holder
 - [-] Add interaction between player and enemy(attack, damage)
-  - [ ] Research strategy for player enemy interaction
-  - [ ] Implement hitbox
+  - [x] Research strategy for player enemy interaction
+  - [-] Implement hitbox
   - [x] Fix enemy animation
     - The enemy entities was in `level_elements` and wasn't updated
-  - [ ] Add enemy patrol
+  - [x] Add enemy patrol
   - [ ] Add enemy attack
 - [x] Add interactive entity(i.e. door, chest)
 - [x] Implement basic UI elements
   - [x] Add health bar
-  - [ ] Offset health animations
+  - [x] Offset health animations
 - [x] Add SFX to attack
 - [x] Add BGM
 - [-] Fix level transition system
-- [ ] Implement power-up system
+- [ ] Implement power-up system(Coins)
 - [ ] Game states (load/save/pause)
 - [ ] Score system
 

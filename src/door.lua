@@ -7,7 +7,7 @@ Door.__index = Door
 local sprite_width = 46
 local sprite_height = 56
 
-function Door.new(x, y, world, next_level_id)
+function Door.new(x, y, next_level_id)
 	local self = setmetatable({}, Door)
 
 	self.x = x
@@ -16,9 +16,6 @@ function Door.new(x, y, world, next_level_id)
 	self.height = sprite_height
 	self.is_door = true
 	self.next_level_id = next_level_id
-
-	self.world = world
-	self.world:add(self, self.x - self.width / 2, self.y - self.height, self.width, self.height)
 
 	self.current_animation = nil
 	self.animations = {}
@@ -52,7 +49,9 @@ end
 
 function Door:enter()
 	self.current_animation = self.animations.opening
-	print("Going to " .. self.next_level_id)
+	love.graphics.setColor(0, 0, 0, 1)
+	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+	love.graphics.setColor(1, 1, 1, 1)
 	ldtk:goTo(self.next_level_id)
 end
 

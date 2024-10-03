@@ -1,5 +1,16 @@
+-- Libraries
+local ldtk = require("lib.ldtk-love.ldtk")
+local bump = require("lib.bump.bump")
+
+World = bump.newWorld(GRID_SIZE)
+local level_blocks = {}
+local level_entities = {}
+local enemies = {}
+
+-- Config
 local keymaps = require("config.keymaps")
 
+-- Source
 local ui = require("src.ui")
 local bgm = require("src.bgm")
 local sfx = require("src.sfx")
@@ -15,15 +26,6 @@ CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
 GRID_SIZE = 32
 SCALE = 2
 
--- Libraries
-local ldtk = require("lib.ldtk-love.ldtk")
-local bump = require("lib.bump.bump")
-
-local world = bump.newWorld(GRID_SIZE)
-local level_elements = {}
-local level_entities = { doors = {} }
-local enemies = {}
-
 --- Helper function to print the content of a table
 function PrintTable(t)
 	for k, v in pairs(t) do
@@ -37,7 +39,7 @@ local blocks = {}
 local function addBlock(x, y, w, h)
 	local block = { x = x, y = y, w = w, h = h }
 	blocks[#blocks + 1] = block
-	world:add(block, x, y, w, h)
+	World:add(block, x, y, w, h)
 end
 
 local function drawBox(box, r, g, b)
@@ -76,18 +78,18 @@ end
 --------- CALLBACKS FOR LOVE-LDTK ----------
 local function onEntity(entity)
 	if entity.id == "Player" and not Player then
-		Player = player.new(entity.x, entity.y, world)
+		Player = player.new(entity.x, entity.y)
 	elseif entity.id == "Enemy" then
-		local new_enemy = enemy.new(entity.x, entity.y, world)
+		local new_enemy = enemy.new(entity.x, entity.y, entity.props.patrol)
 		table.insert(enemies, new_enemy)
 	elseif entity.id == "Door" then
 		-- PrintTable(entity.props.Entity_ref)
-		local new_door = door.new(entity.x, entity.y, world, entity.props.nextLevelId)
-		table.insert(level_entities.doors, new_door)
+		local new_door = door.new(entity.x, entity.y, entity.props.nextLevelId)
+		table.insert(level_entities, new_door)
 	else
 		-- Draw other entites as a rectangle
 		local new_object = object(entity)
-		table.insert(level_elements, new_object)
+		table.insert(level_blocks, new_object)
 	end
 end
 
@@ -100,17 +102,17 @@ local function onLayer(layer)
 			addBlock(layer.tiles[i].px[1], layer.tiles[i].px[2], GRID_SIZE, GRID_SIZE)
 		end
 	end
-	table.insert(level_elements, layer) --adding layer to the table we use to draw
+	table.insert(level_blocks, layer) --adding layer to the table we use to draw
 end
 
 local function onLevelLoaded(level)
 	for _, block in pairs(blocks) do
-		world:remove(block)
+		World:remove(block)
 	end
 
 	--removing all objects so we have a blank level
-	level_elements = {}
-	level_entities = { doors = {} }
+	level_blocks = {}
+	level_entities = {}
 	enemies = {}
 	blocks = {}
 
@@ -146,9 +148,6 @@ function love.load()
 	--load the data and resources
 	require("src.assets.fonts")
 
-	local max_health = 3
-	ui:init(max_health)
-
 	sfx:load()
 	bgm:load()
 	bgm:play()
@@ -164,6 +163,8 @@ function love.load()
 	ldtk.onLevelCreated = onLevelCreated
 	ldtk:goTo(1)
 
+	ui:init()
+
 	CameraManager.setScale(SCALE)
 	CameraManager.setDeadzone(-GRID_SIZE, -GRID_SIZE, GRID_SIZE, GRID_SIZE)
 	CameraManager.setLerp(0.01)
@@ -173,19 +174,19 @@ function love.load()
 	-- TODO: Score system
 
 	if IsDebug then
-		debug:init(world)
+		debug:init(World)
 	end
 end
 
 function love.update(dt)
-	Player:update(dt, world)
+	Player:update(dt, World)
 
 	for _, level_enemy in ipairs(enemies) do
-		level_enemy:update(dt, world)
+		level_enemy:update(dt, World)
 	end
 
-	for _, level_door in ipairs(level_entities.doors) do
-		level_door:update(dt)
+	for _, level_entity in ipairs(level_entities) do
+		level_entity:update(dt)
 	end
 
 	-- FIXME: handle level changing
@@ -204,12 +205,12 @@ end
 function love.draw()
 	CameraManager.attach()
 
-	for _, level_element in ipairs(level_elements) do
-		level_element:draw()
+	for _, level_block in ipairs(level_blocks) do
+		level_block:draw()
 	end
 
-	for _, level_door in ipairs(level_entities.doors) do
-		level_door:draw()
+	for _, level_entity in ipairs(level_entities) do
+		level_entity:draw()
 	end
 
 	for _, level_enemy in ipairs(enemies) do
@@ -224,7 +225,7 @@ function love.draw()
 
 	CameraManager.detach()
 
-	ui:drawHUD(Player.health)
+	ui:drawHUD()
 
 	if IsDebug then
 		-- CameraManager.debug()
