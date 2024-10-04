@@ -142,14 +142,14 @@
 
    - [x] Integrate LDTK for level design
    - [x] Implement basic enemy AI
-   - [ ] Design and create 3 levels
 
 3. **Week 5-6 10/04: Gameplay Systems and Polish**
 
-   - [ ] Implement score system
+   - [x] Implement score system
+   - [x] Create basic UI
+   - [x] Implement sound effects and background music
+   - [ ] Design and create 3 levels
    - [ ] Add game states (menu, pause, game over)
-   - [ ] Create basic UI
-   - [ ] Implement sound effects and background music
 
 4. **Week 7-8 10/18: Testing and Deployment**
    - [ ] Thorough playtesting and bug fixing

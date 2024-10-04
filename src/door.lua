@@ -1,5 +1,5 @@
 local anim8 = require("lib.anim8")
-local ldtk = require("lib.ldtk-love.ldtk")
+-- local ldtk = require("lib.ldtk-love.ldtk")
 
 local Door = {}
 Door.__index = Door
@@ -7,11 +7,12 @@ Door.__index = Door
 local sprite_width = 46
 local sprite_height = 56
 
-function Door.new(x, y, next_level_id)
+function Door.new(x, y, ldtk, next_level_id)
 	local self = setmetatable({}, Door)
 
 	self.x = x
 	self.y = y
+	self.ldtk = ldtk
 	self.width = sprite_width
 	self.height = sprite_height
 	self.is_door = true
@@ -39,6 +40,7 @@ function Door:init()
 	self.animations.closing = anim8.newAnimation(self.opening_grid("1-3", 1), 0.1)
 
 	self.current_animation = self.animations.idle
+	World:add(self, self.x - self.width / 2, self.y - self.height, self.width, self.height)
 end
 
 function Door:update(dt)
@@ -52,7 +54,7 @@ function Door:enter()
 	love.graphics.setColor(0, 0, 0, 1)
 	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 	love.graphics.setColor(1, 1, 1, 1)
-	ldtk:goTo(self.next_level_id)
+	self.ldtk:goTo(2)
 end
 
 function Door:draw()

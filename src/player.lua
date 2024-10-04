@@ -125,7 +125,7 @@ function Player:setupStates()
 			self.currentAnimation = self.animations.attack
 			self.currentAnimation:gotoFrame(1)
 			self.currentAnimation:resume()
-			sfx:playAttack()
+			sfx:play("player.attack")
 		end,
 		update = function(_)
 			if self.currentAnimation.status == "paused" then
@@ -167,7 +167,7 @@ function Player:setupStates()
 			self.currentAnimation = self.animations.attack
 			self.currentAnimation:gotoFrame(1)
 			self.currentAnimation:resume()
-			sfx:playAttack()
+			sfx:play("player.attack")
 		end,
 		update = function(_, dt)
 			self:handleMovement(dt) -- Update movement while attacking
@@ -185,6 +185,7 @@ function Player:setupStates()
 	self.stateMachine:addState("entering", {
 		enter = function()
 			self.currentAnimation = self.animations.idle
+			sfx:play("door")
 		end,
 	})
 
@@ -246,7 +247,7 @@ function Player:update(dt)
 	self.currentAnimation:update(dt)
 end
 
-function Player:keypressed(key, level_entities)
+function Player:keypressed(key)
 	if key == keymaps.up then
 		local actual_x, actual_y, cols, len = World:check(self, self.x, self.y, playerFilter)
 		for i = 1, len do

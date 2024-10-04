@@ -30,16 +30,7 @@
 				"height": 16,
 				"color": 14120515,
 				"customFields": {
-					"patrol": [
-						{
-							"cx": 24,
-							"cy": 19
-						},
-						{
-							"cx": 33,
-							"cy": 19
-						}
-					]
+					"patrol": null
 				}
 			}
 		],

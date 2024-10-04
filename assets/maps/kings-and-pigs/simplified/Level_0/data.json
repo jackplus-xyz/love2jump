@@ -37,35 +37,32 @@
 				"id": "Enemy",
 				"iid": "81749c50-4ce0-11ef-b36d-1187bc80f5af",
 				"layer": "Entities",
-				"x": 1000,
+				"x": 984,
 				"y": 352,
 				"width": 16,
 				"height": 16,
 				"color": 14120515,
 				"customFields": {
-					"patrol": [
-						{
-							"cx": 50,
-							"cy": 21
-						},
-						{
-							"cx": 64,
-							"cy": 21
-						}
-					]
+					"patrol": {
+						"cx": 41,
+						"cy": 21
+					}
 				}
 			},
 			{
 				"id": "Enemy",
-				"iid": "2c86d7f0-73f0-11ef-86a8-8d7c1603f22e",
+				"iid": "12d442d0-73f0-11ef-a13d-573c82e0470f",
 				"layer": "Entities",
-				"x": 168,
-				"y": 288,
+				"x": 1176,
+				"y": 320,
 				"width": 16,
 				"height": 16,
 				"color": 14120515,
 				"customFields": {
-					"patrol": []
+					"patrol": {
+						"cx": 66,
+						"cy": 19
+					}
 				}
 			}
 		],
@@ -90,10 +87,10 @@
 				"id": "Coin",
 				"iid": "f02ae400-73f0-11ef-86a8-07a581be19b2",
 				"layer": "Entities",
-				"x": 72,
+				"x": 120,
 				"y": 288,
-				"width": 32,
-				"height": 32,
+				"width": 16,
+				"height": 16,
 				"color": 14984818,
 				"customFields" : {}
 			}

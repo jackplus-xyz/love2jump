@@ -84,7 +84,7 @@ local function onEntity(entity)
 		local new_enemy = enemy.new(entity.x, entity.y, entity.props.patrol)
 		table.insert(enemies, new_enemy)
 	elseif entity.id == "Door" then
-		local new_door = door.new(entity.x, entity.y, entity.props.nextLevelId)
+		local new_door = door.new(entity.x, entity.y, ldtk, entity.props.nextLevelId)
 		table.insert(level_entities, new_door)
 	elseif entity.id == "Coin" then
 		local new_coin = coin.new(entity.x, entity.y)
