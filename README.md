@@ -192,6 +192,22 @@
 - [x] Score system
 - [ ] Game states (load/save/pause)
 
+### 10/18/2024
+
+**Todo**:
+
+- [ ] Implement hitbox
+- [ ] Add interaction between player and enemy(attack, damage)
+- [ ] Fix level transition system
+- [ ] Game states (load/save/pause)
+- [ ] Enemy patrol logic improvements
+
+**Fix**:
+
+- [ ] Level transition
+- [ ] Tile on the corner is not drawn correctly
+- [ ] Enemy movement animation doesn't flip correctly
+
 ## Notes and Ideas
 
 - Consider adding a double-jump or wall-jump mechanic for more interesting platforming
