@@ -1,5 +1,5 @@
 local anim8 = require("lib.anim8")
-local ldtk = require("lib.ldtk-love.ldtk")
+-- local ldtk = require("lib.ldtk-love.ldtk")
 
 local Door = {}
 Door.__index = Door
@@ -14,6 +14,7 @@ function Door.new(x, y, props)
 	self.is_next = props.isNext
 	self.x = x
 	self.y = y
+	self.ldtk = ldtk
 	self.width = sprite_width
 	self.height = sprite_height
 	self.x_offset = self.width / SCALE
@@ -41,6 +42,7 @@ function Door:init()
 	self.animations.closing = anim8.newAnimation(self.opening_grid("1-3", 1), 0.1)
 
 	self.current_animation = self.animations.idle
+	World:add(self, self.x - self.width / 2, self.y - self.height, self.width, self.height)
 end
 
 function Door:update(dt)

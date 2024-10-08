@@ -15,8 +15,8 @@ function enemy.new(x, y, props)
 	self.y = y
 	self.width = 18
 	self.height = 17
-	self.speed = 50
-	self.direction = 1
+	self.speed = 100
+	self.direction = 0
 	self.y_velocity = 0
 	self.jump_strength = -1300
 	self.jump_cooldown = 0
@@ -32,6 +32,7 @@ function enemy.new(x, y, props)
 	self.stateMachine = StateMachine.new()
 	self:setupStates()
 
+	World:add(self, self.x - self.width / 2, self.y - self.height, self.width, self.height)
 	return self
 end
 

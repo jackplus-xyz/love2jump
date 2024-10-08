@@ -29,6 +29,7 @@ local notes = {
 	REST = 0,
 }
 
+-- Sound generation functions
 local function generateNoise()
 	return math.random() * 2 - 1
 end
@@ -43,67 +44,81 @@ local function generateSquare(t, freq)
 	return (t * freq) % 1 < 0.5 and 0.5 or -0.5
 end
 
--- New function for attack sound
-local function generateAttackSound(t, duration)
-	local freq = 100 + 400 * (1 - t / duration)
-	return generateSquare(t, freq) * (1 - t / duration)
-end
+-- Sound effect definitions
+local soundEffects = {
+	["player.attack"] = {
+		duration = 0.2,
+		generate = function(t, duration)
+			local freq = 100 + 400 * (1 - t / duration)
+			return generateSquare(t, freq) * (1 - t / duration)
+		end,
+	},
+	["door.enter"] = {
+		duration = 0.5,
+		generate = function(t, duration)
+			local freq = 200 + 100 * math.sin(t * 20)
+			return generateTriangle(t, freq) * (1 - t / duration) * 0.5
+		end,
+	},
+	["enemy.hit"] = {
+		duration = 0.15,
+		generate = function(t, duration)
+			local freq = 300 + 200 * (t / duration)
+			return generateNoise() * generateSquare(t, freq) * (1 - t / duration)
+		end,
+	},
+}
 
--- New function for door opening sound
-local function generateDoorSound(t, duration)
-	local freq = 200 + 100 * math.sin(t * 20)
-	return generateTriangle(t, freq) * (1 - t / duration) * 0.5
-end
-
+-- Generate sound data for all effects
 function sfx:load()
-	local soundData = love.sound.newSoundData(sample_rate * duration, sample_rate, 16, 1)
-
-	-- Generate attack sound
-	local attack_duration = 0.2
-	for i = 0, math.floor(sample_rate * attack_duration) do
-		local t = i / sample_rate
-		local sample = generateAttackSound(t, attack_duration)
-		soundData:setSample(i, sample)
+	self.sources = {}
+	for name, effect in pairs(soundEffects) do
+		local soundData = love.sound.newSoundData(math.floor(sample_rate * effect.duration), sample_rate, 16, 1)
+		for i = 0, soundData:getSampleCount() - 1 do
+			local t = i / sample_rate
+			local sample = effect.generate(t, effect.duration)
+			soundData:setSample(i, sample)
+		end
+		self.sources[name] = love.audio.newSource(soundData, "static")
 	end
+end
 
-	-- Generate door opening sound
-	local doorDuration = 0.5
-	local doorStart = math.floor(sample_rate * attack_duration)
-	for i = 0, math.floor(sample_rate * doorDuration) do
-		local t = i / sample_rate
-		local sample = generateDoorSound(t, doorDuration)
-		soundData:setSample(doorStart + i, sample)
+-- Play a specific sound effect
+function sfx:play(name)
+	if self.sources[name] then
+		self.sources[name]:stop()
+		self.sources[name]:play()
+	else
+		print("Sound effect not found: " .. name)
 	end
-
-	self.sfxSource = love.audio.newSource(soundData, "static")
 end
 
-function sfx:playAttack()
-	self.sfxSource:setLooping(false)
-	self.sfxSource:seek(0)
-	self.sfxSource:play()
+-- Stop a specific sound effect
+function sfx:stop(name)
+	if self.sources[name] then
+		self.sources[name]:stop()
+	end
 end
 
-function sfx:playDoorOpen()
-	self.sfxSource:setLooping(false)
-	self.sfxSource:seek(0.2) -- Start after the attack sound
-	self.sfxSource:play()
+-- Pause a specific sound effect
+function sfx:pause(name)
+	if self.sources[name] then
+		self.sources[name]:pause()
+	end
 end
 
-function sfx:stop()
-	self.sfxSource:stop()
+-- Resume a specific sound effect
+function sfx:resume(name)
+	if self.sources[name] then
+		self.sources[name]:play()
+	end
 end
 
-function sfx:pause()
-	self.sfxSource:pause()
-end
-
-function sfx:resume()
-	self.sfxSource:play()
-end
-
-function sfx:setVolume(volume)
-	self.sfxSource:setVolume(volume)
+-- Set volume for a specific sound effect
+function sfx:setVolume(name, volume)
+	if self.sources[name] then
+		self.sources[name]:setVolume(volume)
+	end
 end
 
 return sfx

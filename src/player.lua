@@ -255,7 +255,7 @@ function Player:update(dt)
 	self.current_animation:update(dt)
 end
 
-function Player:keypressed(key, level_entities)
+function Player:keypressed(key)
 	if key == keymaps.up then
 		local _, _, cols, len = World:check(self, self.x, self.y, playerFilter)
 		for i = 1, len do
