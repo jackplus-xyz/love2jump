@@ -19,7 +19,7 @@
 				"id": "Player",
 				"iid": "f9650e20-4ce0-11ef-b36d-d966ce525d4f",
 				"layer": "Entities",
-				"x": 224,
+				"x": 208,
 				"y": 224,
 				"width": 16,
 				"height": 16,
@@ -38,7 +38,7 @@
 				"height": 16,
 				"color": 15389866,
 				"customFields": {
-					"isNext": false
+					"isNext": true
 				}
 			}
 		],
@@ -69,8 +69,20 @@
 					"patrol": {
 						"cx": 48,
 						"cy": 21
-					},
-					"testString": null
+					}
+				}
+			},
+			{
+				"id": "Enemy",
+				"iid": "50e977a0-73f0-11ef-8aaa-0788a8d4218e",
+				"layer": "Entities",
+				"x": 1160,
+				"y": 144,
+				"width": 16,
+				"height": 16,
+				"color": 14120515,
+				"customFields": {
+					"patrol": null
 				}
 			}
 		]

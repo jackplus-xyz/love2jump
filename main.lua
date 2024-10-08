@@ -20,7 +20,7 @@ local level_enemies = {}
 local keymaps = require("config.keymaps")
 
 -- Source
-local ui = require("src.ui")
+local ui = require("src.ui.ui")
 local bgm = require("src.bgm")
 local sfx = require("src.sfx")
 local player = require("src.player")
@@ -85,9 +85,6 @@ local function onEntity(entity)
 		World:add(Player, Player.x - Player.width / 2, Player.y - Player.height, Player.width, Player.height)
 	elseif entity.id == "Enemy" then
 		local new_enemy = enemy.new(entity.x, entity.y, entity.props)
-		if entity.props.testString then
-			print(entity.props.testString)
-		end
 		World:add(
 			new_enemy,
 			new_enemy.x - new_enemy.width,
@@ -136,17 +133,19 @@ local function onLayer(layer)
 end
 
 local function onLevelLoaded(level)
-	--removing all objects so we have a blank level
-	-- local function clearWorld(items)
-	-- 	for _, item in pairs(items) do
-	-- 		World:remove(items)
-	-- 	end
-	-- end
+	-- removing all objects so we have a blank level
+	local function clearWorld(items)
+		for _, item in pairs(items) do
+			if World:hasItem(item) then
+				World:remove(item)
+			end
+		end
+	end
 
-	-- clearWorld(level_blocks)
-	-- clearWorld(level_entities)
-	-- clearWorld(level_enemies)
-	-- clearWorld(debug_blocks)
+	clearWorld(level_blocks)
+	clearWorld(level_entities)
+	clearWorld(level_enemies)
+	clearWorld(debug_blocks)
 
 	level_blocks = {}
 	level_entities = {}
@@ -208,6 +207,8 @@ function love.load()
 
 	ui:init()
 
+	-- TODO: Title screen
+
 	CameraManager.setScale(SCALE)
 	CameraManager.setDeadzone(-GRID_SIZE, -GRID_SIZE, GRID_SIZE, GRID_SIZE)
 	CameraManager.setLerp(0.01)
@@ -265,10 +266,10 @@ function love.draw()
 
 	CameraManager.detach()
 
-	ui:drawHUD()
+	ui:draw()
 
 	if IsDebug then
-		-- CameraManager.debug()
+		CameraManager.debug()
 		debug:draw(100)
 	end
 end
@@ -280,5 +281,7 @@ function love.keypressed(key)
 		IsDebug = not IsDebug
 	end
 
-	Player:keypressed(key, level_entities)
+	-- TODO: add pause and setttings menu
+
+	Player:keypressed(key)
 end

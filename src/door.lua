@@ -1,4 +1,4 @@
-local anim8 = require("lib.anim8")
+local anim8 = require("lib.anim8.anim8")
 local ldtk = require("lib.ldtk-love.ldtk")
 local sfx = require("src.sfx")
 
@@ -13,6 +13,8 @@ function Door.new(x, y, props)
 
 	self.is_door = true
 	self.is_next = props.isNext
+	self.timer = 3
+
 	self.x = x
 	self.y = y
 	self.width = sprite_width
@@ -50,6 +52,7 @@ function Door:update(dt)
 	end
 end
 
+-- TODO: Level transition animation
 function Door:enter()
 	self.current_animation = self.animations.opening
 	sfx:play("door.enter")
@@ -61,10 +64,8 @@ function Door:enter()
 	end
 end
 
+-- FIXME: weird collision when jumping on the door
 function Door:draw()
-	local x_offset = self.width / SCALE
-	local y_offset = self.height
-
 	self.current_animation:draw(
 		self.current_animation == self.animations.opening and self.opening_image
 			or self.current_animation == self.animations.closing and self.closing_image
@@ -81,7 +82,7 @@ function Door:draw()
 	-- Draw debugging box
 	if IsDebug then
 		love.graphics.setColor(1, 1, 1)
-		love.graphics.rectangle("line", self.x - self.x_offset, self.y - y_offset, self.width, self.height)
+		love.graphics.rectangle("line", self.x - self.x_offset, self.y - self.y_offset, self.width, self.height)
 	end
 end
 

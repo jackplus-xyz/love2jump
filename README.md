@@ -196,11 +196,12 @@
 
 #### Added
 
+- [ ] Game states (load/save/pause)
+- [ ] Level transition animation
 - [ ] Hitbox
 - [ ] Interaction between player and enemy(attack, damage)
 - [ ] Title menu
 - [ ] Settings menu
-- [ ] Game states (load/save/pause)
 - [x] Interaction between player and coin
 - [x] Interaction between player and door
 - [x] Score system(coins)
@@ -211,7 +212,7 @@
 
 #### Fixed
 
-- [ ] Level transition
+- [x] Level transitioning is working now
 - [x] Tile on the corner is not drawn correctly
 - [x] Improve enemy patrol logic to handle falling
 - [x] Enemy image `offset_x` is too high

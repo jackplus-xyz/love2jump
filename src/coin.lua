@@ -1,4 +1,4 @@
-local anim8 = require("lib.anim8")
+local anim8 = require("lib.anim8.anim8")
 local sfx = require("src.sfx")
 local ldtk = require("lib.ldtk-love.ldtk")
 
@@ -61,6 +61,7 @@ function Coin:collect()
 end
 
 function Coin:draw()
+	-- TODO: add animation offset across coins
 	if not self.is_collected or self.timer >= 0 then
 		self.current_animation:draw(
 			self.current_animation == self.animations.hit and self.hit_image or self.idle_image,

@@ -1,4 +1,4 @@
-local anim8 = require("lib.anim8")
+local anim8 = require("lib.anim8.anim8")
 local StateMachine = require("src.utils.state_machine")
 
 ---@class enemy
@@ -205,6 +205,7 @@ function Enemy:move(goal_x, goal_y)
 	self.x, self.y = actual_x, actual_y
 end
 
+-- TODO: improve patrol logic to check if target is reachable
 function Enemy:isPathTo(goal_x, goal_y)
 	local actual_x, actual_y, cols, len = World:check(self, goal_x, goal_y)
 	if self.y == goal_y and len == 0 then
@@ -241,7 +242,7 @@ function Enemy:draw()
 	local scale_x = (self.direction == -1) and 1 or -1
 	local offset_x = (self.direction == -1) and 0 or self.width -- Shift the sprite to the correct position when flipped
 
-	-- TODO: add offset
+	-- TODO: add animation offset across enemy
 	self.current_animation:draw(
 		self.current_animation == self.animations.idle and self.idle_image
 			or self.current_animation == self.animations.run and self.run_image

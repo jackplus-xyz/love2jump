@@ -1,4 +1,4 @@
-local anim8 = require("lib.anim8")
+local anim8 = require("lib.anim8.anim8")
 local keymaps = require("config.keymaps")
 local stateMachine = require("src.utils.state_machine")
 local sfx = require("src.sfx")
@@ -118,6 +118,7 @@ function Player:setupStates()
 		end,
 	})
 
+	-- TODO: Add hitbox
 	self.stateMachine:addState("grounded.attacking", {
 		enter = function()
 			self.current_animation = self.animations.attack
@@ -163,7 +164,7 @@ function Player:setupStates()
 			self.current_animation = self.animations.attack
 			self.current_animation:gotoFrame(1)
 			self.current_animation:resume()
-			sfx:playAttack()
+			sfx:play("player.attack")
 		end,
 		update = function(_, dt)
 			-- Update jump cooldown
@@ -255,7 +256,6 @@ function Player:update(dt)
 	self.current_animation:update(dt)
 end
 
--- FIXME: kepress not working bug
 function Player:keypressed(key)
 	if key == keymaps.up then
 		local _, _, cols, len = World:check(self, self.x, self.y, playerFilter)
@@ -264,6 +264,7 @@ function Player:keypressed(key)
 			if other.is_door then
 				self.stateMachine:setState("entering")
 				other:enter()
+				self.stateMachine:setState("grounded")
 			end
 		end
 	else
