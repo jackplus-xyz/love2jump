@@ -53,6 +53,13 @@ local soundEffects = {
 			return generateSquare(t, freq) * (1 - t / duration)
 		end,
 	},
+	["coin.collected"] = {
+		duration = 0.3, -- Short and sweet
+		generate = function(t, duration)
+			local freq = 800 + 1000 * (t / duration) -- Frequency rises quickly
+			return generateSquare(t, freq) * (1 - t / duration) -- Square wave, decreasing in volume
+		end,
+	},
 	["door.enter"] = {
 		duration = 0.5,
 		generate = function(t, duration)

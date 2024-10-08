@@ -25,7 +25,22 @@
 				"height": 16,
 				"color": 14120515,
 				"customFields": {
-					"patrol": null
+					"patrol": null,
+					"testString": null
+				}
+			},
+			{
+				"id": "Enemy",
+				"iid": "83a58370-73f0-11ef-8aaa-8fb35b9ca40c",
+				"layer": "Entities",
+				"x": 200,
+				"y": 256,
+				"width": 16,
+				"height": 16,
+				"color": 14120515,
+				"customFields": {
+					"patrol": null,
+					"testString": "Level2"
 				}
 			}
 		],

@@ -85,6 +85,9 @@ local function onEntity(entity)
 		World:add(Player, Player.x - Player.width / 2, Player.y - Player.height, Player.width, Player.height)
 	elseif entity.id == "Enemy" then
 		local new_enemy = enemy.new(entity.x, entity.y, entity.props)
+		if entity.props.testString then
+			print(entity.props.testString)
+		end
 		World:add(
 			new_enemy,
 			new_enemy.x - new_enemy.width,

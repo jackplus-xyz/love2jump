@@ -32,7 +32,6 @@ function enemy.new(x, y, props)
 	self.stateMachine = StateMachine.new()
 	self:setupStates()
 
-	World:add(self, self.x - self.width / 2, self.y - self.height, self.width, self.height)
 	return self
 end
 

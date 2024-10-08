@@ -53,8 +53,7 @@ function Coin:update(dt)
 end
 
 function Coin:collect()
-	-- TODO: add coin collected sfx
-	sfx:playDoorOpen()
+	sfx:play("coin.collected")
 	self.current_animation = self.animations.hit
 	self.is_collected = true
 

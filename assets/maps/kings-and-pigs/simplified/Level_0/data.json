@@ -69,8 +69,10 @@
 					"patrol": {
 						"cx": 48,
 						"cy": 21
-					}
+					},
+					"testString": null
 				}
 			}
 		]
 	}
+}

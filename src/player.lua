@@ -123,7 +123,7 @@ function Player:setupStates()
 			self.current_animation = self.animations.attack
 			self.current_animation:gotoFrame(1)
 			self.current_animation:resume()
-			sfx:playAttack()
+			sfx:play("player.attack")
 		end,
 		update = function(_)
 			if self.current_animation.status == "paused" then
@@ -255,6 +255,7 @@ function Player:update(dt)
 	self.current_animation:update(dt)
 end
 
+-- FIXME: kepress not working bug
 function Player:keypressed(key)
 	if key == keymaps.up then
 		local _, _, cols, len = World:check(self, self.x, self.y, playerFilter)
