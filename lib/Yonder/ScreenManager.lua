@@ -10,7 +10,8 @@ Simple! All you have to do is do "require(<directory to this module>)" in main.l
 
 For details check out main.lua in this repo: https://github.com/thenerdie/Yonder
 
-]]--
+]]
+--
 
 local verbose = true
 local very_verbose = false
@@ -28,8 +29,8 @@ local function puts(str, reqVeryVerbosePerms)
 end
 
 local gameStates = { -- this is where you set the directories of your screens
-	["landing"] = require("Screens/LandingScreen");
-	["songs"] = require("Screens/SongSelect")
+	["landing"] = require("src.screens/landing_screen"),
+	-- ["songs"] = require("Screens/SongSelect")
 }
 
 local currState = nil
@@ -43,7 +44,7 @@ function self:SwitchStates(newState, supressLoad)
 	else
 		currState = newState
 		if not supressLoad then
-			puts("Loaded screen \"" .. newState .. "\"; :Load() suppressed = " .. tostring(not not supressLoad))
+			puts('Loaded screen "' .. newState .. '"; :Load() suppressed = ' .. tostring(not not supressLoad))
 			self:Load()
 		end
 	end
@@ -60,9 +61,9 @@ function self:Update(dt)
 	if currState ~= nil then
 		if gameStates[currState].Update then
 			gameStates[currState]:Update(dt)
-			puts(":Update called; DT = " .. dt .. "; FPS = " .. 1/dt, true)
+			puts(":Update called; DT = " .. dt .. "; FPS = " .. 1 / dt, true)
 		else
-			puts(":Update called but unimplemented; DT = " .. dt .. "; FPS = " .. 1/dt, true)
+			puts(":Update called but unimplemented; DT = " .. dt .. "; FPS = " .. 1 / dt, true)
 		end
 	end
 end
@@ -110,7 +111,7 @@ function self:Load()
 	if currState ~= nil then
 		if gameStates[currState].Load then
 			gameStates[currState]:Load(self)
-			puts("Loaded screen \"" .. currState .. "\" successfully!")
+			puts('Loaded screen "' .. currState .. '" successfully!')
 		else
 			puts(":Load() unimplemented in Screen")
 		end

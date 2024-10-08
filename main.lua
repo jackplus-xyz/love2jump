@@ -5,6 +5,7 @@ SCALE = 2
 -- Libraries
 local ldtk = require("lib.ldtk-love.ldtk")
 local bump = require("lib.bump.bump")
+local ScreenManager = require("lib.Yonder").ScreenManager
 
 -- Global Variables
 IsDebug = false
@@ -190,9 +191,11 @@ function love.load()
 	--load the data and resources
 	require("src.assets.fonts")
 
+	ScreenManager:SwitchStates("exampleScreen")
+
 	sfx:load()
 	bgm:load()
-	-- bgm:play()
+	bgm:play()
 
 	-- TODO: Add game menu
 
@@ -223,6 +226,8 @@ function love.load()
 end
 
 function love.update(dt)
+	ScreenManager:Update(dt)
+
 	Player:update(dt, World)
 
 	for _, level_enemy in ipairs(level_enemies) do
@@ -275,6 +280,7 @@ function love.draw()
 end
 
 function love.keypressed(key)
+	ScreenManager:KeyPressed(key)
 	if key == keymaps.escape then
 		love.event.quit()
 	elseif key == keymaps.debug then
@@ -284,4 +290,20 @@ function love.keypressed(key)
 	-- TODO: add pause and setttings menu
 
 	Player:keypressed(key)
+end
+
+function love.keyreleased(key)
+	ScreenManager:KeyReleased(key)
+end
+
+function love.mousepressed(x, y, button)
+	ScreenManager:MousePressed(x, y, button)
+end
+
+function love.mousereleased(x, y, button)
+	ScreenManager:MouseReleased(x, y, button)
+end
+
+function love.mousemoved(x, y, dx, dy, istouch)
+	ScreenManager:MouseMoved(x, y, dx, dy, istouch)
 end

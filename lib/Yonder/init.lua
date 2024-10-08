@@ -1,1 +1,1 @@
-return {ScreenManager=require("Yonder/ScreenManager")}
+return { ScreenManager = require("lib.Yonder/ScreenManager") }
