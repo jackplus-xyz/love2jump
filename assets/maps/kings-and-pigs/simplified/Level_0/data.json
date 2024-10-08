@@ -1,17 +1,12 @@
 {
 	"identifier": "Level_0",
 	"uniqueIdentifer": "b4d85180-4ce0-11ef-bef9-855b2d68e758",
-	"x": 1088,
-	"y": -592,
+	"x": -1,
+	"y": -1,
 	"width": 1952,
 	"height": 400,
 	"bgColor": "#3F3851",
-	"neighbourLevels": [
-		{
-			"levelIid": "b8aad920-4ce0-11ef-abbd-6dcda695e919",
-			"dir": "s"
-		}
-	],
+	"neighbourLevels": [],
 	"customFields" : {},
 	"layers": [
 		"Bg_textures.png",
@@ -24,49 +19,12 @@
 				"id": "Player",
 				"iid": "f9650e20-4ce0-11ef-b36d-d966ce525d4f",
 				"layer": "Entities",
-				"x": 256,
-				"y": 288,
+				"x": 224,
+				"y": 224,
 				"width": 16,
 				"height": 16,
 				"color": 12470831,
 				"customFields" : {}
-			}
-		],
-		"Enemy": [
-			{
-				"id": "Enemy",
-				"iid": "81749c50-4ce0-11ef-b36d-1187bc80f5af",
-				"layer": "Entities",
-				"x": 1000,
-				"y": 352,
-				"width": 16,
-				"height": 16,
-				"color": 14120515,
-				"customFields": {
-					"patrol": [
-						{
-							"cx": 50,
-							"cy": 21
-						},
-						{
-							"cx": 64,
-							"cy": 21
-						}
-					]
-				}
-			},
-			{
-				"id": "Enemy",
-				"iid": "2c86d7f0-73f0-11ef-86a8-8d7c1603f22e",
-				"layer": "Entities",
-				"x": 168,
-				"y": 288,
-				"width": 16,
-				"height": 16,
-				"color": 14120515,
-				"customFields": {
-					"patrol": []
-				}
 			}
 		],
 		"Door": [
@@ -76,12 +34,11 @@
 				"layer": "Entities",
 				"x": 360,
 				"y": 288,
-				"width": 46,
-				"height": 56,
+				"width": 16,
+				"height": 16,
 				"color": 15389866,
 				"customFields": {
-					"nextLevelId": 2,
-					"Entity_ref": null
+					"isNext": false
 				}
 			}
 		],
@@ -90,12 +47,30 @@
 				"id": "Coin",
 				"iid": "f02ae400-73f0-11ef-86a8-07a581be19b2",
 				"layer": "Entities",
-				"x": 72,
-				"y": 288,
-				"width": 32,
-				"height": 32,
+				"x": 88,
+				"y": 256,
+				"width": 16,
+				"height": 16,
 				"color": 14984818,
 				"customFields" : {}
+			}
+		],
+		"Enemy": [
+			{
+				"id": "Enemy",
+				"iid": "0260b050-73f0-11ef-8f65-ab824bb2882e",
+				"layer": "Entities",
+				"x": 664,
+				"y": 352,
+				"width": 16,
+				"height": 16,
+				"color": 14120515,
+				"customFields": {
+					"patrol": {
+						"cx": 48,
+						"cy": 21
+					}
+				}
 			}
 		]
 	}

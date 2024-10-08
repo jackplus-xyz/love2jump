@@ -46,8 +46,8 @@ end
 
 function debug:draw(y_offset)
 	y_offset = y_offset or 0
-	love.graphics.setFont(fonts.debug)
 
+	love.graphics.setFont(fonts.debug)
 	love.graphics.setColor(0, 0, 0, 0.7)
 	love.graphics.rectangle("fill", 16, 16 + y_offset, 360, 20 * #self.infoTable + 10)
 	love.graphics.setColor(1, 1, 1, 1)

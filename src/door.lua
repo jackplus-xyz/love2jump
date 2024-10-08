@@ -7,15 +7,17 @@ Door.__index = Door
 local sprite_width = 46
 local sprite_height = 56
 
-function Door.new(x, y, next_level_id)
+function Door.new(x, y, props)
 	local self = setmetatable({}, Door)
 
+	self.is_door = true
+	self.is_next = props.isNext
 	self.x = x
 	self.y = y
 	self.width = sprite_width
 	self.height = sprite_height
-	self.is_door = true
-	self.next_level_id = next_level_id
+	self.x_offset = self.width / SCALE
+	self.y_offset = self.height
 
 	self.current_animation = nil
 	self.animations = {}
@@ -49,13 +51,18 @@ end
 
 function Door:enter()
 	self.current_animation = self.animations.opening
-	love.graphics.setColor(0, 0, 0, 1)
-	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-	love.graphics.setColor(1, 1, 1, 1)
-	ldtk:goTo(self.next_level_id)
+
+	if self.is_next then
+		ldtk:next()
+	else
+		ldtk:previous()
+	end
 end
 
 function Door:draw()
+	local x_offset = self.width / SCALE
+	local y_offset = self.height
+
 	self.current_animation:draw(
 		self.current_animation == self.animations.opening and self.opening_image
 			or self.current_animation == self.animations.closing and self.closing_image
@@ -65,9 +72,15 @@ function Door:draw()
 		0,
 		1,
 		1,
-		sprite_width,
-		sprite_height
+		self.x_offset,
+		self.y_offset
 	)
+
+	-- Draw debugging box
+	if IsDebug then
+		love.graphics.setColor(1, 1, 1)
+		love.graphics.rectangle("line", self.x - self.x_offset, self.y - y_offset, self.width, self.height)
+	end
 end
 
 return Door

@@ -192,21 +192,41 @@
 - [x] Score system
 - [ ] Game states (load/save/pause)
 
-### 10/18/2024
+### 10/11/2024
 
-**Todo**:
+#### Added
 
-- [ ] Implement hitbox
-- [ ] Add interaction between player and enemy(attack, damage)
-- [ ] Fix level transition system
+- [ ] Hitbox
+- [ ] Interaction between player and enemy(attack, damage)
+- [ ] Title menu
+- [ ] Settings menu
 - [ ] Game states (load/save/pause)
-- [ ] Enemy patrol logic improvements
+- [x] Interaction between player and coin
+- [x] Interaction between player and door
+- [x] Score system(coins)
 
-**Fix**:
+#### Changed
+
+- [x] Improve gravity logic
+
+#### Fixed
 
 - [ ] Level transition
-- [ ] Tile on the corner is not drawn correctly
-- [ ] Enemy movement animation doesn't flip correctly
+- [x] Tile on the corner is not drawn correctly
+- [x] Improve enemy patrol logic to handle falling
+- [x] Enemy image `offset_x` is too high
+- [x] Enemy movement animation doesn't flip correctly
+
+### 10/18/2024
+
+#### Added
+
+#### Changed
+
+- [ ] Improve enemy patrol logic to handle unreachable points
+- [ ] Improve tileset rules
+
+#### Fixed
 
 ## Notes and Ideas
 

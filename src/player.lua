@@ -46,8 +46,6 @@ function player.new(x, y)
 	self.health = 3
 	self.max_health = 3
 
-	World:add(self, self.x - self.width / 2, self.y - self.height, self.width, self.height)
-
 	self.current_animation = nil
 	self.animations = {}
 	self:loadAnimations()
@@ -100,7 +98,7 @@ end
 function Player:setupStates()
 	self.stateMachine:addState("grounded", {
 		enter = function()
-			self.currentAnimation = self.animations.idle
+			self.current_animation = self.animations.idle
 		end,
 		update = function(_, dt)
 			self:handleMovement(dt)
@@ -122,13 +120,13 @@ function Player:setupStates()
 
 	self.stateMachine:addState("grounded.attacking", {
 		enter = function()
-			self.currentAnimation = self.animations.attack
-			self.currentAnimation:gotoFrame(1)
-			self.currentAnimation:resume()
+			self.current_animation = self.animations.attack
+			self.current_animation:gotoFrame(1)
+			self.current_animation:resume()
 			sfx:playAttack()
 		end,
 		update = function(_)
-			if self.currentAnimation.status == "paused" then
+			if self.current_animation.status == "paused" then
 				self.stateMachine:setState("grounded")
 			end
 		end,
@@ -136,26 +134,24 @@ function Player:setupStates()
 
 	self.stateMachine:addState("airborne", {
 		enter = function()
-			self.currentAnimation = self.animations.jump
+			self:setAirborneAnimation()
 		end,
 		update = function(_, dt)
-			-- Handle airborne movement
-			self:handleMovement(dt)
-
-			-- FIXME:check is falling
-			if self.y_velocity < -self.gravity then
-				self.currentAnimation = self.animations.jump
-			else
-				self.currentAnimation = self.animations.fall
+			-- Update jump cooldown
+			if self.jump_cooldown > 0 then
+				self.jump_cooldown = self.jump_cooldown - dt
 			end
 
+			self:setAirborneAnimation()
+			self:handleMovement(dt)
+
 			if self.y_velocity == 0 then
-				self.currentAnimation = self.animations.ground
+				self.current_animation = self.animations.ground
 				self.stateMachine:setState("grounded")
 			end
 		end,
 		keypressed = function(_, key)
-			-- Handle potential airborne attack
+			-- Handle airborne attack
 			if key == keymaps.attack then
 				self.stateMachine:setState("airborne.attacking")
 			end
@@ -164,15 +160,20 @@ function Player:setupStates()
 
 	self.stateMachine:addState("airborne.attacking", {
 		enter = function()
-			self.currentAnimation = self.animations.attack
-			self.currentAnimation:gotoFrame(1)
-			self.currentAnimation:resume()
+			self.current_animation = self.animations.attack
+			self.current_animation:gotoFrame(1)
+			self.current_animation:resume()
 			sfx:playAttack()
 		end,
 		update = function(_, dt)
+			-- Update jump cooldown
+			if self.jump_cooldown > 0 then
+				self.jump_cooldown = self.jump_cooldown - dt
+			end
+
 			self:handleMovement(dt) -- Update movement while attacking
 
-			if self.currentAnimation.status == "paused" then
+			if self.current_animation.status == "paused" then
 				if self.y_velocity == 0 then
 					self.stateMachine:setState("grounded")
 				else
@@ -184,7 +185,7 @@ function Player:setupStates()
 
 	self.stateMachine:addState("entering", {
 		enter = function()
-			self.currentAnimation = self.animations.idle
+			self.current_animation = self.animations.idle
 		end,
 	})
 
@@ -192,13 +193,17 @@ function Player:setupStates()
 	self.stateMachine:setState("grounded")
 end
 
+function Player:setAirborneAnimation()
+	self.current_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
+end
+
 function Player:handleMovement(dt)
 	local direction = 0
-	if love.keyboard.isDown(keymaps.left) then
-		direction = -1
-	end
+
 	if love.keyboard.isDown(keymaps.right) then
 		direction = 1
+	elseif love.keyboard.isDown(keymaps.left) then
+		direction = -1
 	end
 
 	local dx = 0
@@ -206,10 +211,10 @@ function Player:handleMovement(dt)
 		dx = self.speed * dt * direction
 		self.direction = direction
 		if self.stateMachine:getState("grounded") then
-			self.currentAnimation = self.animations.run
+			self.current_animation = self.animations.run
 		end
 	elseif self.stateMachine:getState("grounded") then
-		self.currentAnimation = self.animations.idle
+		self.current_animation = self.animations.idle
 	end
 
 	local goal_x = self.x + dx
@@ -220,35 +225,39 @@ end
 function Player:move(goal_x, goal_y)
 	local actual_x, actual_y, cols, len = World:move(self, goal_x, goal_y, playerFilter)
 
-	self.x, self.y = actual_x, actual_y
-
 	for i = 1, len do
-		local col = cols[i]
-
-		if col.normal.y < 0 then
-			self.y_velocity = 0
+		local other = cols[i].other
+		if other.is_coin then
+			other:collect()
+			self.coins = self.coins + 1
 		end
+	end
+
+	self.x, self.y = actual_x, actual_y
+end
+
+function Player:applyGravity(dt)
+	self.y_velocity = self.y_velocity + self.gravity * dt
+
+	local goal_y = self.y + self.y_velocity * dt
+	local _, _, _, len = World:check(self, self.x, goal_y)
+
+	if len > 0 then
+		self.y_velocity = 0
+	else
+		self:move(self.x, goal_y)
 	end
 end
 
 function Player:update(dt)
-	-- Update jump cooldown
-	if self.jump_cooldown > 0 then
-		self.jump_cooldown = self.jump_cooldown - dt
-	end
-
-	self.y_velocity = self.y_velocity + self.gravity * dt
-
-	local goal_y = self.y + self.y_velocity * dt
-	self:move(self.x, goal_y)
-
+	self:applyGravity(dt)
 	self.stateMachine:update(dt)
-	self.currentAnimation:update(dt)
+	self.current_animation:update(dt)
 end
 
 function Player:keypressed(key, level_entities)
 	if key == keymaps.up then
-		local actual_x, actual_y, cols, len = World:check(self, self.x, self.y, playerFilter)
+		local _, _, cols, len = World:check(self, self.x, self.y, playerFilter)
 		for i = 1, len do
 			local other = cols[i].other
 			if other.is_door then
@@ -267,12 +276,12 @@ function Player:draw()
 	local offsetX = (self.direction == -1) and self.width or 0 -- Shift the sprite to the correct position when flipped
 
 	-- Draw the current animation based on the last movement direction (flip horizontally when facing left)
-	self.currentAnimation:draw(
-		self.currentAnimation == self.animations.idle and self.idle_image
-			or self.currentAnimation == self.animations.run and self.run_image
-			or self.currentAnimation == self.animations.jump and self.jump_image
-			or self.currentAnimation == self.animations.fall and self.fall_image
-			or self.currentAnimation == self.animations.ground and self.ground_image
+	self.current_animation:draw(
+		self.current_animation == self.animations.idle and self.idle_image
+			or self.current_animation == self.animations.run and self.run_image
+			or self.current_animation == self.animations.jump and self.jump_image
+			or self.current_animation == self.animations.fall and self.fall_image
+			or self.current_animation == self.animations.ground and self.ground_image
 			or self.attack_image,
 		self.x + offsetX, -- Adjust the x position when flipping
 		self.y,

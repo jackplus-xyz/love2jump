@@ -7,7 +7,7 @@ local enemy = {}
 -- class table
 local Enemy = {}
 
-function enemy.new(x, y, patrol)
+function enemy.new(x, y, props)
 	local self = {}
 	setmetatable(self, { __index = Enemy })
 
@@ -23,11 +23,7 @@ function enemy.new(x, y, patrol)
 	self.jump_cooldown_time = 0.1
 	self.gravity = 1000
 
-	self.patrol = patrol
-	self.currentPatrolIndex = 1
-	self.patrolDirection = 1
-
-	World:add(self, self.x - self.width / 2, self.y - self.height, self.width, self.height)
+	self.patrol = props.patrol
 
 	self.current_animation = nil
 	self.animations = {}
@@ -80,156 +76,172 @@ function Enemy:loadAnimations()
 end
 
 function Enemy:setupStates()
+	local start_x, start_y = self.x, self.y
+
 	self.stateMachine:addState("grounded", {
 		enter = function()
 			self.current_animation = self.animations.idle
 		end,
 		update = function(_, dt)
-			self:handleMovement(dt)
-
 			if self.y_velocity ~= 0 then
 				self.stateMachine:setState("airborne")
 			end
+
+			if self.patrol then
+				self.stateMachine:setState("grounded.to_target")
+			end
 		end,
 	})
-	--
-	-- self.stateMachine:addState("grounded.attacking", {
-	-- 	enter = function()
-	-- 		self.current_animation = self.animations.attack
-	-- 		self.current_animation:gotoFrame(1)
-	-- 		self.current_animation:resume()
-	-- 	end,
-	-- 	update = function(_)
-	-- 		if self.current_animation.status == "paused" then
-	-- 			self.stateMachine:setState("grounded")
-	-- 		end
-	-- 	end,
-	-- })
-	--
-	-- self.stateMachine:addState("airborne", {
-	-- 	enter = function()
-	-- 		self.current_animation = self.animations.jump
-	-- 	end,
-	-- 	update = function(_, dt)
-	-- 		-- Handle airborne movement
-	-- 		self:handleMovement(dt)
-	--
-	-- 		if self.y_velocity < -self.gravity then
-	-- 			self.current_animation = self.animations.jump
-	-- 		else
-	-- 			self.current_animation = self.animations.fall
-	-- 		end
-	--
-	-- 		if self.y_velocity >= 0 then
-	-- 			self.current_animation = self.animations.ground
-	-- 			self.stateMachine:setState("grounded")
-	-- 		end
-	-- 	end,
-	-- 	keypressed = function(_, key)
-	-- 		-- Handle potential airborne attack
-	-- 		if key == keymaps.attack then
-	-- 			self.stateMachine:setState("airborne.attacking")
-	-- 		end
-	-- 	end,
-	-- })
-	--
-	-- self.stateMachine:addState("airborne.attacking", {
-	-- 	enter = function()
-	-- 		self.current_animation = self.animations.attack
-	-- 		self.current_animation:gotoFrame(1)
-	-- 		self.current_animation:resume()
-	-- 	end,
-	-- 	update = function(_, dt)
-	-- 		self:handleMovement(dt) -- Update movement while attacking
-	--
-	-- 		if self.current_animation.status == "paused" then
-	-- 			if self.y_velocity == 0 then
-	-- 				self.stateMachine:setState("grounded")
-	-- 			else
-	-- 				self.stateMachine:setState("airborne")
-	-- 			end
-	-- 		end
-	-- 	end,
-	-- })
+
+	if self.patrol then
+		local wait_time = 2
+		local wait_timer = wait_time
+		local target_x, target_y =
+			self.patrol.cx * GRID_SIZE / SCALE + GRID_SIZE / SCALE / SCALE,
+			self.patrol.cy * GRID_SIZE / SCALE + GRID_SIZE / SCALE
+
+		self.stateMachine:addState("grounded.to_target", {
+			enter = function()
+				self.current_animation = self.animations.run
+			end,
+			update = function(_, dt)
+				if self.y_velocity ~= 0 then
+					self.stateMachine:setState("airborne")
+				end
+
+				local dx = target_x - self.x
+				local dy = target_y - self.y
+				local distance = math.sqrt(dx * dx + dy * dy)
+
+				if distance < GRID_SIZE then
+					self.stateMachine:setState("grounded.at_target")
+				else
+					local goal_x = self.x + (dx / distance) * self.speed * dt
+					local goal_y = self.y + (dy / distance) * self.speed * dt
+					self:move(goal_x, goal_y)
+				end
+			end,
+		})
+
+		self.stateMachine:addState("grounded.at_target", {
+			enter = function()
+				self.current_animation = self.animations.idle
+			end,
+			update = function(_, dt)
+				wait_timer = wait_timer - dt
+
+				if wait_timer <= 0 then
+					wait_timer = wait_time
+					self.stateMachine:setState("grounded.to_start")
+				end
+			end,
+		})
+
+		self.stateMachine:addState("grounded.to_start", {
+			enter = function()
+				self.current_animation = self.animations.run
+			end,
+			update = function(_, dt)
+				if self.y_velocity ~= 0 then
+					self.stateMachine:setState("airborne")
+				end
+
+				local dx = start_x - self.x
+				local dy = start_y - self.y
+				local distance = math.sqrt(dx * dx + dy * dy)
+
+				if distance < GRID_SIZE then
+					self.stateMachine:setState("grounded.at_start")
+				else
+					local move_x = (dx / distance) * self.speed * dt
+					local move_y = (dy / distance) * self.speed * dt
+					self:move(self.x + move_x, self.y + move_y)
+				end
+			end,
+		})
+
+		self.stateMachine:addState("grounded.at_start", {
+			enter = function()
+				self.current_animation = self.animations.idle
+			end,
+			update = function(_, dt)
+				wait_timer = wait_timer - dt
+
+				if wait_timer <= 0 then
+					wait_timer = wait_time
+					self.stateMachine:setState("grounded.to_target")
+				end
+			end,
+		})
+	end
+
+	self.stateMachine:addState("airborne", {
+		enter = function()
+			self:setAirborneAnimation()
+		end,
+		update = function(_, dt)
+			self:setAirborneAnimation()
+
+			if self.y_velocity == 0 then
+				self.current_animation = self.animations.ground
+				self.stateMachine:setState(self.stateMachine.prevState.name)
+			end
+		end,
+	})
 
 	-- Set default state
 	self.stateMachine:setState("grounded")
 end
 
-function Enemy:handleMovement(dt)
-	local dx = 0
-	-- local direction = self:getMovementDirection()
-	--
-	-- if direction ~= 0 then
-	-- 	dx = self.speed * dt * direction
-	-- 	self.direction = direction
-	-- 	if self.stateMachine:getState("grounded") then
-	-- 		self.current_animation = self.animations.run
-	-- 	end
-	-- elseif self.stateMachine:getState("grounded") then
-	-- 	self.current_animation = self.animations.idle
-	-- end
+function Enemy:move(goal_x, goal_y)
+	local actual_x, actual_y, cols, len = World:move(self, goal_x, goal_y)
 
-	local dy = self.y_velocity * dt + self.gravity * dt
+	if goal_x > self.x then
+		self.direction = 1
+	else
+		self.direction = -1
+	end
 
-	local goalX = self.x + dx
-	local goalY = self.y + dy
-
-	self:move(goalX, goalY)
+	self.x, self.y = actual_x, actual_y
 end
 
-function Enemy:move(goalX, goalY)
-	local actualX, actualY, cols, len = World:move(self, goalX, goalY)
+function Enemy:isPathTo(goal_x, goal_y)
+	local actual_x, actual_y, cols, len = World:check(self, goal_x, goal_y)
+	if self.y == goal_y and len == 0 then
+		return true
+	end
+	return false
+end
 
-	self.x, self.y = actualX, actualY
+function Enemy:applyGravity(dt)
+	self.y_velocity = self.y_velocity + self.gravity * dt
 
-	for i = 1, len do
-		local col = cols[i]
-		if col.normal.y < 0 then
-			self.y_velocity = 0
-		end
+	local goal_y = self.y + self.y_velocity * dt
+	local _, _, _, len = World:check(self, self.x, goal_y)
+
+	if len > 0 then
+		self.y_velocity = 0
+	else
+		self:move(self.x, goal_y)
 	end
 end
 
--- TODO: improve patrol logic
+function Enemy:setAirborneAnimation()
+	self.current_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
+end
+
 function Enemy:update(dt)
-	if self.patrol[self.currentPatrolIndex] then
-		-- Handle patrolling behavior
-		local current_patrol_point = self.patrol[self.currentPatrolIndex]
-		local goal_x, goal_y = current_patrol_point.cx, current_patrol_point.cy
-
-		local dx = goal_x - self.x
-		local dy = goal_y - self.y
-		local distance = math.sqrt(dx * dx + dy * dy)
-
-		if distance < 1 then -- If close enough to the current patrol point
-			-- Move to the next patrol point
-			self.currentPatrolIndex = self.currentPatrolIndex + self.patrolDirection
-
-			-- If we've reached the end of the patrol route, reverse direction
-			if self.currentPatrolIndex > #self.patrol or self.currentPatrolIndex < 1 then
-				self.patrolDirection = -self.patrolDirection
-				self.currentPatrolIndex = self.currentPatrolIndex + self.patrolDirection
-			end
-		else
-			-- Move towards the current patrol point
-			local moveX = (dx / distance) * self.speed * dt
-			local moveY = (dy / distance) * self.speed * dt
-			self:move(self.x + moveX, self.y + moveY)
-		end
-	end
-
+	self:applyGravity(dt)
 	self.stateMachine:update(dt)
 	self.current_animation:update(dt)
 end
 
 function Enemy:draw()
 	-- Flip the sprite based on direction
-	local scaleX = (self.direction == -1) and -1 or 1
-	local offsetX = (self.direction == -1) and self.width or 0 -- Shift the sprite to the correct position when flipped
+	local scale_x = (self.direction == -1) and 1 or -1
+	local offset_x = (self.direction == -1) and 0 or self.width -- Shift the sprite to the correct position when flipped
 
 	-- TODO: add offset
-	-- Draw the current animation based on the last movement direction (flip horizontally when facing left)
 	self.current_animation:draw(
 		self.current_animation == self.animations.idle and self.idle_image
 			or self.current_animation == self.animations.run and self.run_image
@@ -237,12 +249,12 @@ function Enemy:draw()
 			or self.current_animation == self.animations.fall and self.fall_image
 			or self.current_animation == self.animations.ground and self.ground_image
 			or self.attack_image,
-		self.x + offsetX, -- Adjust the x position when flipping
+		self.x + offset_x, -- Adjust the x position when flipping
 		self.y,
 		0,
-		scaleX, -- Flip horizontally when direction is left (-1)
+		scale_x, -- Flip horizontally when direction is left (-1)
 		1,
-		self.width,
+		self.width / SCALE,
 		10
 	)
 

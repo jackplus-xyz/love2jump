@@ -62,7 +62,7 @@ function ui:drawHUD()
 	end
 
 	self.animations.coin:draw(self.coin_image, love.graphics.getWidth() / SCALE - x * 4, y)
-	love.graphics.print(0, love.graphics.getWidth() / SCALE - x * SCALE, y)
+	love.graphics.print(Player.coins, love.graphics.getWidth() / SCALE - x * SCALE, y)
 
 	love.graphics.pop()
 end
