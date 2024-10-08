@@ -191,7 +191,7 @@ function love.load()
 	--load the data and resources
 	require("src.assets.fonts")
 
-	ScreenManager:SwitchStates("exampleScreen")
+	ScreenManager:SwitchStates("landing")
 
 	sfx:load()
 	bgm:load()
@@ -277,6 +277,8 @@ function love.draw()
 		CameraManager.debug()
 		debug:draw(100)
 	end
+
+	ScreenManager:Draw()
 end
 
 function love.keypressed(key)

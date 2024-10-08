@@ -29,7 +29,8 @@ local function puts(str, reqVeryVerbosePerms)
 end
 
 local gameStates = { -- this is where you set the directories of your screens
-	["landing"] = require("src.screens/landing_screen"),
+	["landing"] = require("src.screens/landing"),
+	["playing"] = require("src.screens/playing"),
 	-- ["songs"] = require("Screens/SongSelect")
 }
 
