@@ -29,7 +29,8 @@ local function puts(str, reqVeryVerbosePerms)
 end
 
 local gameStates = { -- this is where you set the directories of your screens
-	["landing"] = require("src.screens/landing"),
+	["title"] = require("src.screens.title"),
+	["landing"] = require("src.screens.landing"),
 	["playing"] = require("src.screens/playing"),
 	-- ["songs"] = require("Screens/SongSelect")
 }
@@ -61,7 +62,10 @@ end
 function self:Update(dt)
 	if currState ~= nil then
 		if gameStates[currState].Update then
-			gameStates[currState]:Update(dt)
+			local newState = gameStates[currState]:Update(dt)
+			if newState then
+				self:SwitchStates(newState)
+			end
 			puts(":Update called; DT = " .. dt .. "; FPS = " .. 1 / dt, true)
 		else
 			puts(":Update called but unimplemented; DT = " .. dt .. "; FPS = " .. 1 / dt, true)
