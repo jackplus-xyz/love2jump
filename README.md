@@ -190,24 +190,27 @@
 - [-] Fix level transition system
 - [x] Implement power-up system(Coins)
 - [x] Score system
-- [ ] Game states (load/save/pause)
+- [-] Game states (load/save/pause)
 
 ### 10/11/2024
 
 #### Added
 
-- [ ] Game states (load/save/pause)
+- [ ] Game states (landing, playing, paused)
 - [ ] Level transition animation
 - [ ] Hitbox
 - [ ] Interaction between player and enemy(attack, damage)
-- [ ] Title menu
+- [ ] Enemy drop items
 - [ ] Settings menu
+- [ ] Quit button
+- [x] Title menu
 - [x] Interaction between player and coin
 - [x] Interaction between player and door
 - [x] Score system(coins)
 
 #### Changed
 
+- [ ] Improve UI module structure
 - [x] Improve gravity logic
 
 #### Fixed
@@ -221,6 +224,8 @@
 ### 10/18/2024
 
 #### Added
+
+- Game states(save/load)
 
 #### Changed
 

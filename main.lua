@@ -21,7 +21,7 @@ local level_enemies = {}
 local keymaps = require("config.keymaps")
 
 -- Source
-local ui = require("src.ui.ui")
+local ui = require("src.ui")
 local bgm = require("src.bgm")
 local sfx = require("src.sfx")
 local player = require("src.player")
@@ -191,11 +191,11 @@ function love.load()
 	--load the data and resources
 	require("src.assets.fonts")
 
-	ScreenManager:SwitchStates("landing")
-
 	sfx:load()
 	bgm:load()
 	bgm:play()
+
+	ScreenManager:SwitchStates("landing")
 
 	-- TODO: Add game menu
 
@@ -248,6 +248,13 @@ function love.update(dt)
 	end
 end
 
+-- [[
+-- TODO: Modualize the ui logic
+-- 1. Title screen
+-- 2. Press any key to start playing
+-- 3. Press esc to pause and show menu
+-- 4. Provides: Settings, Quit, Go back to Title
+-- ]]
 function love.draw()
 	CameraManager.attach()
 
