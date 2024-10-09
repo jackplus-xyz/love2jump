@@ -196,7 +196,7 @@
 
 #### Added
 
-- [ ] Game states (landing, playing, paused)
+- [x] Game states (title, landing, playing)
 - [ ] Level transition animation
 - [ ] Hitbox
 - [ ] Interaction between player and enemy(attack, damage)
@@ -210,7 +210,7 @@
 
 #### Changed
 
-- [ ] Improve UI module structure
+- [x] Improve UI module structure
 - [x] Improve gravity logic
 
 #### Fixed

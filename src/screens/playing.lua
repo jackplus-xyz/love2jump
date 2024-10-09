@@ -3,6 +3,7 @@ local ldtk = require("lib.ldtk-love.ldtk")
 local bump = require("lib.bump.bump")
 local World = bump.newWorld(GRID_SIZE)
 local CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
+local screen = {}
 
 -- Config
 local keymaps = require("config.keymaps")
@@ -16,19 +17,18 @@ local enemy = require("src.enemy")
 local door = require("src.door")
 local coin = require("src.coin")
 local debug = require("src.debug")
-local fonts = require("src.assets.fonts")
 
 local class = require("classic")
 local object = class:extend()
 
-local screen = {}
-local screen_manager = {}
+-- Vars
 
 local level_blocks = {}
 local level_entities = {}
 local level_enemies = {}
+local is_paused = false
 
--- Debug Blocks --
+-------- Debug --------
 local debug_blocks = {}
 
 local function addBlock(x, y, w, h)
@@ -50,7 +50,7 @@ local function drawDebugBlocks()
 	end
 end
 
---------- CALLBACKS FOR LOVE-LDTK ----------
+--------- LOVE-LDTK CALLBACKS ----------
 local function onEntity(entity)
 	if entity.id == "Player" and not Player then
 		Player = player.new(entity.x, entity.y, World)
@@ -155,8 +155,6 @@ end
 --------------------------------------------
 
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
-	screen_manager = ScreenManager
-
 	-- load ldtk maps
 	ldtk:load("assets/maps/kings-and-pigs.ldtk")
 	ldtk:setFlipped(true)
@@ -173,6 +171,10 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 end
 
 function screen:Update(dt)
+	if is_paused then
+		return
+	end
+
 	Player:update(dt, World)
 
 	for _, level_enemy in ipairs(level_enemies) do
@@ -219,9 +221,10 @@ end
 
 function screen:KeyPressed(key)
 	-- TODO: Add game states(load/save/pause)
-	-- TODO: add pause and setttings menu
 	if key == keymaps.escape then
-		love.event.quit()
+		-- TODO: add pause and setttings menu
+		-- love.event.quit()
+		is_paused = not is_paused
 	elseif key == keymaps.debug then
 		IsDebug = not IsDebug
 	end
