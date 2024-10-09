@@ -1,47 +1,56 @@
 local fonts = require("src.assets.fonts")
-local title_y = 0
-local title_duration = 2
-local title_timer = title_duration
 
-local TITLE = {}
-TITLE.__index = TITLE
+local Title = {}
+Title.__index = Title
 
-function TITLE.new()
-	local self = setmetatable({}, TITLE)
-	self:init()
-
-	return self
+function Title:new()
+	local instance = setmetatable({}, Title)
+	instance:init()
+	return instance
 end
 
-function TITLE:init() end
+function Title:init()
+	self.title_y = 0
+	self.title_duration = 2
+	self.title_timer = self.title_duration
+	self.flash_interval = 0.8
+	self.flash_timer = 0
+	self.is_flash_visible = true
+end
 
-function TITLE:update(dt)
-	print("Hello!")
-	if title_timer >= 0 then
-		title_timer = title_timer - dt
-		title_y = (title_duration - title_timer) / title_duration * love.graphics.getHeight() / 2
+function Title:update(dt)
+	if self.title_timer > 0 then
+		self.title_timer = self.title_timer - dt
+		self.title_y = (self.title_duration - self.title_timer) / self.title_duration * love.graphics.getHeight() / 2
+	else
+		self.flash_timer = self.flash_timer + dt
+		if self.flash_timer >= self.flash_interval then
+			self.flash_timer = self.flash_timer - self.flash_interval
+			self.is_flash_visible = not self.is_flash_visible
+		end
 	end
 end
 
-function TITLE:draw()
+function Title:draw()
+	local title = "Title"
+	local instruction = "Press Any Key to Begin"
+
 	love.graphics.push()
 	love.graphics.setColor(0, 0, 0, 1)
 	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
-	local title = "Love Arcade"
 	love.graphics.setColor(1, 1, 1)
 	love.graphics.print(
 		title,
 		(love.graphics.getWidth() - fonts.title:getWidth(title)) / 2,
-		title_y - fonts.title:getHeight()
+		self.title_y - fonts.title:getHeight()
 	)
 
-	local instruction = "Press Any Key to Begin"
-	if title_timer <= 0 then
+	if self.is_flash_visible and self.title_timer <= 0 then
 		love.graphics.print(
 			instruction,
 			love.graphics.getWidth() / 2 - fonts.title:getWidth(instruction) / 4,
-			title_y + 20,
+			self.title_y + 20,
 			0,
 			0.5,
 			0.5
@@ -51,4 +60,4 @@ function TITLE:draw()
 	love.graphics.pop()
 end
 
-return TITLE
+return Title
