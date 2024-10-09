@@ -3,8 +3,9 @@ local debug = {}
 local fonts = require("src.assets.fonts")
 local ldtk = require("lib.ldtk-love.ldtk")
 
-function debug:init(world)
+function debug:init(world, camera_manager)
 	self.world = world
+	self.camera_manager = camera_manager
 	-- self.ldtk = ldtk
 
 	self.infoTable = {}
@@ -12,8 +13,8 @@ function debug:init(world)
 end
 
 function debug:updateInfoTable()
-	local cam_x, cam_y = CameraManager.getCoords()
-	local cam_bound_x, cam_bound_y, cam_bound_w, cam_bound_h = CameraManager.getBounds()
+	local cam_x, cam_y = self.camera_manager.getCoords()
+	local cam_bound_x, cam_bound_y, cam_bound_w, cam_bound_h = self.camera_manager.getBounds()
 
 	self.infoTable = {
 		{ "Player State", Player.stateMachine.currState.name },

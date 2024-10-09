@@ -8,14 +8,17 @@ Coin.__index = Coin
 local sprite_width = 18
 local sprite_height = 14
 
-function Coin.new(x, y)
+function Coin.new(x, y, world)
 	local self = setmetatable({}, Coin)
+
+	self.x = x
+	self.y = y
+	self.world = world
+
 	self.is_coin = true
 	self.is_collected = false
 	self.timer = 1
 
-	self.x = x
-	self.y = y
 	self.width = 18
 	self.height = 14
 	self.x_offset = self.width / SCALE
@@ -57,7 +60,7 @@ function Coin:collect()
 	self.current_animation = self.animations.hit
 	self.is_collected = true
 
-	World:remove(self)
+	self.world:remove(self)
 end
 
 function Coin:draw()

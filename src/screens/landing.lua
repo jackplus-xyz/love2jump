@@ -1,27 +1,19 @@
-local ui = require("src.ui")
-local screen_manager = {}
-local fonts = require("src.assets.fonts")
 local screen = {}
-local title_y = 0
-local title_duration = 2
-local title_timer = title_duration
+
+local ui = require("src.ui")
 local n_keysdown = 0
 
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
-	love.graphics.setDefaultFilter("nearest", "nearest")
-	love.graphics.setLineStyle("rough")
-	love.graphics.setFont(fonts.title)
-
-	screen_manager = ScreenManager
 end
 
 function screen:Draw()
-	ui.title:draw()
+	ui.landing:draw()
 end
 
 function screen:Update(dt)
-	if n_keysdown > 0 then
-		screen_manager:SwitchStates("playing")
+	ui.landing:update(dt)
+	if ui.landing.landing_instruction_timer <= 0 and n_keysdown > 0 then
+		return "playing"
 	end
 end
 

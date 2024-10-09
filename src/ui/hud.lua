@@ -1,16 +1,15 @@
 local anim8 = require("lib.anim8.anim8")
 
-local HUD = {}
-HUD.__index = HUD
+local Hud = {}
+Hud.__index = Hud
 
-function HUD.new()
-	local self = setmetatable({}, HUD)
-	self:init()
-
-	return self
+function Hud.new()
+	local instance = setmetatable({}, Hud)
+	instance:init()
+	return instance
 end
 
-function HUD:init()
+function Hud:init()
 	local sprite_width = 18
 	local sprite_height = 14
 	self.live_bar_image = love.graphics.newImage("assets/sprites/12-live-and-coins/live-bar-no-outline.png")
@@ -27,13 +26,13 @@ function HUD:init()
 	local big_heart_hit_grid =
 		anim8.newGrid(sprite_width, sprite_height, self.big_heart_hit_image:getWidth(), sprite_height)
 
-	HUD.live_bar_animations = {
+	Hud.live_bar_animations = {
 		big_heart_idle = anim8.newAnimation(big_heart_idle_grid("1-8", 1), 0.1),
 		big_heart_hit = anim8.newAnimation(big_heart_hit_grid("1-2", 1), 0.1),
 	}
 end
 
-function HUD:update(dt)
+function Hud:update(dt)
 	for _, animation in pairs(self.live_bar_animations) do
 		animation:update(dt)
 	end
@@ -43,7 +42,7 @@ function HUD:update(dt)
 	end
 end
 
-function HUD:draw()
+function Hud:draw()
 	local x, y = GRID_SIZE / 2, GRID_SIZE / 2
 	local offset_x, offset_y = 12, 11
 	local heart_offset = 12
@@ -76,4 +75,4 @@ function HUD:draw()
 	love.graphics.pop()
 end
 
-return HUD
+return Hud

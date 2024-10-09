@@ -1,6 +1,6 @@
 local anim8 = require("lib.anim8.anim8")
 local keymaps = require("config.keymaps")
-local stateMachine = require("src.utils.state_machine")
+local StateMachine = require("src.utils.state_machine")
 local sfx = require("src.sfx")
 
 ---@class player
@@ -26,12 +26,14 @@ local playerFilter = function(item, other)
 	-- else return nil
 end
 
-function player.new(x, y)
+function player.new(x, y, world)
 	local self = {}
 	setmetatable(self, { __index = Player })
 
 	self.x = x
 	self.y = y
+	self.world = world
+
 	self.width = 18
 	self.height = 26
 	self.speed = 150
@@ -50,7 +52,7 @@ function player.new(x, y)
 	self.animations = {}
 	self:loadAnimations()
 
-	self.stateMachine = stateMachine.new()
+	self.stateMachine = StateMachine.new()
 	self:setupStates()
 
 	return self
@@ -224,7 +226,7 @@ function Player:handleMovement(dt)
 end
 
 function Player:move(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = World:move(self, goal_x, goal_y, playerFilter)
+	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y, playerFilter)
 
 	for i = 1, len do
 		local other = cols[i].other
@@ -241,7 +243,7 @@ function Player:applyGravity(dt)
 	self.y_velocity = self.y_velocity + self.gravity * dt
 
 	local goal_y = self.y + self.y_velocity * dt
-	local _, _, _, len = World:check(self, self.x, goal_y)
+	local _, _, _, len = self.world:check(self, self.x, goal_y)
 
 	if len > 0 then
 		self.y_velocity = 0
@@ -258,7 +260,7 @@ end
 
 function Player:keypressed(key)
 	if key == keymaps.up then
-		local _, _, cols, len = World:check(self, self.x, self.y, playerFilter)
+		local _, _, cols, len = self.world:check(self, self.x, self.y, playerFilter)
 		for i = 1, len do
 			local other = cols[i].other
 			if other.is_door then

@@ -1,6 +1,11 @@
 local UI = {}
-UI.hud = require("src.ui.hud")
-UI.title = require("src.ui.title")
+
+UI.modules = {
+	"hud",
+	"title",
+	"landing",
+	"playing",
+}
 
 function UI:new()
 	local instance = setmetatable({}, { __index = self })
@@ -9,18 +14,28 @@ function UI:new()
 end
 
 function UI:init()
-	self.hud = self.hud:new()
-	self.title = self.title:new()
+	-- Load each module
+	for _, module_name in ipairs(self.modules) do
+		self[module_name] = require("src.ui." .. module_name):new()
+	end
 end
 
 function UI:update(dt)
-	self.hud:update(dt)
-	self.title:update(dt)
+	-- Update each loaded module
+	for _, module_name in ipairs(self.modules) do
+		if self[module_name].update then
+			self[module_name]:update(dt)
+		end
+	end
 end
 
 function UI:draw()
-	self.hud:draw()
-	self.title:draw()
+	-- Draw each loaded module (if necessary)
+	for _, module_name in ipairs(self.modules) do
+		if self[module_name].draw then
+			self[module_name]:draw()
+		end
+	end
 end
 
 return UI

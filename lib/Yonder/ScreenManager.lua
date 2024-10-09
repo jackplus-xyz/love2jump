@@ -29,11 +29,17 @@ local function puts(str, reqVeryVerbosePerms)
 end
 
 local gameStates = { -- this is where you set the directories of your screens
-	["title"] = require("src.screens.title"),
-	["landing"] = require("src.screens.landing"),
-	["playing"] = require("src.screens/playing"),
-	-- ["songs"] = require("Screens/SongSelect")
 }
+
+local screens = {
+	"title",
+	"landing",
+	"playing",
+}
+
+for _, screen in pairs(screens) do
+	gameStates[screen] = require("src.screens." .. screen)
+end
 
 local currState = nil
 

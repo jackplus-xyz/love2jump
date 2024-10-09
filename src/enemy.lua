@@ -7,12 +7,15 @@ local enemy = {}
 -- class table
 local Enemy = {}
 
-function enemy.new(x, y, props)
+function enemy.new(x, y, props, world)
 	local self = {}
 	setmetatable(self, { __index = Enemy })
 
 	self.x = x
 	self.y = y
+	self.world = world
+	self.patrol = props.patrol
+
 	self.width = 18
 	self.height = 17
 	self.speed = 100
@@ -22,8 +25,6 @@ function enemy.new(x, y, props)
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
 	self.gravity = 1000
-
-	self.patrol = props.patrol
 
 	self.current_animation = nil
 	self.animations = {}
@@ -194,7 +195,7 @@ function Enemy:setupStates()
 end
 
 function Enemy:move(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = World:move(self, goal_x, goal_y)
+	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y)
 
 	if goal_x > self.x then
 		self.direction = 1
@@ -207,7 +208,7 @@ end
 
 -- TODO: improve patrol logic to check if target is reachable
 function Enemy:isPathTo(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = World:check(self, goal_x, goal_y)
+	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y)
 	if self.y == goal_y and len == 0 then
 		return true
 	end
@@ -218,7 +219,7 @@ function Enemy:applyGravity(dt)
 	self.y_velocity = self.y_velocity + self.gravity * dt
 
 	local goal_y = self.y + self.y_velocity * dt
-	local _, _, _, len = World:check(self, self.x, goal_y)
+	local _, _, _, len = self.world:check(self, self.x, goal_y)
 
 	if len > 0 then
 		self.y_velocity = 0
