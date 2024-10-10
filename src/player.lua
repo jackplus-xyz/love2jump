@@ -52,7 +52,7 @@ function player.new(x, y, world)
 	self.animations = {}
 	self:loadAnimations()
 
-	self.stateMachine = StateMachine.new()
+	self.state_machine = StateMachine.new()
 	self:setupStates()
 
 	return self
@@ -98,7 +98,7 @@ function Player:loadAnimations()
 end
 
 function Player:setupStates()
-	self.stateMachine:addState("grounded", {
+	self.state_machine:addState("grounded", {
 		enter = function()
 			self.current_animation = self.animations.idle
 		end,
@@ -106,22 +106,22 @@ function Player:setupStates()
 			self:handleMovement(dt)
 
 			if self.y_velocity ~= 0 then
-				self.stateMachine:setState("airborne")
+				self.state_machine:setState("airborne")
 			end
 		end,
 		keypressed = function(_, key)
 			if key == keymaps.jump and self.jump_cooldown <= 0 then
 				self.y_velocity = self.jump_strength
 				self.jump_cooldown = self.jump_cooldown_time
-				self.stateMachine:setState("airborne")
+				self.state_machine:setState("airborne")
 			elseif key == keymaps.attack then
-				self.stateMachine:setState("grounded.attacking")
+				self.state_machine:setState("grounded.attacking")
 			end
 		end,
 	})
 
 	-- TODO: Add hitbox
-	self.stateMachine:addState("grounded.attacking", {
+	self.state_machine:addState("grounded.attacking", {
 		enter = function()
 			self.current_animation = self.animations.attack
 			self.current_animation:gotoFrame(1)
@@ -130,12 +130,12 @@ function Player:setupStates()
 		end,
 		update = function(_)
 			if self.current_animation.status == "paused" then
-				self.stateMachine:setState("grounded")
+				self.state_machine:setState("grounded")
 			end
 		end,
 	})
 
-	self.stateMachine:addState("airborne", {
+	self.state_machine:addState("airborne", {
 		enter = function()
 			self:setAirborneAnimation()
 		end,
@@ -150,18 +150,18 @@ function Player:setupStates()
 
 			if self.y_velocity == 0 then
 				self.current_animation = self.animations.ground
-				self.stateMachine:setState("grounded")
+				self.state_machine:setState("grounded")
 			end
 		end,
 		keypressed = function(_, key)
 			-- Handle airborne attack
 			if key == keymaps.attack then
-				self.stateMachine:setState("airborne.attacking")
+				self.state_machine:setState("airborne.attacking")
 			end
 		end,
 	})
 
-	self.stateMachine:addState("airborne.attacking", {
+	self.state_machine:addState("airborne.attacking", {
 		enter = function()
 			self.current_animation = self.animations.attack
 			self.current_animation:gotoFrame(1)
@@ -178,22 +178,22 @@ function Player:setupStates()
 
 			if self.current_animation.status == "paused" then
 				if self.y_velocity == 0 then
-					self.stateMachine:setState("grounded")
+					self.state_machine:setState("grounded")
 				else
-					self.stateMachine:setState("airborne")
+					self.state_machine:setState("airborne")
 				end
 			end
 		end,
 	})
 
-	self.stateMachine:addState("entering", {
+	self.state_machine:addState("entering", {
 		enter = function()
 			self.current_animation = self.animations.idle
 		end,
 	})
 
 	-- Set default state
-	self.stateMachine:setState("grounded")
+	self.state_machine:setState("grounded")
 end
 
 function Player:setAirborneAnimation()
@@ -213,10 +213,10 @@ function Player:handleMovement(dt)
 	if direction ~= 0 then
 		dx = self.speed * dt * direction
 		self.direction = direction
-		if self.stateMachine:getState("grounded") then
+		if self.state_machine:getState("grounded") then
 			self.current_animation = self.animations.run
 		end
-	elseif self.stateMachine:getState("grounded") then
+	elseif self.state_machine:getState("grounded") then
 		self.current_animation = self.animations.idle
 	end
 
@@ -254,7 +254,7 @@ end
 
 function Player:update(dt)
 	self:applyGravity(dt)
-	self.stateMachine:update(dt)
+	self.state_machine:update(dt)
 	self.current_animation:update(dt)
 end
 
@@ -264,13 +264,13 @@ function Player:keypressed(key)
 		for i = 1, len do
 			local other = cols[i].other
 			if other.is_door then
-				self.stateMachine:setState("entering")
+				self.state_machine:setState("entering")
 				other:enter()
-				self.stateMachine:setState("grounded")
+				self.state_machine:setState("grounded")
 			end
 		end
 	else
-		self.stateMachine:handleEvent("keypressed", key)
+		self.state_machine:handleEvent("keypressed", key)
 	end
 end
 

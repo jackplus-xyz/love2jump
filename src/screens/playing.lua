@@ -5,24 +5,26 @@ local World = bump.newWorld(GRID_SIZE)
 local CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
 local screen = {}
 
+local Fade = require("src.ui.fade")
+
 -- Config
-local keymaps = require("config.keymaps")
+local Keymaps = require("config.keymaps")
 
 -- Source
-local ui = require("src.ui")
-local bgm = require("src.bgm")
-local sfx = require("src.sfx")
-local player = require("src.player")
-local enemy = require("src.enemy")
-local door = require("src.door")
-local coin = require("src.coin")
-local debug = require("src.debug")
+local Ui = require("src.ui")
+local Bgm = require("src.bgm")
+local Sfx = require("src.sfx")
+local Player = require("src.player")
+local Enemy = require("src.enemy")
+local Door = require("src.door")
+local Coin = require("src.coin")
+local Debug = require("src.debug")
 
 local class = require("classic")
 local object = class:extend()
 
 -- Vars
-
+local new_player = {}
 local level_blocks = {}
 local level_entities = {}
 local level_enemies = {}
@@ -38,10 +40,14 @@ local function addBlock(x, y, w, h)
 end
 
 local function drawBox(box, r, g, b)
+	love.graphics.push()
+
 	love.graphics.setColor(r, g, b, 0.25)
 	love.graphics.rectangle("fill", box.x, box.y, box.w, box.h)
 	love.graphics.setColor(r, g, b)
 	love.graphics.rectangle("line", box.x, box.y, box.w, box.h)
+
+	love.graphics.pop()
 end
 
 local function drawDebugBlocks()
@@ -52,11 +58,17 @@ end
 
 --------- LOVE-LDTK CALLBACKS ----------
 local function onEntity(entity)
-	if entity.id == "Player" and not Player then
-		Player = player.new(entity.x, entity.y, World)
-		World:add(Player, Player.x - Player.width / 2, Player.y - Player.height, Player.width, Player.height)
+	if entity.id == "Player" then
+		new_player = Player.new(entity.x, entity.y, World)
+		World:add(
+			new_player,
+			new_player.x - new_player.width / 2,
+			new_player.y - new_player.height,
+			new_player.width,
+			new_player.height
+		)
 	elseif entity.id == "Enemy" then
-		local new_enemy = enemy.new(entity.x, entity.y, entity.props, World)
+		local new_enemy = Enemy.new(entity.x, entity.y, entity.props, World)
 		World:add(
 			new_enemy,
 			new_enemy.x - new_enemy.width,
@@ -66,7 +78,7 @@ local function onEntity(entity)
 		)
 		table.insert(level_enemies, new_enemy)
 	elseif entity.id == "Door" then
-		local new_door = door.new(entity.x, entity.y, entity.props)
+		local new_door = Door.new(entity.x, entity.y, entity.props)
 		World:add(
 			new_door,
 			new_door.x - new_door.x_offset,
@@ -76,7 +88,7 @@ local function onEntity(entity)
 		)
 		table.insert(level_entities, new_door)
 	elseif entity.id == "Coin" then
-		local new_coin = coin.new(entity.x, entity.y, World)
+		local new_coin = Coin.new(entity.x, entity.y, World)
 		World:add(
 			new_coin,
 			new_coin.x - new_coin.x_offset,
@@ -144,10 +156,10 @@ local function onLevelCreated(level)
 		load(level.props.create)()
 	end
 
-	if Player then
+	if new_player then
 		for _, entity in pairs(level_entities) do
 			if entity.is_door and not entity.is_next then
-				Player.x, Player.y = entity.x, entity.y - Player.height
+				new_player.x, new_player.y = entity.x, entity.y - new_player.height
 			end
 		end
 	end
@@ -167,15 +179,18 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	CameraManager.setScale(SCALE)
 	CameraManager.setDeadzone(-GRID_SIZE, -GRID_SIZE, GRID_SIZE, GRID_SIZE)
 	CameraManager.setLerp(0.01)
-	CameraManager.setCoords(Player.x + Player.width / SCALE, Player.y - Player.height * SCALE)
+	CameraManager.setCoords(new_player.x + new_player.width / SCALE, new_player.y - new_player.height * SCALE)
+
+	Debug:init(World, CameraManager, new_player)
 end
 
 function screen:Update(dt)
 	if is_paused then
+		Fade:update(dt)
 		return
 	end
 
-	Player:update(dt, World)
+	new_player:update(dt, World)
 
 	for _, level_enemy in ipairs(level_enemies) do
 		level_enemy:update(dt)
@@ -185,13 +200,13 @@ function screen:Update(dt)
 		level_entity:update(dt)
 	end
 
-	CameraManager.setTarget(Player.x + Player.width / 2, Player.y + Player.height / 2)
+	CameraManager.setTarget(new_player.x + new_player.width / 2, new_player.y + new_player.height / 2)
 	CameraManager.update(dt)
 
-	ui:update(dt)
+	Ui:update(dt)
 
 	if IsDebug then
-		debug:update()
+		Debug:update()
 	end
 end
 
@@ -210,26 +225,35 @@ function screen:Draw()
 		level_enemy:draw()
 	end
 
-	Player:draw()
+	new_player:draw()
 
 	if IsDebug then
 		drawDebugBlocks()
 	end
 
+	-- FIXME: animation image is overlapped with the matte
+	if is_paused then
+		Fade:draw()
+	end
+
 	CameraManager.detach()
+
+	if IsDebug then
+		Debug:draw(0)
+	end
 end
 
 function screen:KeyPressed(key)
 	-- TODO: Add game states(load/save/pause)
-	if key == keymaps.escape then
+	if key == Keymaps.escape then
 		-- TODO: add pause and setttings menu
 		-- love.event.quit()
 		is_paused = not is_paused
-	elseif key == keymaps.debug then
+	elseif key == Keymaps.debug then
 		IsDebug = not IsDebug
 	end
 
-	Player:keypressed(key)
+	new_player:keypressed(key)
 end
 
 function screen:KeyReleased(key) end

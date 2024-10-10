@@ -3,9 +3,11 @@ local anim8 = require("lib.anim8.anim8")
 local Hud = {}
 Hud.__index = Hud
 
-function Hud.new()
+function Hud.new(player)
 	local instance = setmetatable({}, Hud)
+	instance.player = player
 	instance:init()
+
 	return instance
 end
 
@@ -52,7 +54,7 @@ function Hud:draw()
 	love.graphics.scale(SCALE)
 	love.graphics.draw(self.live_bar_image, x, y)
 
-	for i = 1, Player.health do
+	for i = 1, self.player.health do
 		local anim_offset = (i - 1) * 0.1
 
 		self.live_bar_animations.big_heart_idle:update(-anim_offset)
@@ -70,7 +72,7 @@ function Hud:draw()
 	end
 
 	self.animations.coin:draw(self.coin_image, love.graphics.getWidth() / SCALE - x * 4, y)
-	love.graphics.print(Player.coins, love.graphics.getWidth() / SCALE - x * SCALE, y)
+	love.graphics.print(self.player.coins, love.graphics.getWidth() / SCALE - x * SCALE, y)
 
 	love.graphics.pop()
 end

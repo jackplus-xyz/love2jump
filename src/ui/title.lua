@@ -36,6 +36,7 @@ function Title:draw()
 	local instruction = "Press Any Key to Begin"
 
 	love.graphics.push()
+
 	love.graphics.setColor(0, 0, 0, 1)
 	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 

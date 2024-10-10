@@ -36,10 +36,6 @@ function love.load()
 	bgm:play()
 
 	ScreenManager:SwitchStates("title")
-
-	if IsDebug then
-		debug:init(World, CameraManager)
-	end
 end
 
 function love.update(dt)
