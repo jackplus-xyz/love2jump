@@ -41,9 +41,10 @@ local player = {}
 local level_blocks = {}
 local level_entities = {}
 local level_enemies = {}
+local world_items = {}
+
 local is_paused = false
 local is_entering = false
-local world_items = {}
 
 -------- Debug --------
 local function addBlock(x, y, w, h)
@@ -99,8 +100,8 @@ local function onEntity(entity)
 		table.insert(level_entities, new_coin)
 	else
 		-- Draw other entites as a rectangle
-		local new_object = object(entity)
-		table.insert(level_blocks, new_object)
+		-- local new_object = object(entity)
+		-- table.insert(level_blocks, new_object)
 	end
 end
 
@@ -117,18 +118,14 @@ local function onLayer(layer)
 end
 
 local function onLevelLoaded(level)
+	local _, len = World:getItems()
+
 	-- removing all objects so we have a blank level
-	local function clearWorld(items)
-		for _, item in pairs(items) do
-			if World:hasItem(item) then
-				World:remove(item)
-			end
+	for _, world_item in pairs(world_items) do
+		if World:hasItem(world_item) then
+			World:remove(world_item)
 		end
 	end
-
-	clearWorld(level_blocks)
-	clearWorld(level_entities)
-	clearWorld(level_enemies)
 
 	level_blocks = {}
 	level_entities = {}
