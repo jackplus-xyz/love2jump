@@ -206,15 +206,18 @@ end
 function screen:Update(dt)
 	if player.is_player and player.state_machine:getState("entering") then
 		is_entering = true
-		Ui.fade_in:update(dt)
 
-		if not Ui.fade_in.is_active then
+		if Ui.fade_in.is_active then
+			Ui.fade_in:update(dt)
+			return
+		else
 			if player.is_next_level then
 				Ldtk:next()
 			else
 				Ldtk:previous()
 			end
 			is_entering = false
+			Ui.fade_in:reset()
 			player.state_machine:setState("grounded")
 		end
 	end
@@ -285,9 +288,8 @@ function screen:Draw()
 		Debug:draw()
 	end
 
-	-- FIXME: animation image is overlapped with the matte
 	if is_paused then
-		love.graphics.push()
+		love.graphics.push("all")
 		love.graphics.setColor(0, 0, 0, 0.5)
 		love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 

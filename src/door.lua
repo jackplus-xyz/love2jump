@@ -1,5 +1,4 @@
 local Anim8 = require("lib.anim8.anim8")
-local Ldtk = require("lib.ldtk-love.ldtk")
 local Sfx = require("src.sfx")
 
 local Door = {}

@@ -215,7 +215,8 @@
 
 #### Fixed
 
-- [x] Level transitioning is working now
+- [x] Level transitioning
+- [x] Animated is overwritten after `love.graphics.setColor()` is called
 - [x] Tile on the corner is not drawn correctly
 - [x] Improve enemy patrol logic to handle falling
 - [x] Enemy image `offset_x` is too high

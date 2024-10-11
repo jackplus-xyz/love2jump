@@ -125,7 +125,6 @@ function Player:setupStates()
 					if other.is_door then
 						self.state_machine:setState("entering")
 						self.is_next_level = other:enter()
-						-- self.state_machine:setState("grounded")
 					end
 				end
 			end
