@@ -76,14 +76,30 @@
 				"id": "Enemy",
 				"iid": "50e977a0-73f0-11ef-8aaa-0788a8d4218e",
 				"layer": "Entities",
-				"x": 1160,
-				"y": 144,
+				"x": 1016,
+				"y": 352,
 				"width": 16,
 				"height": 16,
 				"color": 14120515,
 				"customFields": {
-					"patrol": null
+					"patrol": {
+						"cx": 52,
+						"cy": 21
+					}
 				}
+			}
+		],
+		"Placeholder": [
+			{
+				"id": "Placeholder",
+				"iid": "e20c33d0-73f0-11ef-884d-a9d91ca514d2",
+				"layer": "Entities",
+				"x": 432,
+				"y": 256,
+				"width": 32,
+				"height": 32,
+				"color": 7552569,
+				"customFields" : {}
 			}
 		]
 	}

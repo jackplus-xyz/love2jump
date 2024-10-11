@@ -34,6 +34,7 @@ function player.new(x, y, world)
 	self.y = y
 	self.world = world
 	self.is_player = true
+	self.is_next_level = nil
 
 	self.width = 18
 	self.height = 26
@@ -123,7 +124,7 @@ function Player:setupStates()
 					local other = cols[i].other
 					if other.is_door then
 						self.state_machine:setState("entering")
-						other:enter()
+						self.is_next_level = other:enter()
 						-- self.state_machine:setState("grounded")
 					end
 				end

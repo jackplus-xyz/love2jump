@@ -197,7 +197,7 @@
 #### Added
 
 - [x] Game states (title, landing, playing)
-- [ ] Level transition animation
+- [x] Level transition animation
 - [ ] Hitbox
 - [ ] Interaction between player and enemy(attack, damage)
 - [ ] Enemy drop items

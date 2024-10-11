@@ -5,6 +5,7 @@ UI.modules = {
 	"title",
 	"landing",
 	"playing",
+	"fade",
 }
 
 function UI:new()

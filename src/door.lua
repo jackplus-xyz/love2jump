@@ -58,11 +58,7 @@ function Door:enter()
 	Sfx:play("door.enter")
 
 	-- Perform level transition after fade-out is complete
-	if self.is_next then
-		Ldtk:next()
-	else
-		Ldtk:previous()
-	end
+	return self.is_next
 end
 
 -- FIXME: collision when jumping over a door

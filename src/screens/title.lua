@@ -10,8 +10,6 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	love.graphics.setDefaultFilter("nearest", "nearest")
 	love.graphics.setLineStyle("rough")
 	love.graphics.setFont(fonts.title)
-
-	screen_manager = ScreenManager
 end
 
 function screen:Draw()
@@ -30,7 +28,7 @@ function screen:MousePressed(x, y, button) end
 function screen:MouseReleased(x, y, button) end
 
 function screen:KeyPressed(key, u)
-	-- TODO: Add game states(load/save/pause)
+	-- TODO: Add game states(load/save)
 	if ui.title.title_timer <= 0 then
 		n_keysdown = n_keysdown + 1
 	end

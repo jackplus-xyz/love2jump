@@ -1,7 +1,8 @@
 -- Libraries
-local ldtk = require("lib.ldtk-love.ldtk")
-local bump = require("lib.bump.bump")
-local World = bump.newWorld(GRID_SIZE)
+local Ldtk = require("lib.ldtk-love.ldtk")
+local Bump = require("lib.bump.bump")
+local Fonts = require("src.assets.fonts")
+local World = Bump.newWorld(GRID_SIZE)
 local CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
 local screen = {}
 
@@ -23,12 +24,27 @@ local Debug = require("src.debug")
 local class = require("classic")
 local object = class:extend()
 
+function object:new(entity)
+	-- setting up the object using the entity data
+	self.x, self.y = entity.x, entity.y
+	self.w, self.h = entity.width, entity.height
+	self.visible = entity.visible
+end
+
+function object:draw()
+	if self.visible then
+		--draw a rectangle to represent the entity
+		love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
+	end
+end
+
 -- Vars
-local new_player = {}
+local player = {}
 local level_blocks = {}
 local level_entities = {}
 local level_enemies = {}
 local is_paused = false
+local is_entering = false
 
 -------- Debug --------
 local debug_blocks = {}
@@ -58,15 +74,9 @@ end
 
 --------- LOVE-LDTK CALLBACKS ----------
 local function onEntity(entity)
-	if entity.id == "Player" then
-		new_player = Player.new(entity.x, entity.y, World)
-		World:add(
-			new_player,
-			new_player.x - new_player.width / 2,
-			new_player.y - new_player.height,
-			new_player.width,
-			new_player.height
-		)
+	if entity.id == "Player" and not player.is_player then
+		player = Player.new(entity.x, entity.y, World)
+		World:add(player, player.x - player.width / 2, player.y - player.height, player.width, player.height)
 	elseif entity.id == "Enemy" then
 		local new_enemy = Enemy.new(entity.x, entity.y, entity.props, World)
 		World:add(
@@ -156,10 +166,10 @@ local function onLevelCreated(level)
 		load(level.props.create)()
 	end
 
-	if new_player then
+	if player then
 		for _, entity in pairs(level_entities) do
 			if entity.is_door and not entity.is_next then
-				new_player.x, new_player.y = entity.x, entity.y - new_player.height
+				player.x, player.y = entity.x, entity.y - player.height
 			end
 		end
 	end
@@ -168,29 +178,50 @@ end
 
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
 	-- load ldtk maps
-	ldtk:load("assets/maps/kings-and-pigs.ldtk")
-	ldtk:setFlipped(true)
-	ldtk.onLayer = onLayer
-	ldtk.onEntity = onEntity
-	ldtk.onLevelLoaded = onLevelLoaded
-	ldtk.onLevelCreated = onLevelCreated
-	ldtk:goTo(1)
+	Ldtk:load("assets/maps/kings-and-pigs.ldtk")
+	Ldtk:setFlipped(true)
+	Ldtk.onLayer = onLayer
+	Ldtk.onEntity = onEntity
+	Ldtk.onLevelLoaded = onLevelLoaded
+	Ldtk.onLevelCreated = onLevelCreated
+	Ldtk:goTo(1)
 
 	CameraManager.setScale(SCALE)
 	CameraManager.setDeadzone(-GRID_SIZE, -GRID_SIZE, GRID_SIZE, GRID_SIZE)
 	CameraManager.setLerp(0.01)
-	CameraManager.setCoords(new_player.x + new_player.width / SCALE, new_player.y - new_player.height * SCALE)
+	CameraManager.setCoords(player.x + player.width / SCALE, player.y - player.height * SCALE)
 
-	Debug:init(World, CameraManager, new_player)
+	Ui:init()
+	Ui.hud.player = player
+	Ui.fade_in = Ui.fade:new("in", 1)
+	Ui.fade_out = Ui.fade:new("out", 1)
+
+	Sfx:load()
+	Bgm:load()
+	-- Bgm:play()
+
+	Debug:init(World, CameraManager, player)
 end
 
 function screen:Update(dt)
-	if is_paused then
-		Fade:update(dt)
-		return
+	if player.is_player and player.state_machine:getState("entering") then
+		is_entering = true
+		Ui.fade_in:update(dt)
+
+		if not Ui.fade_in.is_active then
+			if player.is_next_level then
+				Ldtk:next()
+			else
+				Ldtk:previous()
+			end
+			is_entering = false
+			player.state_machine:setState("grounded")
+		end
 	end
 
-	new_player:update(dt, World)
+	if is_paused then
+		return
+	end
 
 	for _, level_enemy in ipairs(level_enemies) do
 		level_enemy:update(dt)
@@ -200,10 +231,17 @@ function screen:Update(dt)
 		level_entity:update(dt)
 	end
 
-	CameraManager.setTarget(new_player.x + new_player.width / 2, new_player.y + new_player.height / 2)
-	CameraManager.update(dt)
+	player:update(dt, World)
 
-	Ui:update(dt)
+	Ui.hud:update(dt)
+
+	-- TODO: add gameover screen
+	-- if player.health <= 0 then
+	--  return "gameover"
+	-- end
+
+	CameraManager.setTarget(player.x + player.width / 2, player.y + player.height / 2)
+	CameraManager.update(dt)
 
 	if IsDebug then
 		Debug:update()
@@ -225,21 +263,44 @@ function screen:Draw()
 		level_enemy:draw()
 	end
 
-	new_player:draw()
+	player:draw()
 
 	if IsDebug then
 		drawDebugBlocks()
 	end
 
-	-- FIXME: animation image is overlapped with the matte
-	if is_paused then
-		Fade:draw()
-	end
-
 	CameraManager.detach()
 
+	Ui.hud:draw()
+
+	if is_entering then
+		Ui.fade_in:draw()
+	end
+
 	if IsDebug then
-		Debug:draw(0)
+		CameraManager.debug()
+	end
+
+	if IsDebug then
+		Debug:draw()
+	end
+
+	-- FIXME: animation image is overlapped with the matte
+	if is_paused then
+		love.graphics.push()
+		love.graphics.setColor(0, 0, 0, 0.5)
+		love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
+
+		love.graphics.setColor(1, 1, 1, 1)
+		love.graphics.setFont(Fonts.title)
+
+		local paused = "Paused"
+		love.graphics.print(
+			paused,
+			(love.graphics.getWidth() - Fonts.title:getWidth(paused)) / 2,
+			love.graphics.getHeight() / 2 - Fonts.title:getHeight()
+		)
+		love.graphics.pop()
 	end
 end
 
@@ -253,7 +314,7 @@ function screen:KeyPressed(key)
 		IsDebug = not IsDebug
 	end
 
-	new_player:keypressed(key)
+	player:keypressed(key)
 end
 
 function screen:KeyReleased(key) end
