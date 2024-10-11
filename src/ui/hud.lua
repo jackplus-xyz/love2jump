@@ -1,11 +1,12 @@
-local anim8 = require("lib.anim8.anim8")
+local Anim8 = require("lib.anim8.anim8")
+local Fonts = require("src.assets.fonts")
 
 local Hud = {}
 Hud.__index = Hud
 
 function Hud.new(player)
 	local instance = setmetatable({}, Hud)
-	instance.player = player
+	instance.player = {}
 	instance:init()
 
 	return instance
@@ -20,17 +21,17 @@ function Hud:init()
 
 	self.animations = {}
 	self.coin_image = love.graphics.newImage("assets/sprites/12-live-and-coins/big-diamond-idle.png")
-	self.coin_grid = anim8.newGrid(sprite_width, sprite_height, self.coin_image:getWidth(), sprite_height)
-	self.animations.coin = anim8.newAnimation(self.coin_grid("1-10", 1), 0.1)
+	self.coin_grid = Anim8.newGrid(sprite_width, sprite_height, self.coin_image:getWidth(), sprite_height)
+	self.animations.coin = Anim8.newAnimation(self.coin_grid("1-10", 1), 0.1)
 
 	local big_heart_idle_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.big_heart_idle_image:getWidth(), sprite_height)
+		Anim8.newGrid(sprite_width, sprite_height, self.big_heart_idle_image:getWidth(), sprite_height)
 	local big_heart_hit_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.big_heart_hit_image:getWidth(), sprite_height)
+		Anim8.newGrid(sprite_width, sprite_height, self.big_heart_hit_image:getWidth(), sprite_height)
 
 	Hud.live_bar_animations = {
-		big_heart_idle = anim8.newAnimation(big_heart_idle_grid("1-8", 1), 0.1),
-		big_heart_hit = anim8.newAnimation(big_heart_hit_grid("1-2", 1), 0.1),
+		big_heart_idle = Anim8.newAnimation(big_heart_idle_grid("1-8", 1), 0.1),
+		big_heart_hit = Anim8.newAnimation(big_heart_hit_grid("1-2", 1), 0.1),
 	}
 end
 
@@ -45,14 +46,14 @@ function Hud:update(dt)
 end
 
 function Hud:draw()
-	local x, y = GRID_SIZE / 2, GRID_SIZE / 2
+	local start_x, start_y = GRID_SIZE / 2, GRID_SIZE / 2
 	local offset_x, offset_y = 12, 11
 	local heart_offset = 12
 
 	love.graphics.push()
 
 	love.graphics.scale(SCALE)
-	love.graphics.draw(self.live_bar_image, x, y)
+	love.graphics.draw(self.live_bar_image, start_x, start_y)
 
 	for i = 1, self.player.health do
 		local anim_offset = (i - 1) * 0.1
@@ -61,8 +62,8 @@ function Hud:draw()
 
 		self.live_bar_animations.big_heart_idle:draw(
 			self.big_heart_idle_image,
-			x + offset_x + (i - 1) * heart_offset,
-			y + offset_y,
+			start_x + offset_x + (i - 1) * heart_offset,
+			start_y + offset_y,
 			0,
 			0.8,
 			0.8
@@ -71,8 +72,9 @@ function Hud:draw()
 		self.live_bar_animations.big_heart_idle:update(anim_offset)
 	end
 
-	self.animations.coin:draw(self.coin_image, love.graphics.getWidth() / SCALE - x * 4, y)
-	love.graphics.print(self.player.coins, love.graphics.getWidth() / SCALE - x * SCALE, y)
+	self.animations.coin:draw(self.coin_image, love.graphics.getWidth() / SCALE - start_x * 4, start_y)
+	love.graphics.setFont(Fonts.title)
+	love.graphics.print(self.player.coins, love.graphics.getWidth() / SCALE - start_x * SCALE, start_y, 0, 0.25, 0.25)
 
 	love.graphics.pop()
 end

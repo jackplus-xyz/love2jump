@@ -1,4 +1,3 @@
-local Transition = require("src.ui.transition")
 local Anim8 = require("lib.anim8.anim8")
 local Ldtk = require("lib.ldtk-love.ldtk")
 local Sfx = require("src.sfx")
@@ -25,7 +24,6 @@ function Door.new(x, y, props)
 
 	self.current_animation = nil
 	self.animations = {}
-	self.transition = Transition:new()
 	self:init()
 
 	return self
@@ -42,7 +40,7 @@ function Door:init()
 	self.closing_grid = Anim8.newGrid(sprite_width, sprite_height, self.closing_image:getWidth(), sprite_height)
 
 	self.animations.idle = Anim8.newAnimation(self.idle_grid("1-1", 1), 0.1)
-	self.animations.opening = Anim8.newAnimation(self.opening_grid("1-5", 1), 0.1)
+	self.animations.opening = Anim8.newAnimation(self.opening_grid("1-5", 1), 0.1, "pauseAtEnd")
 	self.animations.closing = Anim8.newAnimation(self.opening_grid("1-3", 1), 0.1)
 
 	self.current_animation = self.animations.idle
@@ -59,21 +57,17 @@ function Door:enter()
 	self.current_animation = self.animations.opening
 	Sfx:play("door.enter")
 
-	-- Start the fade-out effect
-	self.transition:start_fade("out", 0.5) -- Fade out over 0.5 seconds
-
 	-- Perform level transition after fade-out is complete
-	if not self.transition.fade.active and self.transition.fade.alpha == 1 then
-		if self.is_next then
-			Ldtk:next()
-		else
-			Ldtk:previous()
-		end
+	if self.is_next then
+		Ldtk:next()
+	else
+		Ldtk:previous()
 	end
 end
 
 -- FIXME: collision when jumping over a door
 function Door:draw()
+	love.graphics.push()
 	self.current_animation:draw(
 		self.current_animation == self.animations.opening and self.opening_image
 			or self.current_animation == self.animations.closing and self.closing_image
@@ -93,8 +87,7 @@ function Door:draw()
 		love.graphics.rectangle("line", self.x - self.x_offset, self.y - self.y_offset, self.width, self.height)
 	end
 
-	-- Draw the fade effect
-	self.transition:draw_fade()
+	love.graphics.pop()
 end
 
 return Door

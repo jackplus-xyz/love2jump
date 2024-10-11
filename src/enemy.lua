@@ -243,6 +243,8 @@ function Enemy:draw()
 	local scale_x = (self.direction == -1) and 1 or -1
 	local offset_x = (self.direction == -1) and 0 or self.width -- Shift the sprite to the correct position when flipped
 
+	love.graphics.push()
+
 	-- TODO: add animation offset across enemy
 	self.current_animation:draw(
 		self.current_animation == self.animations.idle and self.idle_image
@@ -265,6 +267,8 @@ function Enemy:draw()
 		love.graphics.setColor(1, 1, 1)
 		love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 	end
+
+	love.graphics.pop()
 end
 
 return enemy

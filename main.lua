@@ -8,14 +8,9 @@ IsDebug = false
 -- Libraries
 local ScreenManager = require("lib.Yonder").ScreenManager
 local bump = require("lib.bump.bump")
-local World = bump.newWorld(GRID_SIZE)
-local CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
 
 -- Source
-local ui = require("src.ui")
-local bgm = require("src.bgm")
-local sfx = require("src.sfx")
-local debug = require("src.debug")
+local Ui = require("src.ui")
 
 --- Helper function to print the content of a table
 function PrintTable(t)
@@ -30,10 +25,7 @@ function love.load()
 	love.graphics.setLineStyle("rough")
 
 	-- load the data and resources
-	ui:init()
-	sfx:load()
-	bgm:load()
-	bgm:play()
+	Ui:init()
 
 	ScreenManager:SwitchStates("title")
 end
@@ -43,11 +35,6 @@ function love.update(dt)
 end
 
 function love.draw()
-	-- if IsDebug then
-	-- 	CameraManager.debug()
-	-- 	debug:draw(100)
-	-- end
-
 	ScreenManager:Draw()
 end
 

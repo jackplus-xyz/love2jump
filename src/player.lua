@@ -33,6 +33,7 @@ function player.new(x, y, world)
 	self.x = x
 	self.y = y
 	self.world = world
+	self.is_player = true
 
 	self.width = 18
 	self.height = 26
@@ -116,6 +117,16 @@ function Player:setupStates()
 				self.state_machine:setState("airborne")
 			elseif key == keymaps.attack then
 				self.state_machine:setState("grounded.attacking")
+			elseif key == keymaps.up then
+				local _, _, cols, len = self.world:check(self, self.x, self.y, playerFilter)
+				for i = 1, len do
+					local other = cols[i].other
+					if other.is_door then
+						self.state_machine:setState("entering")
+						other:enter()
+						-- self.state_machine:setState("grounded")
+					end
+				end
 			end
 		end,
 	})
@@ -190,6 +201,7 @@ function Player:setupStates()
 		enter = function()
 			self.current_animation = self.animations.idle
 		end,
+		update = function(_, dt) end,
 	})
 
 	-- Set default state
@@ -259,25 +271,15 @@ function Player:update(dt)
 end
 
 function Player:keypressed(key)
-	if key == keymaps.up then
-		local _, _, cols, len = self.world:check(self, self.x, self.y, playerFilter)
-		for i = 1, len do
-			local other = cols[i].other
-			if other.is_door then
-				self.state_machine:setState("entering")
-				other:enter()
-				self.state_machine:setState("grounded")
-			end
-		end
-	else
-		self.state_machine:handleEvent("keypressed", key)
-	end
+	self.state_machine:handleEvent("keypressed", key)
 end
 
 function Player:draw()
 	-- Flip the sprite based on direction
 	local scaleX = (self.direction == -1) and -1 or 1
 	local offsetX = (self.direction == -1) and self.width or 0 -- Shift the sprite to the correct position when flipped
+
+	love.graphics.push()
 
 	-- Draw the current animation based on the last movement direction (flip horizontally when facing left)
 	self.current_animation:draw(
@@ -301,6 +303,8 @@ function Player:draw()
 		love.graphics.setColor(1, 1, 1)
 		love.graphics.rectangle("line", self.x, self.y, self.width, self.height)
 	end
+
+	love.graphics.pop()
 end
 
 return player
