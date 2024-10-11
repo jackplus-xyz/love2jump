@@ -46,11 +46,8 @@ local is_entering = false
 local world_items = {}
 
 -------- Debug --------
-local debug_blocks = {}
-
 local function addBlock(x, y, w, h)
 	local block = { x = x, y = y, w = w, h = h }
-	debug_blocks[#debug_blocks + 1] = block
 	World:add(block, x, y, w, h)
 end
 
@@ -64,13 +61,6 @@ local function drawBox(box, r, g, b)
 
 	love.graphics.pop()
 end
-
-local function drawDebugBlocks()
-	for _, block in ipairs(debug_blocks) do
-		drawBox(block, 1, 0, 0)
-	end
-end
-
 --------- LOVE-LDTK CALLBACKS ----------
 local function onEntity(entity)
 	-- Ensure the player is already created
@@ -139,12 +129,10 @@ local function onLevelLoaded(level)
 	clearWorld(level_blocks)
 	clearWorld(level_entities)
 	clearWorld(level_enemies)
-	clearWorld(debug_blocks)
 
 	level_blocks = {}
 	level_entities = {}
 	level_enemies = {}
-	debug_blocks = {}
 
 	CameraManager.unsetBounds()
 	CameraManager.unsetDeadzone()

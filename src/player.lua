@@ -1,7 +1,7 @@
-local anim8 = require("lib.anim8.anim8")
-local keymaps = require("config.keymaps")
+local Anim8 = require("lib.anim8.anim8")
+local Keymaps = require("config.keymaps")
 local StateMachine = require("src.utils.state_machine")
-local sfx = require("src.sfx")
+local Sfx = require("src.sfx")
 
 ---@class player
 local player = {}
@@ -74,24 +74,24 @@ function Player:loadAnimations()
 
 	-- Create a grid for the animations
 	local idle_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), self.idle_image:getHeight())
-	local run_grid = anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), self.run_image:getHeight())
+		Anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), self.idle_image:getHeight())
+	local run_grid = Anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), self.run_image:getHeight())
 	local attack_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), self.attack_image:getHeight())
+		Anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), self.attack_image:getHeight())
 	local jump_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), self.jump_image:getHeight())
+		Anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), self.jump_image:getHeight())
 	local fall_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), self.fall_image:getHeight())
+		Anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), self.fall_image:getHeight())
 	local ground_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), self.ground_image:getHeight(), 100)
+		Anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), self.ground_image:getHeight(), 100)
 
 	-- Create the animations
-	self.animations.idle = anim8.newAnimation(idle_grid("1-11", 1), 0.1)
-	self.animations.run = anim8.newAnimation(run_grid("1-8", 1), 0.1)
-	self.animations.jump = anim8.newAnimation(jump_grid("1-1", 1), 0.1)
-	self.animations.fall = anim8.newAnimation(fall_grid("1-1", 1), 0.1)
-	self.animations.ground = anim8.newAnimation(ground_grid("1-1", 1), 0.1)
-	self.animations.attack = anim8.newAnimation(attack_grid("1-3", 1), 0.1, function(anim)
+	self.animations.idle = Anim8.newAnimation(idle_grid("1-11", 1), 0.1)
+	self.animations.run = Anim8.newAnimation(run_grid("1-8", 1), 0.1)
+	self.animations.jump = Anim8.newAnimation(jump_grid("1-1", 1), 0.1)
+	self.animations.fall = Anim8.newAnimation(fall_grid("1-1", 1), 0.1)
+	self.animations.ground = Anim8.newAnimation(ground_grid("1-1", 1), 0.1)
+	self.animations.attack = Anim8.newAnimation(attack_grid("1-3", 1), 0.1, function(anim)
 		anim:pauseAtEnd()
 	end)
 
@@ -112,13 +112,13 @@ function Player:setupStates()
 			end
 		end,
 		keypressed = function(_, key)
-			if key == keymaps.jump and self.jump_cooldown <= 0 then
+			if key == Keymaps.jump and self.jump_cooldown <= 0 then
 				self.y_velocity = self.jump_strength
 				self.jump_cooldown = self.jump_cooldown_time
 				self.state_machine:setState("airborne")
-			elseif key == keymaps.attack then
+			elseif key == Keymaps.attack then
 				self.state_machine:setState("grounded.attacking")
-			elseif key == keymaps.up then
+			elseif key == Keymaps.up then
 				local _, _, cols, len = self.world:check(self, self.x, self.y, playerFilter)
 				for i = 1, len do
 					local other = cols[i].other
@@ -137,7 +137,7 @@ function Player:setupStates()
 			self.current_animation = self.animations.attack
 			self.current_animation:gotoFrame(1)
 			self.current_animation:resume()
-			sfx:play("player.attack")
+			Sfx:play("player.attack")
 		end,
 		update = function(_)
 			if self.current_animation.status == "paused" then
@@ -166,7 +166,7 @@ function Player:setupStates()
 		end,
 		keypressed = function(_, key)
 			-- Handle airborne attack
-			if key == keymaps.attack then
+			if key == Keymaps.attack then
 				self.state_machine:setState("airborne.attacking")
 			end
 		end,
@@ -177,7 +177,7 @@ function Player:setupStates()
 			self.current_animation = self.animations.attack
 			self.current_animation:gotoFrame(1)
 			self.current_animation:resume()
-			sfx:play("player.attack")
+			Sfx:play("player.attack")
 		end,
 		update = function(_, dt)
 			-- Update jump cooldown
@@ -217,9 +217,9 @@ end
 function Player:handleMovement(dt)
 	local direction = 0
 
-	if love.keyboard.isDown(keymaps.right) then
+	if love.keyboard.isDown(Keymaps.right) then
 		direction = 1
-	elseif love.keyboard.isDown(keymaps.left) then
+	elseif love.keyboard.isDown(Keymaps.left) then
 		direction = -1
 	end
 

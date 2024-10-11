@@ -1,4 +1,4 @@
-local anim8 = require("lib.anim8.anim8")
+local Anim8 = require("lib.anim8.anim8")
 local StateMachine = require("src.utils.state_machine")
 
 ---@class enemy
@@ -51,26 +51,26 @@ function Enemy:loadAnimations()
 	self.run_image = love.graphics.newImage("/assets/sprites/03-pig/run.png")
 
 	-- Create a grid for the animations
-	local attack_grid = anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), sprite_height)
-	local dead_grid = anim8.newGrid(sprite_width, sprite_height, self.dead_image:getWidth(), sprite_height)
-	local fall_grid = anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), sprite_height)
-	local ground_grid = anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), sprite_height)
-	local hit_grid = anim8.newGrid(sprite_width, sprite_height, self.hit_image:getWidth(), sprite_height)
-	local idle_grid = anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), sprite_height)
-	local jump_grid = anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), sprite_height)
-	local run_grid = anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), sprite_height)
+	local attack_grid = Anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), sprite_height)
+	local dead_grid = Anim8.newGrid(sprite_width, sprite_height, self.dead_image:getWidth(), sprite_height)
+	local fall_grid = Anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), sprite_height)
+	local ground_grid = Anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), sprite_height)
+	local hit_grid = Anim8.newGrid(sprite_width, sprite_height, self.hit_image:getWidth(), sprite_height)
+	local idle_grid = Anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), sprite_height)
+	local jump_grid = Anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), sprite_height)
+	local run_grid = Anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), sprite_height)
 
 	-- Create the animations
-	self.animations.attack = anim8.newAnimation(attack_grid("1-5", 1), 0.1, function(anim)
+	self.animations.attack = Anim8.newAnimation(attack_grid("1-5", 1), 0.1, function(anim)
 		anim:pauseAtEnd()
 	end)
-	self.animations.dead = anim8.newAnimation(dead_grid("1-4", 1), 0.1)
-	self.animations.fall = anim8.newAnimation(fall_grid("1-1", 1), 0.1)
-	self.animations.ground = anim8.newAnimation(ground_grid("1-1", 1), 0.1)
-	self.animations.hit = anim8.newAnimation(hit_grid("1-2", 1), 0.1)
-	self.animations.idle = anim8.newAnimation(idle_grid("1-11", 1), 0.1)
-	self.animations.jump = anim8.newAnimation(jump_grid("1-1", 1), 0.1)
-	self.animations.run = anim8.newAnimation(run_grid("1-6", 1), 0.1)
+	self.animations.dead = Anim8.newAnimation(dead_grid("1-4", 1), 0.1)
+	self.animations.fall = Anim8.newAnimation(fall_grid("1-1", 1), 0.1)
+	self.animations.ground = Anim8.newAnimation(ground_grid("1-1", 1), 0.1)
+	self.animations.hit = Anim8.newAnimation(hit_grid("1-2", 1), 0.1)
+	self.animations.idle = Anim8.newAnimation(idle_grid("1-11", 1), 0.1)
+	self.animations.jump = Anim8.newAnimation(jump_grid("1-1", 1), 0.1)
+	self.animations.run = Anim8.newAnimation(run_grid("1-6", 1), 0.1)
 
 	-- Set the initial animation to idle
 	self.current_animation = self.animations.idle

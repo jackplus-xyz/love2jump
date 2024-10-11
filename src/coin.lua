@@ -1,6 +1,6 @@
-local anim8 = require("lib.anim8.anim8")
-local sfx = require("src.sfx")
-local ldtk = require("lib.ldtk-love.ldtk")
+local Anim8 = require("lib.anim8.anim8")
+local Sfx = require("src.sfx")
+local Ldtk = require("lib.ldtk-love.ldtk")
 
 local Coin = {}
 Coin.__index = Coin
@@ -36,11 +36,11 @@ function Coin:init()
 	self.idle_image = love.graphics.newImage("assets/sprites/12-live-and-coins/big-diamond-idle.png")
 	self.hit_image = love.graphics.newImage("assets/sprites/12-live-and-coins/big-diamond-hit.png")
 
-	self.idle_grid = anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), sprite_height)
-	self.hit_grid = anim8.newGrid(sprite_width, sprite_height, self.hit_image:getWidth(), sprite_height)
+	self.idle_grid = Anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), sprite_height)
+	self.hit_grid = Anim8.newGrid(sprite_width, sprite_height, self.hit_image:getWidth(), sprite_height)
 
-	self.animations.idle = anim8.newAnimation(self.idle_grid("1-10", 1), 0.1)
-	self.animations.hit = anim8.newAnimation(self.hit_grid("1-2", 1), 0.1)
+	self.animations.idle = Anim8.newAnimation(self.idle_grid("1-10", 1), 0.1)
+	self.animations.hit = Anim8.newAnimation(self.hit_grid("1-2", 1), 0.1)
 
 	self.current_animation = self.animations.idle
 end
@@ -56,7 +56,7 @@ function Coin:update(dt)
 end
 
 function Coin:collect()
-	sfx:play("coin.collected")
+	Sfx:play("coin.collected")
 	self.current_animation = self.animations.hit
 	self.is_collected = true
 
