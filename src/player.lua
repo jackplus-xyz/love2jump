@@ -107,6 +107,10 @@ function Player:setupStates()
 		update = function(_, dt)
 			self:handleMovement(dt)
 
+			if self.jump_cooldown > 0 then
+				self.jump_cooldown = self.jump_cooldown - dt
+			end
+
 			if self.y_velocity ~= 0 then
 				self.state_machine:setState("airborne")
 			end
