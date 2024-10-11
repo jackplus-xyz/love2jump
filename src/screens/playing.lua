@@ -74,6 +74,7 @@ end
 
 --------- LOVE-LDTK CALLBACKS ----------
 local function onEntity(entity)
+	-- Ensure the player is already created
 	if entity.id == "Player" and not player.is_player then
 		player = Player.new(entity.x, entity.y, World)
 		World:add(player, player.x - player.width / 2, player.y - player.height, player.width, player.height)
@@ -146,18 +147,11 @@ local function onLevelLoaded(level)
 	level_enemies = {}
 	debug_blocks = {}
 
+	CameraManager.unsetBounds()
+	CameraManager.unsetDeadzone()
+
 	--changing background color to the one defined in LDtk
 	love.graphics.setBackgroundColor(level.backgroundColor)
-
-	local window_width = love.graphics.getWidth()
-	local window_height = love.graphics.getHeight()
-
-	CameraManager.setBounds(
-		-window_width / 2 / SCALE,
-		-window_height / 2 / SCALE,
-		level.width + window_width / 2 / SCALE,
-		level.height + window_height / 2 / SCALE
-	)
 end
 
 local function onLevelCreated(level)
@@ -169,10 +163,19 @@ local function onLevelCreated(level)
 	if player then
 		for _, entity in pairs(level_entities) do
 			if entity.is_door and not entity.is_next then
-				player.x, player.y = entity.x, entity.y - player.height
+				player.x, player.y = entity.x - player.width / 2, entity.y - player.height
 			end
 		end
 	end
+
+	local window_width = love.graphics.getWidth()
+	local window_height = love.graphics.getHeight()
+	CameraManager.setBounds(
+		-window_width / 2 / SCALE,
+		-window_height / 2 / SCALE,
+		level.width + window_width / 2 / SCALE,
+		level.height + window_height / 2 / SCALE
+	)
 end
 --------------------------------------------
 
@@ -198,7 +201,7 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 
 	Sfx:load()
 	Bgm:load()
-	-- Bgm:play()
+	Bgm:play()
 
 	Debug:init(World, CameraManager, player)
 end
@@ -206,7 +209,6 @@ end
 function screen:Update(dt)
 	if player.is_player and player.state_machine:getState("entering") then
 		is_entering = true
-
 		if Ui.fade_in.is_active then
 			Ui.fade_in:update(dt)
 			return
@@ -218,6 +220,7 @@ function screen:Update(dt)
 			end
 			is_entering = false
 			Ui.fade_in:reset()
+			player:update(dt)
 			player.state_machine:setState("grounded")
 		end
 	end

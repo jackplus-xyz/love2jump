@@ -52,7 +52,6 @@ function Door:update(dt)
 	end
 end
 
--- TODO: Level transition animation
 function Door:enter()
 	self.current_animation = self.animations.opening
 	Sfx:play("door.enter")

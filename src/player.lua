@@ -201,7 +201,9 @@ function Player:setupStates()
 		enter = function()
 			self.current_animation = self.animations.idle
 		end,
-		update = function(_, dt) end,
+		update = function(_, dt)
+			self.world:update(self, self.x, self.y)
+		end,
 	})
 
 	-- Set default state
@@ -238,7 +240,7 @@ function Player:handleMovement(dt)
 end
 
 function Player:move(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y, playerFilter)
+	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, playerFilter)
 
 	for i = 1, len do
 		local other = cols[i].other
