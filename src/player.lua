@@ -240,7 +240,7 @@ function Player:handleMovement(dt)
 end
 
 function Player:move(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, playerFilter)
+	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y, playerFilter)
 
 	for i = 1, len do
 		local other = cols[i].other
@@ -299,14 +299,6 @@ function Player:draw()
 		21,
 		18
 	)
-
-	-- Draw debugging box
-	if IsDebug then
-		local world_x, world_y, world_width, world_height = self.world:getRect(self)
-
-		love.graphics.setColor(1, 1, 1)
-		love.graphics.rectangle("line", world_x, world_y, world_width, world_height)
-	end
 
 	love.graphics.pop()
 end

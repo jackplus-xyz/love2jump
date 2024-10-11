@@ -6,8 +6,6 @@ local World = Bump.newWorld(GRID_SIZE)
 local CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
 local screen = {}
 
-local Fade = require("src.ui.fade")
-
 -- Config
 local Keymaps = require("config.keymaps")
 
@@ -45,6 +43,7 @@ local level_entities = {}
 local level_enemies = {}
 local is_paused = false
 local is_entering = false
+local world_items = {}
 
 -------- Debug --------
 local debug_blocks = {}
@@ -250,6 +249,7 @@ function screen:Update(dt)
 	CameraManager.update(dt)
 
 	if IsDebug then
+		world_items, _ = World:getItems()
 		Debug:update()
 	end
 end
@@ -272,7 +272,22 @@ function screen:Draw()
 	player:draw()
 
 	if IsDebug then
-		drawDebugBlocks()
+		love.graphics.push("all")
+		for _, item in pairs(world_items) do
+			if item.x and item.y and item.w and item.h then
+				love.graphics.setColor(1, 0, 0, 0.25)
+				love.graphics.rectangle("fill", item.x, item.y, item.w, item.h)
+				love.graphics.setColor(1, 0, 0)
+				love.graphics.rectangle("line", item.x, item.y, item.w, item.h)
+			else
+				local x, y, w, h = World:getRect(item)
+				love.graphics.setColor(1, 0, 0, 0.25)
+				love.graphics.rectangle("fill", x, y, w, h)
+				love.graphics.setColor(1, 0, 0)
+				love.graphics.rectangle("line", x, y, w, h)
+			end
+		end
+		love.graphics.pop()
 	end
 
 	CameraManager.detach()
@@ -284,10 +299,7 @@ function screen:Draw()
 	end
 
 	if IsDebug then
-		CameraManager.debug()
-	end
-
-	if IsDebug then
+		-- CameraManager.debug()
 		Debug:draw()
 	end
 

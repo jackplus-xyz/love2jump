@@ -262,14 +262,6 @@ function Enemy:draw()
 		10
 	)
 
-	-- Draw debugging box
-	if IsDebug then
-		local world_x, world_y, world_width, world_height = self.world:getRect(self)
-
-		love.graphics.setColor(1, 1, 1)
-		love.graphics.rectangle("line", world_x, world_y, world_width, world_height)
-	end
-
 	love.graphics.pop()
 end
 
