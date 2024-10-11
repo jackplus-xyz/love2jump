@@ -215,6 +215,7 @@
 
 #### Fixed
 
+- [ ] Door Collision
 - [x] Level transitioning
 - [x] Animated is overwritten after `love.graphics.setColor()` is called
 - [x] Tile on the corner is not drawn correctly

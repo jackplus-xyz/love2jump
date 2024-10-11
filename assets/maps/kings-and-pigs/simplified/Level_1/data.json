@@ -48,19 +48,6 @@
 				}
 			}
 		],
-		"Player": [
-			{
-				"id": "Player",
-				"iid": "7bed47e0-73f0-11ef-ba86-111b6ca424e3",
-				"layer": "Entities",
-				"x": 152,
-				"y": 256,
-				"width": 16,
-				"height": 16,
-				"color": 12470831,
-				"customFields" : {}
-			}
-		],
 		"Door": [
 			{
 				"id": "Door",
@@ -86,6 +73,19 @@
 				"width": 16,
 				"height": 16,
 				"color": 14984818,
+				"customFields" : {}
+			}
+		],
+		"Placeholder": [
+			{
+				"id": "Placeholder",
+				"iid": "e4449430-73f0-11ef-884d-d5cd2b87e5a8",
+				"layer": "Entities",
+				"x": 368,
+				"y": 160,
+				"width": 32,
+				"height": 32,
+				"color": 7552569,
 				"customFields" : {}
 			}
 		]

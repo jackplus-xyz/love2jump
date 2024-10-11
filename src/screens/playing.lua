@@ -88,7 +88,7 @@ local function onEntity(entity)
 		)
 		table.insert(level_enemies, new_enemy)
 	elseif entity.id == "Door" then
-		local new_door = Door.new(entity.x, entity.y, entity.props)
+		local new_door = Door.new(entity.x, entity.y, entity.props, World)
 		World:add(
 			new_door,
 			new_door.x - new_door.x_offset,

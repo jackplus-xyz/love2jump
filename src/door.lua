@@ -7,12 +7,13 @@ Door.__index = Door
 local sprite_width = 46
 local sprite_height = 56
 
-function Door.new(x, y, props)
+function Door.new(x, y, props, world)
 	local self = setmetatable({}, Door)
 
 	self.is_door = true
 	self.is_next = props.isNext
 	self.timer = 3
+	self.world = world
 
 	self.x = x
 	self.y = y
@@ -78,8 +79,10 @@ function Door:draw()
 
 	-- Draw debugging box
 	if IsDebug then
+		local world_x, world_y, world_width, world_height = self.world:getRect(self)
+
 		love.graphics.setColor(1, 1, 1)
-		love.graphics.rectangle("line", self.x - self.x_offset, self.y - self.y_offset, self.width, self.height)
+		love.graphics.rectangle("line", world_x, world_y, world_width, world_height)
 	end
 
 	love.graphics.pop()
