@@ -8,6 +8,7 @@ Coin.__index = Coin
 local sprite_width = 18
 local sprite_height = 14
 
+-- FIXME: don't respawn coin whenever the level refresh
 function Coin.new(x, y, world)
 	local self = setmetatable({}, Coin)
 

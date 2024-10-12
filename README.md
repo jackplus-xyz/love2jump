@@ -198,6 +198,7 @@
 
 - [x] Game states (title, landing, playing)
 - [x] Level transition animation
+- [x] Update debugging collision correctly
 - [ ] Hitbox
 - [ ] Interaction between player and enemy(attack, damage)
 - [ ] Enemy drop items

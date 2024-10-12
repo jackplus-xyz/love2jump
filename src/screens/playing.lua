@@ -38,6 +38,7 @@ end
 
 -- Vars
 local player = {}
+local layers = {}
 local level_blocks = {}
 local level_entities = {}
 local level_enemies = {}
@@ -48,7 +49,7 @@ local is_entering = false
 
 -------- Debug --------
 local function addBlock(x, y, w, h)
-	local block = { x = x, y = y, w = w, h = h }
+	local block = { x = x, y = y, w = w, h = h, is_block = true }
 	World:add(block, x, y, w, h)
 end
 
@@ -100,8 +101,8 @@ local function onEntity(entity)
 		table.insert(level_entities, new_coin)
 	else
 		-- Draw other entites as a rectangle
-		-- local new_object = object(entity)
-		-- table.insert(level_blocks, new_object)
+		local new_object = object(entity)
+		table.insert(level_blocks, new_object)
 	end
 end
 
@@ -114,15 +115,12 @@ local function onLayer(layer)
 			addBlock(layer.tiles[i].px[1], layer.tiles[i].px[2], GRID_SIZE, GRID_SIZE)
 		end
 	end
-	table.insert(level_blocks, layer) --adding layer to the table we use to draw
+	table.insert(layers, layer) --adding layer to the table we use to draw
 end
 
 local function onLevelLoaded(level)
-	local _, len = World:getItems()
-
-	-- removing all objects so we have a blank level
 	for _, world_item in pairs(world_items) do
-		if World:hasItem(world_item) then
+		if not world_item.is_player then
 			World:remove(world_item)
 		end
 	end
@@ -191,6 +189,8 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 end
 
 function screen:Update(dt)
+	world_items = World:getItems()
+
 	if player.is_player and player.state_machine:getState("entering") then
 		is_entering = true
 		if Ui.fade_in.is_active then
@@ -234,13 +234,16 @@ function screen:Update(dt)
 	CameraManager.update(dt)
 
 	if IsDebug then
-		world_items, _ = World:getItems()
 		Debug:update()
 	end
 end
 
 function screen:Draw()
 	CameraManager.attach()
+
+	for _, layer in ipairs(layers) do
+		layer:draw()
+	end
 
 	for _, level_block in ipairs(level_blocks) do
 		level_block:draw()
@@ -258,6 +261,7 @@ function screen:Draw()
 
 	if IsDebug then
 		love.graphics.push("all")
+		world_items = World:getItems()
 		for _, item in pairs(world_items) do
 			if item.x and item.y and item.w and item.h then
 				love.graphics.setColor(1, 0, 0, 0.25)
@@ -285,7 +289,7 @@ function screen:Draw()
 
 	if IsDebug then
 		-- CameraManager.debug()
-		Debug:draw()
+		-- Debug:draw()
 	end
 
 	if is_paused then

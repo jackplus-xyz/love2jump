@@ -14,12 +14,10 @@ local playerFilter = function(item, other)
 		return "cross"
 	elseif other.is_door then
 		return "cross"
-	elseif other.is_wall then
+	elseif other.is_enemy then
 		return "slide"
-	elseif other.is_exit then
-		return "touch"
-	elseif other.is_spring then
-		return "bounce"
+	elseif other.is_block then
+		return "slide"
 	else
 		return "slide"
 	end
@@ -261,12 +259,12 @@ function Player:applyGravity(dt)
 	self.y_velocity = self.y_velocity + self.gravity * dt
 
 	local goal_y = self.y + self.y_velocity * dt
-	local _, _, _, len = self.world:check(self, self.x, goal_y)
+	local _, actual_y, cols, len = self.world:check(self, self.x, goal_y, playerFilter)
 
 	if len > 0 then
 		self.y_velocity = 0
 	else
-		self:move(self.x, goal_y)
+		self:move(self.x, actual_y)
 	end
 end
 
