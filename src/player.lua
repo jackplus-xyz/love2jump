@@ -9,6 +9,7 @@ local player = {}
 -- class table
 local Player = {}
 
+-- FIXME: weird collision between enemy and player
 local playerFilter = function(item, other)
 	if other.is_coin then
 		return "cross"
@@ -47,12 +48,14 @@ function player.new(x, y, world)
 	self.jump_strength = -320
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
+	self.hit_cooldown = 0
+	self.hit_cooldown_time = 0.1
 	self.gravity = 1200
 	self.coins = 0
 
 	self.health = 3
 	self.max_health = 3
-	self.atk = 3
+	self.atk = 1
 
 	self.current_animation = nil
 	self.animations = {}
@@ -148,8 +151,8 @@ function Player:setupStates()
 		enter = function()
 			self:attack()
 		end,
-		update = function(_)
-			self:updateHitbox()
+		update = function(_, dt)
+			self:updateHitbox(dt)
 
 			if self.current_animation.status == "paused" then
 				self.world:remove(self.hitbox)
@@ -200,7 +203,7 @@ function Player:setupStates()
 			end
 
 			self:handleMovement(dt)
-			self:updateHitbox()
+			self:updateHitbox(dt)
 
 			if self.current_animation.status == "paused" then
 				self.world:remove(self.hitbox)
@@ -293,14 +296,21 @@ function Player:attack()
 	self.world:add(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h, hitboxFilter)
 end
 
-function Player:updateHitbox()
+function Player:updateHitbox(dt)
+	if self.hit_cooldown > 0 then
+		self.hit_cooldown = self.hit_cooldown - dt
+	end
+
 	self.world:update(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h, hitboxFilter)
-	local _, _, cols, len = self.world:check(self.hitbox, self.hitbox.x, self.hitbox.y, hitboxFilter)
-	for i = 1, len do
-		local other = cols[i].other
-		if other.is_enemy then
-			other:hit(self.atk)
+	if self.hit_cooldown <= 0 then
+		local _, _, cols, len = self.world:check(self.hitbox, self.hitbox.x, self.hitbox.y, hitboxFilter)
+		for i = 1, len do
+			local other = cols[i].other
+			if other.is_enemy then
+				other:hit(self.atk)
+			end
 		end
+		self.hit_cooldown = self.hit_cooldown_time
 	end
 end
 

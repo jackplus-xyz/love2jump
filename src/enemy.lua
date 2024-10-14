@@ -8,6 +8,15 @@ local enemy = {}
 -- class table
 local Enemy = {}
 
+local enemyFilter = function(item, other)
+	if other.is_hitbox then
+		return "cross"
+	else
+		return "slide"
+	end
+	-- else return nil
+end
+
 function enemy.new(x, y, props, world)
 	local self = {}
 	setmetatable(self, { __index = Enemy })
@@ -195,6 +204,23 @@ function Enemy:setupStates()
 		enter = function()
 			self.current_animation = self.animations.hit
 			Sfx:play("enemy.hit")
+
+			local _, _, cols, len = self.world:check(self, self.x, self.y, enemyFilter)
+
+			local x_offset = 10
+			local hitbox_direction = 0.5
+			for i = 1, len do
+				local other = cols[i].other
+				if other.is_hitbox then
+					if other.x > self.x then
+						hitbox_direction = -1
+					end
+				end
+			end
+
+			local actual_x, actual_y, _, _ =
+				self.world:move(self, self.x + x_offset * hitbox_direction, self.y, enemyFilter)
+			self.x, self.y = actual_x, actual_y
 		end,
 		update = function(_, dt)
 			if self.health <= 0 then

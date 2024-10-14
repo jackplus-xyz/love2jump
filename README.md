@@ -225,6 +225,7 @@
 #### Added
 
 - [x] Interaction between player and enemy(damage)
+- [x] The enemy will be knock back
 - [ ] Game states(save/load)
 - [ ] Enemy drop items
 - [ ] Settings menu
@@ -232,6 +233,7 @@
 
 #### Changed
 
+- [ ] Make Enemy class extendable
 - [ ] Improve enemy patrol logic to handle unreachable points
 - [ ] Improve tileset rules
 
