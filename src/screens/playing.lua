@@ -283,7 +283,7 @@ function screen:Draw()
 
 	if IsDebug then
 		-- CameraManager.debug()
-		-- Debug:draw()
+		Debug:draw()
 	end
 
 	if is_paused then

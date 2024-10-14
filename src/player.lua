@@ -95,7 +95,7 @@ function Player:loadAnimations()
 	self.animations.jump = Anim8.newAnimation(jump_grid("1-1", 1), 0.1)
 	self.animations.fall = Anim8.newAnimation(fall_grid("1-1", 1), 0.1)
 	self.animations.ground = Anim8.newAnimation(ground_grid("1-1", 1), 0.1)
-	self.animations.attack = Anim8.newAnimation(attack_grid("1-3", 1), 0.1, function(anim)
+	self.animations.attack = Anim8.newAnimation(attack_grid("1-3", 1), 0.05, function(anim)
 		anim:pauseAtEnd()
 	end)
 
@@ -200,6 +200,7 @@ function Player:setupStates()
 			if self.current_animation.status == "paused" then
 				self.world:remove(self.hitbox)
 				self.hitbox = {}
+				self:setAirborneAnimation()
 				if self.y_velocity == 0 then
 					self.state_machine:setState("grounded")
 				else
@@ -269,11 +270,11 @@ function Player:attack()
 		w = hitbox_width,
 		h = self.height + hitbox_height,
 	}
-	self.world:add(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h)
+	self.world:add(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h, hitboxFilter)
 end
 
 function Player:updateHitbox()
-	self.world:update(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h)
+	self.world:update(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h, hitboxFilter)
 	local _, _, cols, len = self.world:check(self.hitbox, self.hitbox.x, self.hitbox.y, hitboxFilter)
 	for i = 1, len do
 		local other = cols[i].other
