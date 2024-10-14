@@ -185,21 +185,22 @@ end
 function screen:Update(dt)
 	world_items = World:getItems()
 
-	if player.is_player and player.state_machine:getState("entering") then
+	if player.is_player and player.state_machine:getState("door.enter") then
 		is_entering = true
 		if Ui.fade_in.is_active then
 			Ui.fade_in:update(dt)
+			player.current_animation:update(dt)
 			return
 		else
 			if player.is_next_level then
+				player.state_machine:setState("door.out")
 				Ldtk:next()
 			else
 				Ldtk:previous()
 			end
 			is_entering = false
-			Ui.fade_in:reset()
 			player:update(dt)
-			player.state_machine:setState("grounded")
+			Ui.fade_in:reset()
 		end
 	end
 

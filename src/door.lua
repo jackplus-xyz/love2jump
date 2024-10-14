@@ -41,7 +41,7 @@ function Door:init()
 
 	self.animations.idle = Anim8.newAnimation(self.idle_grid("1-1", 1), 0.1)
 	self.animations.opening = Anim8.newAnimation(self.opening_grid("1-5", 1), 0.1, "pauseAtEnd")
-	self.animations.closing = Anim8.newAnimation(self.opening_grid("1-3", 1), 0.1)
+	self.animations.closing = Anim8.newAnimation(self.closing_grid("1-3", 1), 0.1, "pauseAtEnd")
 
 	self.current_animation = self.animations.idle
 end
@@ -54,10 +54,16 @@ end
 
 function Door:enter()
 	self.current_animation = self.animations.opening
-	Sfx:play("door.enter")
+	-- Sfx:play("door.enter")
 
 	-- Perform level transition after fade-out is complete
 	return self.is_next
+end
+
+function Door:out()
+	self.current_animation = self.animations.closing
+	-- Sfx:play("door.enter")
+	-- TODO: add close door sfx
 end
 
 -- FIXME: collision when jumping over a door

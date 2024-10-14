@@ -69,35 +69,40 @@ function Player:loadAnimations()
 	local sprite_height = 58
 
 	-- Load images
-	self.idle_image = love.graphics.newImage("/assets/sprites/01-king-human/idle.png")
-	self.run_image = love.graphics.newImage("/assets/sprites/01-king-human/run.png")
-	self.jump_image = love.graphics.newImage("/assets/sprites/01-king-human/jump.png")
+	self.attack_image = love.graphics.newImage("/assets/sprites/01-king-human/attack.png")
+	self.dead_image = love.graphics.newImage("/assets/sprites/01-king-human/dead.png")
+	self.door_enter_image = love.graphics.newImage("/assets/sprites/01-king-human/door.png")
+	self.door_out_image = love.graphics.newImage("/assets/sprites/01-king-human/door-out.png")
 	self.fall_image = love.graphics.newImage("/assets/sprites/01-king-human/fall.png")
 	self.ground_image = love.graphics.newImage("/assets/sprites/01-king-human/ground.png")
-	self.attack_image = love.graphics.newImage("/assets/sprites/01-king-human/attack.png")
+	self.hit_image = love.graphics.newImage("/assets/sprites/01-king-human/hit.png")
+	self.idle_image = love.graphics.newImage("/assets/sprites/01-king-human/idle.png")
+	self.jump_image = love.graphics.newImage("/assets/sprites/01-king-human/jump.png")
+	self.run_image = love.graphics.newImage("/assets/sprites/01-king-human/run.png")
 
 	-- Create a grid for the animations
-	local idle_grid =
-		Anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), self.idle_image:getHeight())
-	local run_grid = Anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), self.run_image:getHeight())
-	local attack_grid =
-		Anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), self.attack_image:getHeight())
-	local jump_grid =
-		Anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), self.jump_image:getHeight())
-	local fall_grid =
-		Anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), self.fall_image:getHeight())
-	local ground_grid =
-		Anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), self.ground_image:getHeight(), 100)
+	local attack_grid = Anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), sprite_height)
+	local dead_grid = Anim8.newGrid(sprite_width, sprite_height, self.dead_image:getWidth(), sprite_height)
+	local door_enter_grid = Anim8.newGrid(sprite_width, sprite_height, self.door_enter_image:getWidth(), sprite_height)
+	local door_out_grid = Anim8.newGrid(sprite_width, sprite_height, self.door_out_image:getWidth(), sprite_height)
+	local fall_grid = Anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), sprite_height)
+	local ground_grid = Anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), sprite_height)
+	local hit_grid = Anim8.newGrid(sprite_width, sprite_height, self.hit_image:getWidth(), sprite_height)
+	local idle_grid = Anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), sprite_height)
+	local jump_grid = Anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), sprite_height)
+	local run_grid = Anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), sprite_height)
 
 	-- Create the animations
-	self.animations.idle = Anim8.newAnimation(idle_grid("1-11", 1), 0.1)
-	self.animations.run = Anim8.newAnimation(run_grid("1-8", 1), 0.1)
-	self.animations.jump = Anim8.newAnimation(jump_grid("1-1", 1), 0.1)
+	self.animations.attack = Anim8.newAnimation(attack_grid("1-3", 1), 0.05, "pauseAtEnd")
+	self.animations.dead = Anim8.newAnimation(dead_grid("1-4", 1), 0.1, "pauseAtEnd")
+	self.animations.door_enter = Anim8.newAnimation(door_enter_grid("1-8", 1), 0.1, "pauseAtEnd")
+	self.animations.door_out = Anim8.newAnimation(door_out_grid("1-8", 1), 0.1, "pauseAtEnd")
+	self.animations.hit = Anim8.newAnimation(hit_grid("1-2", 1), 0.1)
 	self.animations.fall = Anim8.newAnimation(fall_grid("1-1", 1), 0.1)
 	self.animations.ground = Anim8.newAnimation(ground_grid("1-1", 1), 0.1)
-	self.animations.attack = Anim8.newAnimation(attack_grid("1-3", 1), 0.05, function(anim)
-		anim:pauseAtEnd()
-	end)
+	self.animations.idle = Anim8.newAnimation(idle_grid("1-11", 1), 0.1)
+	self.animations.jump = Anim8.newAnimation(jump_grid("1-1", 1), 0.1)
+	self.animations.run = Anim8.newAnimation(run_grid("1-8", 1), 0.1)
 
 	-- Set the initial animation to idle
 	self.current_animation = self.animations.idle
@@ -131,7 +136,7 @@ function Player:setupStates()
 				for i = 1, len do
 					local other = cols[i].other
 					if other.is_door then
-						self.state_machine:setState("entering")
+						self.state_machine:setState("door.enter")
 						self.is_next_level = other:enter()
 					end
 				end
@@ -210,12 +215,37 @@ function Player:setupStates()
 		end,
 	})
 
-	self.state_machine:addState("entering", {
+	self.state_machine:addState("door.enter", {
 		enter = function()
-			self.current_animation = self.animations.idle
+			self.current_animation = self.animations.door_enter
+			self.current_animation:gotoFrame(1)
+			self.current_animation:resume()
+		end,
+		update = function(_, dt)
+			if self.current_animation.status == "paused" then
+				self.state_machine:setState("door.out")
+			end
+		end,
+	})
+
+	self.state_machine:addState("door.out", {
+		enter = function()
+			self.current_animation = self.animations.door_out
+			self.current_animation:gotoFrame(1)
+			self.current_animation:resume()
 		end,
 		update = function(_, dt)
 			self.world:update(self, self.x, self.y)
+			local _, _, cols, len = self.world:check(self, self.x, self.y, playerFilter)
+			for i = 1, len do
+				local other = cols[i].other
+				if other.is_door and not other.is_next then
+					other:out()
+				end
+			end
+			if self.current_animation.status == "paused" then
+				self.state_machine:setState("grounded")
+			end
 		end,
 	})
 
@@ -330,12 +360,17 @@ function Player:draw()
 
 	-- Draw the current animation based on the last movement direction (flip horizontally when facing left)
 	self.current_animation:draw(
-		self.current_animation == self.animations.idle and self.idle_image
-			or self.current_animation == self.animations.run and self.run_image
-			or self.current_animation == self.animations.jump and self.jump_image
+		self.current_animation == self.animations.attack and self.attack_image
+			or self.current_animation == self.animations.dead and self.dead_image
+			or self.current_animation == self.animations.door_enter and self.door_enter_image
+			or self.current_animation == self.animations.door_out and self.door_out_image
 			or self.current_animation == self.animations.fall and self.fall_image
 			or self.current_animation == self.animations.ground and self.ground_image
-			or self.attack_image,
+			or self.current_animation == self.animations.hit and self.hit_image
+			or self.current_animation == self.animations.idle and self.idle_image
+			or self.current_animation == self.animations.jump and self.jump_image
+			or self.current_animation == self.animations.run and self.run_image
+			or self.idle_image,
 		self.x + offsetX, -- Adjust the x position when flipping
 		self.y,
 		0,
