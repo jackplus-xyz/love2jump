@@ -139,37 +139,13 @@ function Player:setupStates()
 		end,
 	})
 
-	-- TODO: Add hitbox
 	self.state_machine:addState("grounded.attacking", {
 		enter = function()
-			self.current_animation = self.animations.attack
-			self.current_animation:gotoFrame(1)
-			self.current_animation:resume()
-			Sfx:play("player.attack")
-
-			-- Hitbox
-			local hitbox_width = 30
-			local hitbox_height = 20
-
-			local hixbox_x = (self.direction == -1) and self.x - hitbox_width or self.x + self.width
-			self.hitbox = {
-				is_hitbox = true,
-				x = hixbox_x,
-				y = self.y - hitbox_height,
-				w = hitbox_width,
-				h = self.height + hitbox_height,
-			}
-			self.world:add(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h)
+			self:attack()
 		end,
 		update = function(_)
-			-- FIXME: the enemy move/slide when the player get close to them
-			local _, _, cols, len = self.world:check(self.hitbox, self.hitbox.x, self.hitbox.y, hitboxFilter)
-			for i = 1, len do
-				local other = cols[i].other
-				if other.is_enemy then
-					other:hit(self.atk)
-				end
-			end
+			self:updateHitbox()
+
 			if self.current_animation.status == "paused" then
 				self.world:remove(self.hitbox)
 				self.hitbox = {}
@@ -209,6 +185,7 @@ function Player:setupStates()
 			self.current_animation = self.animations.attack
 			self.current_animation:gotoFrame(1)
 			self.current_animation:resume()
+			self:attack()
 			Sfx:play("player.attack")
 		end,
 		update = function(_, dt)
@@ -217,9 +194,12 @@ function Player:setupStates()
 				self.jump_cooldown = self.jump_cooldown - dt
 			end
 
-			self:handleMovement(dt) -- Update movement while attacking
+			self:handleMovement(dt)
+			self:updateHitbox()
 
 			if self.current_animation.status == "paused" then
+				self.world:remove(self.hitbox)
+				self.hitbox = {}
 				if self.y_velocity == 0 then
 					self.state_machine:setState("grounded")
 				else
@@ -269,6 +249,38 @@ function Player:handleMovement(dt)
 	local goal_x = self.x + dx
 
 	self:move(goal_x, self.y)
+end
+
+function Player:attack()
+	self.current_animation = self.animations.attack
+	self.current_animation:gotoFrame(1)
+	self.current_animation:resume()
+	Sfx:play("player.attack")
+
+	-- Hitbox
+	local hitbox_width = 30
+	local hitbox_height = 20
+
+	local hixbox_x = (self.direction == -1) and self.x - hitbox_width or self.x + self.width
+	self.hitbox = {
+		is_hitbox = true,
+		x = hixbox_x,
+		y = self.y - hitbox_height,
+		w = hitbox_width,
+		h = self.height + hitbox_height,
+	}
+	self.world:add(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h)
+end
+
+function Player:updateHitbox()
+	self.world:update(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h)
+	local _, _, cols, len = self.world:check(self.hitbox, self.hitbox.x, self.hitbox.y, hitboxFilter)
+	for i = 1, len do
+		local other = cols[i].other
+		if other.is_enemy then
+			other:hit(self.atk)
+		end
+	end
 end
 
 function Player:move(goal_x, goal_y)
