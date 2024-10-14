@@ -16,14 +16,14 @@ local playerFilter = function(item, other)
 		return "cross"
 	elseif other.is_wall then
 		return "slide"
-	elseif other.is_exit then
-		return "touch"
-	elseif other.is_spring then
-		return "bounce"
-	else
-		return "slide"
+	elseif other.is_hitbox then
+		return "cross"
 	end
 	-- else return nil
+end
+
+local hitboxFilter = function(item, other)
+	return "cross"
 end
 
 function player.new(x, y, world)
@@ -35,6 +35,7 @@ function player.new(x, y, world)
 	self.world = world
 	self.is_player = true
 	self.is_next_level = nil
+	self.hitbox = {}
 
 	self.width = 18
 	self.height = 26
@@ -49,6 +50,7 @@ function player.new(x, y, world)
 
 	self.health = 3
 	self.max_health = 3
+	self.atk = 3
 
 	self.current_animation = nil
 	self.animations = {}
@@ -137,10 +139,34 @@ function Player:setupStates()
 			self.current_animation = self.animations.attack
 			self.current_animation:gotoFrame(1)
 			self.current_animation:resume()
-			sfx:play("player.attack")
+			Sfx:play("player.attack")
+
+			-- Hitbox
+			local hitbox_width = 30
+			local hitbox_height = 20
+
+			local hixbox_x = (self.direction == -1) and self.x - hitbox_width or self.x + self.width
+			self.hitbox = {
+				is_hitbox = true,
+				x = hixbox_x,
+				y = self.y - hitbox_height,
+				w = hitbox_width,
+				h = self.height + hitbox_height,
+			}
+			self.world:add(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h)
 		end,
 		update = function(_)
+			-- FIXME: the enemy move/slide when the player get close to them
+			local _, _, cols, len = self.world:check(self.hitbox, self.hitbox.x, self.hitbox.y, hitboxFilter)
+			for i = 1, len do
+				local other = cols[i].other
+				if other.is_enemy then
+					other:hit(self.atk)
+				end
+			end
 			if self.current_animation.status == "paused" then
+				self.world:remove(self.hitbox)
+				self.hitbox = {}
 				self.state_machine:setState("grounded")
 			end
 		end,

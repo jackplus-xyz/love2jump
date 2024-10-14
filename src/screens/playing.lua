@@ -79,13 +79,7 @@ local function onEntity(entity)
 		World:add(player, player.x - player.width / 2, player.y - player.height, player.width, player.height)
 	elseif entity.id == "Enemy" then
 		local new_enemy = Enemy.new(entity.x, entity.y, entity.props, World)
-		World:add(
-			new_enemy,
-			new_enemy.x - new_enemy.width,
-			new_enemy.y - new_enemy.height,
-			new_enemy.width,
-			new_enemy.height
-		)
+		World:add(new_enemy, new_enemy.x - new_enemy.w, new_enemy.y - new_enemy.h, new_enemy.w, new_enemy.h)
 		table.insert(level_enemies, new_enemy)
 	elseif entity.id == "Door" then
 		local new_door = Door.new(entity.x, entity.y, entity.props, World)
@@ -269,7 +263,23 @@ function screen:Draw()
 	player:draw()
 
 	if IsDebug then
-		drawDebugBlocks()
+		love.graphics.push("all")
+		world_items = World:getItems()
+		for _, item in pairs(world_items) do
+			local x, y, w, h = World:getRect(item)
+			if item.is_hitbox then
+				love.graphics.setColor(0, 1, 1, 0.1)
+				love.graphics.rectangle("fill", x, y, w, h)
+				love.graphics.setColor(0, 1, 1)
+				love.graphics.rectangle("line", x, y, w, h)
+			else
+				love.graphics.setColor(1, 0, 0, 0.25)
+				love.graphics.rectangle("fill", x, y, w, h)
+				love.graphics.setColor(1, 0, 0)
+				love.graphics.rectangle("line", x, y, w, h)
+			end
+		end
+		love.graphics.pop()
 	end
 
 	CameraManager.detach()

@@ -15,9 +15,11 @@ function enemy.new(x, y, props, world)
 	self.y = y
 	self.world = world
 	self.patrol = props.patrol
+	self.health = 3
+	self.is_enemy = true
 
-	self.width = 18
-	self.height = 17
+	self.w = 18
+	self.h = 17
 	self.speed = 100
 	self.direction = 0
 	self.y_velocity = 0
@@ -30,7 +32,7 @@ function enemy.new(x, y, props, world)
 	self.animations = {}
 	self:loadAnimations()
 
-	self.stateMachine = StateMachine.new()
+	self.state_machine = StateMachine.new()
 	self:setupStates()
 
 	return self
@@ -64,13 +66,15 @@ function Enemy:loadAnimations()
 	self.animations.attack = anim8.newAnimation(attack_grid("1-5", 1), 0.1, function(anim)
 		anim:pauseAtEnd()
 	end)
-	self.animations.dead = anim8.newAnimation(dead_grid("1-4", 1), 0.1)
-	self.animations.fall = anim8.newAnimation(fall_grid("1-1", 1), 0.1)
-	self.animations.ground = anim8.newAnimation(ground_grid("1-1", 1), 0.1)
-	self.animations.hit = anim8.newAnimation(hit_grid("1-2", 1), 0.1)
-	self.animations.idle = anim8.newAnimation(idle_grid("1-11", 1), 0.1)
-	self.animations.jump = anim8.newAnimation(jump_grid("1-1", 1), 0.1)
-	self.animations.run = anim8.newAnimation(run_grid("1-6", 1), 0.1)
+	self.animations.dead = Anim8.newAnimation(dead_grid("1-4", 1), 0.1, function(anim)
+		anim:pauseAtEnd()
+	end)
+	self.animations.fall = Anim8.newAnimation(fall_grid("1-1", 1), 0.1)
+	self.animations.ground = Anim8.newAnimation(ground_grid("1-1", 1), 0.1)
+	self.animations.hit = Anim8.newAnimation(hit_grid("1-2", 1), 0.1)
+	self.animations.idle = Anim8.newAnimation(idle_grid("1-11", 1), 0.1)
+	self.animations.jump = Anim8.newAnimation(jump_grid("1-1", 1), 0.1)
+	self.animations.run = Anim8.newAnimation(run_grid("1-6", 1), 0.1)
 
 	-- Set the initial animation to idle
 	self.current_animation = self.animations.idle
@@ -79,17 +83,17 @@ end
 function Enemy:setupStates()
 	local start_x, start_y = self.x, self.y
 
-	self.stateMachine:addState("grounded", {
+	self.state_machine:addState("grounded", {
 		enter = function()
 			self.current_animation = self.animations.idle
 		end,
 		update = function(_, dt)
 			if self.y_velocity ~= 0 then
-				self.stateMachine:setState("airborne")
+				self.state_machine:setState("airborne")
 			end
 
 			if self.patrol then
-				self.stateMachine:setState("grounded.to_target")
+				self.state_machine:setState("grounded.to_target")
 			end
 		end,
 	})
@@ -101,13 +105,13 @@ function Enemy:setupStates()
 			self.patrol.cx * GRID_SIZE / SCALE + GRID_SIZE / SCALE / SCALE,
 			self.patrol.cy * GRID_SIZE / SCALE + GRID_SIZE / SCALE
 
-		self.stateMachine:addState("grounded.to_target", {
+		self.state_machine:addState("grounded.to_target", {
 			enter = function()
 				self.current_animation = self.animations.run
 			end,
 			update = function(_, dt)
 				if self.y_velocity ~= 0 then
-					self.stateMachine:setState("airborne")
+					self.state_machine:setState("airborne")
 				end
 
 				local dx = target_x - self.x
@@ -115,7 +119,7 @@ function Enemy:setupStates()
 				local distance = math.sqrt(dx * dx + dy * dy)
 
 				if distance < GRID_SIZE then
-					self.stateMachine:setState("grounded.at_target")
+					self.state_machine:setState("grounded.at_target")
 				else
 					local goal_x = self.x + (dx / distance) * self.speed * dt
 					local goal_y = self.y + (dy / distance) * self.speed * dt
@@ -124,7 +128,7 @@ function Enemy:setupStates()
 			end,
 		})
 
-		self.stateMachine:addState("grounded.at_target", {
+		self.state_machine:addState("grounded.at_target", {
 			enter = function()
 				self.current_animation = self.animations.idle
 			end,
@@ -133,18 +137,18 @@ function Enemy:setupStates()
 
 				if wait_timer <= 0 then
 					wait_timer = wait_time
-					self.stateMachine:setState("grounded.to_start")
+					self.state_machine:setState("grounded.to_start")
 				end
 			end,
 		})
 
-		self.stateMachine:addState("grounded.to_start", {
+		self.state_machine:addState("grounded.to_start", {
 			enter = function()
 				self.current_animation = self.animations.run
 			end,
 			update = function(_, dt)
 				if self.y_velocity ~= 0 then
-					self.stateMachine:setState("airborne")
+					self.state_machine:setState("airborne")
 				end
 
 				local dx = start_x - self.x
@@ -152,7 +156,7 @@ function Enemy:setupStates()
 				local distance = math.sqrt(dx * dx + dy * dy)
 
 				if distance < GRID_SIZE then
-					self.stateMachine:setState("grounded.at_start")
+					self.state_machine:setState("grounded.at_start")
 				else
 					local move_x = (dx / distance) * self.speed * dt
 					local move_y = (dy / distance) * self.speed * dt
@@ -161,7 +165,7 @@ function Enemy:setupStates()
 			end,
 		})
 
-		self.stateMachine:addState("grounded.at_start", {
+		self.state_machine:addState("grounded.at_start", {
 			enter = function()
 				self.current_animation = self.animations.idle
 			end,
@@ -170,13 +174,13 @@ function Enemy:setupStates()
 
 				if wait_timer <= 0 then
 					wait_timer = wait_time
-					self.stateMachine:setState("grounded.to_target")
+					self.state_machine:setState("grounded.to_target")
 				end
 			end,
 		})
 	end
 
-	self.stateMachine:addState("airborne", {
+	self.state_machine:addState("airborne", {
 		enter = function()
 			self:setAirborneAnimation()
 		end,
@@ -185,13 +189,45 @@ function Enemy:setupStates()
 
 			if self.y_velocity == 0 then
 				self.current_animation = self.animations.ground
-				self.stateMachine:setState(self.stateMachine.prevState.name)
+				self.state_machine:setState(self.state_machine.prevState.name)
+			end
+		end,
+	})
+
+	self.state_machine:addState("hit", {
+		enter = function()
+			self.current_animation = self.animations.hit
+			-- TODO: add hit sfx
+		end,
+		update = function(_, dt)
+			if self.health <= 0 then
+				self.state_machine:setState("dead")
+			else
+				self.state_machine:setState("grounded")
+			end
+		end,
+	})
+
+	self.state_machine:addState("dead", {
+		enter = function()
+			self.current_animation = self.animations.dead
+			-- TODO: add dead sfx
+		end,
+		update = function(_, dt)
+			if self.current_animation and self.current_animation.status == "paused" then
+				self.world:remove(self)
+				self.current_animation = nil
 			end
 		end,
 	})
 
 	-- Set default state
-	self.stateMachine:setState("grounded")
+	self.state_machine:setState("grounded")
+end
+
+function Enemy:hit(atk)
+	self.health = self.health - atk
+	self.state_machine:setState("hit")
 end
 
 function Enemy:move(goal_x, goal_y)
@@ -233,34 +269,40 @@ function Enemy:setAirborneAnimation()
 end
 
 function Enemy:update(dt)
-	self:applyGravity(dt)
-	self.stateMachine:update(dt)
-	self.current_animation:update(dt)
+	self.state_machine:update(dt)
+	if self.current_animation then
+		self:applyGravity(dt)
+		self.current_animation:update(dt)
+	end
 end
 
 function Enemy:draw()
 	-- Flip the sprite based on direction
 	local scale_x = (self.direction == -1) and 1 or -1
-	local offset_x = (self.direction == -1) and 0 or self.width -- Shift the sprite to the correct position when flipped
+	local offset_x = (self.direction == -1) and 0 or self.w -- Shift the sprite to the correct position when flipped
 
 	love.graphics.push()
 
 	-- TODO: add animation offset across enemy
-	self.current_animation:draw(
-		self.current_animation == self.animations.idle and self.idle_image
-			or self.current_animation == self.animations.run and self.run_image
-			or self.current_animation == self.animations.jump and self.jump_image
-			or self.current_animation == self.animations.fall and self.fall_image
-			or self.current_animation == self.animations.ground and self.ground_image
-			or self.attack_image,
-		self.x + offset_x, -- Adjust the x position when flipping
-		self.y,
-		0,
-		scale_x, -- Flip horizontally when direction is left (-1)
-		1,
-		self.width / SCALE,
-		10
-	)
+	if self.current_animation then
+		self.current_animation:draw(
+			self.current_animation == self.animations.idle and self.idle_image
+				or self.current_animation == self.animations.run and self.run_image
+				or self.current_animation == self.animations.jump and self.jump_image
+				or self.current_animation == self.animations.fall and self.fall_image
+				or self.current_animation == self.animations.ground and self.ground_image
+				or self.current_animation == self.animations.hit and self.hit_image
+				or self.current_animation == self.animations.dead and self.dead_image
+				or self.idle_image,
+			self.x + offset_x, -- Adjust the x position when flipping
+			self.y,
+			0,
+			scale_x, -- Flip horizontally when direction is left (-1)
+			1,
+			self.w / SCALE,
+			10
+		)
+	end
 
 	-- Draw debugging box
 	if IsDebug then

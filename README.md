@@ -198,11 +198,9 @@
 
 - [x] Game states (title, landing, playing)
 - [x] Level transition animation
-- [ ] Hitbox
-- [ ] Interaction between player and enemy(attack, damage)
-- [ ] Enemy drop items
-- [ ] Settings menu
-- [ ] Quit button
+- [x] Update debugging collision correctly
+- [x] Hitbox
+- [x] Interaction between player and enemy(attack)
 - [x] Title menu
 - [x] Interaction between player and coin
 - [x] Interaction between player and door
@@ -215,7 +213,6 @@
 
 #### Fixed
 
-- [ ] Door Collision
 - [x] Level transitioning
 - [x] Animated is overwritten after `love.graphics.setColor()` is called
 - [x] Tile on the corner is not drawn correctly
@@ -227,7 +224,11 @@
 
 #### Added
 
-- Game states(save/load)
+- [x] Interaction between player and enemy(damage)
+- [ ] Game states(save/load)
+- [ ] Enemy drop items
+- [ ] Settings menu
+- [ ] Quit button
 
 #### Changed
 
@@ -235,6 +236,8 @@
 - [ ] Improve tileset rules
 
 #### Fixed
+
+- [ ] Door Collision
 
 ## Notes and Ideas
 
