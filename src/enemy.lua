@@ -1,4 +1,4 @@
-local anim8 = require("lib.anim8.anim8")
+local Anim8 = require("lib.anim8.anim8")
 local StateMachine = require("src.utils.state_machine")
 
 ---@class enemy
@@ -53,17 +53,17 @@ function Enemy:loadAnimations()
 	self.run_image = love.graphics.newImage("/assets/sprites/03-pig/run.png")
 
 	-- Create a grid for the animations
-	local attack_grid = anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), sprite_height)
-	local dead_grid = anim8.newGrid(sprite_width, sprite_height, self.dead_image:getWidth(), sprite_height)
-	local fall_grid = anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), sprite_height)
-	local ground_grid = anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), sprite_height)
-	local hit_grid = anim8.newGrid(sprite_width, sprite_height, self.hit_image:getWidth(), sprite_height)
-	local idle_grid = anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), sprite_height)
-	local jump_grid = anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), sprite_height)
-	local run_grid = anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), sprite_height)
+	local attack_grid = Anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), sprite_height)
+	local dead_grid = Anim8.newGrid(sprite_width, sprite_height, self.dead_image:getWidth(), sprite_height)
+	local fall_grid = Anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), sprite_height)
+	local ground_grid = Anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), sprite_height)
+	local hit_grid = Anim8.newGrid(sprite_width, sprite_height, self.hit_image:getWidth(), sprite_height)
+	local idle_grid = Anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), sprite_height)
+	local jump_grid = Anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), sprite_height)
+	local run_grid = Anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), sprite_height)
 
 	-- Create the animations
-	self.animations.attack = anim8.newAnimation(attack_grid("1-5", 1), 0.1, function(anim)
+	self.animations.attack = Anim8.newAnimation(attack_grid("1-5", 1), 0.1, function(anim)
 		anim:pauseAtEnd()
 	end)
 	self.animations.dead = Anim8.newAnimation(dead_grid("1-4", 1), 0.1, function(anim)
@@ -302,14 +302,6 @@ function Enemy:draw()
 			self.w / SCALE,
 			10
 		)
-	end
-
-	-- Draw debugging box
-	if IsDebug then
-		local world_x, world_y, world_width, world_height = self.world:getRect(self)
-
-		love.graphics.setColor(1, 1, 1)
-		love.graphics.rectangle("line", world_x, world_y, world_width, world_height)
 	end
 
 	love.graphics.pop()

@@ -1,7 +1,7 @@
-local anim8 = require("lib.anim8.anim8")
-local keymaps = require("config.keymaps")
+local Anim8 = require("lib.anim8.anim8")
+local Keymaps = require("config.keymaps")
 local StateMachine = require("src.utils.state_machine")
-local sfx = require("src.sfx")
+local Sfx = require("src.sfx")
 
 ---@class player
 local player = {}
@@ -14,7 +14,9 @@ local playerFilter = function(item, other)
 		return "cross"
 	elseif other.is_door then
 		return "cross"
-	elseif other.is_wall then
+	elseif other.is_enemy then
+		return "slide"
+	elseif other.is_block then
 		return "slide"
 	elseif other.is_hitbox then
 		return "cross"
@@ -76,24 +78,24 @@ function Player:loadAnimations()
 
 	-- Create a grid for the animations
 	local idle_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), self.idle_image:getHeight())
-	local run_grid = anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), self.run_image:getHeight())
+		Anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), self.idle_image:getHeight())
+	local run_grid = Anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), self.run_image:getHeight())
 	local attack_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), self.attack_image:getHeight())
+		Anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), self.attack_image:getHeight())
 	local jump_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), self.jump_image:getHeight())
+		Anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), self.jump_image:getHeight())
 	local fall_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), self.fall_image:getHeight())
+		Anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), self.fall_image:getHeight())
 	local ground_grid =
-		anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), self.ground_image:getHeight(), 100)
+		Anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), self.ground_image:getHeight(), 100)
 
 	-- Create the animations
-	self.animations.idle = anim8.newAnimation(idle_grid("1-11", 1), 0.1)
-	self.animations.run = anim8.newAnimation(run_grid("1-8", 1), 0.1)
-	self.animations.jump = anim8.newAnimation(jump_grid("1-1", 1), 0.1)
-	self.animations.fall = anim8.newAnimation(fall_grid("1-1", 1), 0.1)
-	self.animations.ground = anim8.newAnimation(ground_grid("1-1", 1), 0.1)
-	self.animations.attack = anim8.newAnimation(attack_grid("1-3", 1), 0.1, function(anim)
+	self.animations.idle = Anim8.newAnimation(idle_grid("1-11", 1), 0.1)
+	self.animations.run = Anim8.newAnimation(run_grid("1-8", 1), 0.1)
+	self.animations.jump = Anim8.newAnimation(jump_grid("1-1", 1), 0.1)
+	self.animations.fall = Anim8.newAnimation(fall_grid("1-1", 1), 0.1)
+	self.animations.ground = Anim8.newAnimation(ground_grid("1-1", 1), 0.1)
+	self.animations.attack = Anim8.newAnimation(attack_grid("1-3", 1), 0.1, function(anim)
 		anim:pauseAtEnd()
 	end)
 
@@ -109,18 +111,22 @@ function Player:setupStates()
 		update = function(_, dt)
 			self:handleMovement(dt)
 
+			if self.jump_cooldown > 0 then
+				self.jump_cooldown = self.jump_cooldown - dt
+			end
+
 			if self.y_velocity ~= 0 then
 				self.state_machine:setState("airborne")
 			end
 		end,
 		keypressed = function(_, key)
-			if key == keymaps.jump and self.jump_cooldown <= 0 then
+			if key == Keymaps.jump and self.jump_cooldown <= 0 then
 				self.y_velocity = self.jump_strength
 				self.jump_cooldown = self.jump_cooldown_time
 				self.state_machine:setState("airborne")
-			elseif key == keymaps.attack then
+			elseif key == Keymaps.attack then
 				self.state_machine:setState("grounded.attacking")
-			elseif key == keymaps.up then
+			elseif key == Keymaps.up then
 				local _, _, cols, len = self.world:check(self, self.x, self.y, playerFilter)
 				for i = 1, len do
 					local other = cols[i].other
@@ -192,7 +198,7 @@ function Player:setupStates()
 		end,
 		keypressed = function(_, key)
 			-- Handle airborne attack
-			if key == keymaps.attack then
+			if key == Keymaps.attack then
 				self.state_machine:setState("airborne.attacking")
 			end
 		end,
@@ -203,7 +209,7 @@ function Player:setupStates()
 			self.current_animation = self.animations.attack
 			self.current_animation:gotoFrame(1)
 			self.current_animation:resume()
-			sfx:play("player.attack")
+			Sfx:play("player.attack")
 		end,
 		update = function(_, dt)
 			-- Update jump cooldown
@@ -227,7 +233,9 @@ function Player:setupStates()
 		enter = function()
 			self.current_animation = self.animations.idle
 		end,
-		update = function(_, dt) end,
+		update = function(_, dt)
+			self.world:update(self, self.x, self.y)
+		end,
 	})
 
 	-- Set default state
@@ -241,9 +249,9 @@ end
 function Player:handleMovement(dt)
 	local direction = 0
 
-	if love.keyboard.isDown(keymaps.right) then
+	if love.keyboard.isDown(Keymaps.right) then
 		direction = 1
-	elseif love.keyboard.isDown(keymaps.left) then
+	elseif love.keyboard.isDown(Keymaps.left) then
 		direction = -1
 	end
 
@@ -281,12 +289,12 @@ function Player:applyGravity(dt)
 	self.y_velocity = self.y_velocity + self.gravity * dt
 
 	local goal_y = self.y + self.y_velocity * dt
-	local _, _, _, len = self.world:check(self, self.x, goal_y)
+	local _, actual_y, cols, len = self.world:check(self, self.x, goal_y, playerFilter)
 
 	if len > 0 then
 		self.y_velocity = 0
 	else
-		self:move(self.x, goal_y)
+		self:move(self.x, actual_y)
 	end
 end
 
@@ -323,14 +331,6 @@ function Player:draw()
 		21,
 		18
 	)
-
-	-- Draw debugging box
-	if IsDebug then
-		local world_x, world_y, world_width, world_height = self.world:getRect(self)
-
-		love.graphics.setColor(1, 1, 1)
-		love.graphics.rectangle("line", world_x, world_y, world_width, world_height)
-	end
 
 	love.graphics.pop()
 end

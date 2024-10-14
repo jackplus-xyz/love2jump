@@ -75,19 +75,6 @@
 				"color": 14984818,
 				"customFields" : {}
 			}
-		],
-		"Placeholder": [
-			{
-				"id": "Placeholder",
-				"iid": "e4449430-73f0-11ef-884d-d5cd2b87e5a8",
-				"layer": "Entities",
-				"x": 368,
-				"y": 160,
-				"width": 32,
-				"height": 32,
-				"color": 7552569,
-				"customFields" : {}
-			}
 		]
 	}
 }

@@ -6,8 +6,6 @@ local World = Bump.newWorld(GRID_SIZE)
 local CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
 local screen = {}
 
-local Fade = require("src.ui.fade")
-
 -- Config
 local Keymaps = require("config.keymaps")
 
@@ -40,18 +38,18 @@ end
 
 -- Vars
 local player = {}
+local layers = {}
 local level_blocks = {}
 local level_entities = {}
 local level_enemies = {}
+local world_items = {}
+
 local is_paused = false
 local is_entering = false
 
 -------- Debug --------
-local debug_blocks = {}
-
 local function addBlock(x, y, w, h)
-	local block = { x = x, y = y, w = w, h = h }
-	debug_blocks[#debug_blocks + 1] = block
+	local block = { x = x, y = y, w = w, h = h, is_block = true }
 	World:add(block, x, y, w, h)
 end
 
@@ -65,15 +63,9 @@ local function drawBox(box, r, g, b)
 
 	love.graphics.pop()
 end
-
-local function drawDebugBlocks()
-	for _, block in ipairs(debug_blocks) do
-		drawBox(block, 1, 0, 0)
-	end
-end
-
 --------- LOVE-LDTK CALLBACKS ----------
 local function onEntity(entity)
+	-- Ensure the player is already created
 	if entity.id == "Player" and not player.is_player then
 		player = Player.new(entity.x, entity.y, World)
 		World:add(player, player.x - player.width / 2, player.y - player.height, player.width, player.height)
@@ -117,41 +109,25 @@ local function onLayer(layer)
 			addBlock(layer.tiles[i].px[1], layer.tiles[i].px[2], GRID_SIZE, GRID_SIZE)
 		end
 	end
-	table.insert(level_blocks, layer) --adding layer to the table we use to draw
+	table.insert(layers, layer) --adding layer to the table we use to draw
 end
 
 local function onLevelLoaded(level)
-	-- removing all objects so we have a blank level
-	local function clearWorld(items)
-		for _, item in pairs(items) do
-			if World:hasItem(item) then
-				World:remove(item)
-			end
+	for _, world_item in pairs(world_items) do
+		if not world_item.is_player then
+			World:remove(world_item)
 		end
 	end
-
-	clearWorld(level_blocks)
-	clearWorld(level_entities)
-	clearWorld(level_enemies)
-	clearWorld(debug_blocks)
 
 	level_blocks = {}
 	level_entities = {}
 	level_enemies = {}
-	debug_blocks = {}
+
+	CameraManager.unsetBounds()
+	CameraManager.unsetDeadzone()
 
 	--changing background color to the one defined in LDtk
 	love.graphics.setBackgroundColor(level.backgroundColor)
-
-	local window_width = love.graphics.getWidth()
-	local window_height = love.graphics.getHeight()
-
-	CameraManager.setBounds(
-		-window_width / 2 / SCALE,
-		-window_height / 2 / SCALE,
-		level.width + window_width / 2 / SCALE,
-		level.height + window_height / 2 / SCALE
-	)
 end
 
 local function onLevelCreated(level)
@@ -163,10 +139,19 @@ local function onLevelCreated(level)
 	if player then
 		for _, entity in pairs(level_entities) do
 			if entity.is_door and not entity.is_next then
-				player.x, player.y = entity.x, entity.y - player.height
+				player.x, player.y = entity.x - player.width / 2, entity.y - player.height
 			end
 		end
 	end
+
+	local window_width = love.graphics.getWidth()
+	local window_height = love.graphics.getHeight()
+	CameraManager.setBounds(
+		-window_width / 2 / SCALE,
+		-window_height / 2 / SCALE,
+		level.width + window_width / 2 / SCALE,
+		level.height + window_height / 2 / SCALE
+	)
 end
 --------------------------------------------
 
@@ -192,15 +177,16 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 
 	Sfx:load()
 	Bgm:load()
-	-- Bgm:play()
+	Bgm:play()
 
 	Debug:init(World, CameraManager, player)
 end
 
 function screen:Update(dt)
+	world_items = World:getItems()
+
 	if player.is_player and player.state_machine:getState("entering") then
 		is_entering = true
-
 		if Ui.fade_in.is_active then
 			Ui.fade_in:update(dt)
 			return
@@ -212,6 +198,7 @@ function screen:Update(dt)
 			end
 			is_entering = false
 			Ui.fade_in:reset()
+			player:update(dt)
 			player.state_machine:setState("grounded")
 		end
 	end
@@ -247,6 +234,10 @@ end
 
 function screen:Draw()
 	CameraManager.attach()
+
+	for _, layer in ipairs(layers) do
+		layer:draw()
+	end
 
 	for _, level_block in ipairs(level_blocks) do
 		level_block:draw()
@@ -291,11 +282,8 @@ function screen:Draw()
 	end
 
 	if IsDebug then
-		CameraManager.debug()
-	end
-
-	if IsDebug then
-		Debug:draw()
+		-- CameraManager.debug()
+		-- Debug:draw()
 	end
 
 	if is_paused then

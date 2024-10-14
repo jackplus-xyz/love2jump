@@ -32,7 +32,7 @@
 				"id": "Door",
 				"iid": "8014f4b0-73f0-11ef-86a8-51eed0f4b0be",
 				"layer": "Entities",
-				"x": 360,
+				"x": 280,
 				"y": 288,
 				"width": 16,
 				"height": 16,
@@ -87,19 +87,22 @@
 						"cy": 21
 					}
 				}
-			}
-		],
-		"Placeholder": [
+			},
 			{
-				"id": "Placeholder",
-				"iid": "e20c33d0-73f0-11ef-884d-a9d91ca514d2",
+				"id": "Enemy",
+				"iid": "88c50d30-73f0-11ef-884d-17a4570a818b",
 				"layer": "Entities",
-				"x": 432,
-				"y": 256,
-				"width": 32,
-				"height": 32,
-				"color": 7552569,
-				"customFields" : {}
+				"x": 472,
+				"y": 288,
+				"width": 16,
+				"height": 16,
+				"color": 14120515,
+				"customFields": {
+					"patrol": {
+						"cx": 21,
+						"cy": 17
+					}
+				}
 			}
 		]
 	}

@@ -52,7 +52,6 @@ function Door:update(dt)
 	end
 end
 
--- TODO: Level transition animation
 function Door:enter()
 	self.current_animation = self.animations.opening
 	Sfx:play("door.enter")
@@ -76,14 +75,6 @@ function Door:draw()
 		self.x_offset,
 		self.y_offset
 	)
-
-	-- Draw debugging box
-	if IsDebug then
-		local world_x, world_y, world_width, world_height = self.world:getRect(self)
-
-		love.graphics.setColor(1, 1, 1)
-		love.graphics.rectangle("line", world_x, world_y, world_width, world_height)
-	end
 
 	love.graphics.pop()
 end
