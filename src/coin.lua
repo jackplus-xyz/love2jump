@@ -57,7 +57,7 @@ function Coin:update(dt)
 end
 
 function Coin:collect()
-	Sfx:play("coin.collected")
+	Sfx:play("coin.collect")
 	self.current_animation = self.animations.hit
 	self.is_collected = true
 

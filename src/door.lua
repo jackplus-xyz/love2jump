@@ -52,18 +52,16 @@ function Door:update(dt)
 	end
 end
 
-function Door:enter()
+function Door:open()
 	self.current_animation = self.animations.opening
-	-- Sfx:play("door.enter")
+	Sfx:play("door.open")
 
-	-- Perform level transition after fade-out is complete
 	return self.is_next
 end
 
-function Door:out()
+function Door:close()
 	self.current_animation = self.animations.closing
-	-- Sfx:play("door.enter")
-	-- TODO: add close door sfx
+	Sfx:play("door.close")
 end
 
 -- FIXME: collision when jumping over a door

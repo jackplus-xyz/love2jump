@@ -1,5 +1,6 @@
 local Anim8 = require("lib.anim8.anim8")
 local StateMachine = require("src.utils.state_machine")
+local Sfx = require("src.sfx")
 
 ---@class enemy
 local enemy = {}
@@ -193,7 +194,7 @@ function Enemy:setupStates()
 	self.state_machine:addState("hit", {
 		enter = function()
 			self.current_animation = self.animations.hit
-			-- TODO: add hit sfx
+			Sfx:play("enemy.hit")
 		end,
 		update = function(_, dt)
 			if self.health <= 0 then
@@ -207,7 +208,7 @@ function Enemy:setupStates()
 	self.state_machine:addState("dead", {
 		enter = function()
 			self.current_animation = self.animations.dead
-			-- TODO: add dead sfx
+			Sfx:play("enemy.dead")
 		end,
 		update = function(_, dt)
 			if self.current_animation and self.current_animation.status == "paused" then

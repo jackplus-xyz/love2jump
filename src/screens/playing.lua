@@ -139,6 +139,8 @@ local function onLevelCreated(level)
 	if player then
 		for _, entity in pairs(level_entities) do
 			if entity.is_door and not entity.is_next then
+				Sfx:play("door.close")
+				entity:close()
 				player.x, player.y = entity.x - player.width / 2, entity.y - player.height
 			end
 		end
@@ -182,27 +184,44 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	Debug:init(World, CameraManager, player)
 end
 
+function screen:openDoor(dt)
+	is_entering = true
+	if Ui.fade_in.is_active then
+		Ui.fade_in:update(dt)
+		return
+	else
+		if player.is_next_level then
+			Ldtk:next()
+		else
+			Ldtk:previous()
+		end
+		player.state_machine:setState("door.close")
+	end
+end
+
+function screen:closeDoor(dt)
+	if Ui.fade_out.is_active then
+		Ui.fade_out:update(dt)
+	else
+		is_entering = false
+		player.state_machine:setState("grounded")
+		Ui.fade_in:reset()
+		Ui.fade_out:reset()
+	end
+end
+
+function screen:handleLevelTransition(dt)
+	if player.is_player and player.state_machine:getState("door.open") then
+		self:openDoor(dt)
+	elseif is_entering then
+		self:closeDoor(dt)
+	end
+end
+
 function screen:Update(dt)
 	world_items = World:getItems()
 
-	if player.is_player and player.state_machine:getState("door.enter") then
-		is_entering = true
-		if Ui.fade_in.is_active then
-			Ui.fade_in:update(dt)
-			player.current_animation:update(dt)
-			return
-		else
-			if player.is_next_level then
-				player.state_machine:setState("door.out")
-				Ldtk:next()
-			else
-				Ldtk:previous()
-			end
-			is_entering = false
-			player:update(dt)
-			Ui.fade_in:reset()
-		end
-	end
+	self:handleLevelTransition(dt)
 
 	if is_paused then
 		return
@@ -279,7 +298,11 @@ function screen:Draw()
 	Ui.hud:draw()
 
 	if is_entering then
-		Ui.fade_in:draw()
+		if Ui.fade_in.is_active then
+			Ui.fade_in:draw()
+		else
+			Ui.fade_out:draw()
+		end
 	end
 
 	if IsDebug then
