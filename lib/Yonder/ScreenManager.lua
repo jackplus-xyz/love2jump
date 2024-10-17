@@ -34,7 +34,7 @@ local gameStates = { -- this is where you set the directories of your screens
 local screens = {
 	"title",
 	"landing",
-	"playing",
+	"gameplay",
 }
 
 for _, screen in pairs(screens) do

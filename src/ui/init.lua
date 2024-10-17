@@ -4,7 +4,7 @@ UI.modules = {
 	"hud",
 	"title",
 	"landing",
-	"playing",
+	"gameplay",
 	"fade",
 }
 

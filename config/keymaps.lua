@@ -6,6 +6,7 @@ local keymaps = {
 	jump = "space",
 	attack = "z",
 	escape = "escape",
+	confirm = "return",
 	debug = "i",
 	next_level = "l",
 	prev_level = "h",

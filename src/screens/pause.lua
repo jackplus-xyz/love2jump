@@ -59,7 +59,7 @@ function screen:Update(dt)
 	end
 
 	if n_keysdown > 0 then
-		screen_manager:SwitchStates("playing")
+		screen_manager:SwitchStates("gameplay")
 	end
 end
 

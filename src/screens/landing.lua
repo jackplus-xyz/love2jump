@@ -13,7 +13,7 @@ end
 function screen:Update(dt)
 	ui.landing:update(dt)
 	if ui.landing.landing_instruction_timer <= 0 and n_keysdown > 0 then
-		return "playing"
+		return "gameplay"
 	end
 end
 
