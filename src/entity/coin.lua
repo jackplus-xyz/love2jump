@@ -1,36 +1,37 @@
 local Anim8 = require("lib.anim8.anim8")
+local Entity = require("src.entity.entity")
 local Sfx = require("src.sfx")
-local Ldtk = require("lib.ldtk-love.ldtk")
 
 local Coin = {}
 Coin.__index = Coin
+setmetatable(Coin, Entity)
 
 local sprite_width = 18
 local sprite_height = 14
 
 -- FIXME: don't respawn coin whenever the level refresh
 function Coin.new(x, y, world)
-	local self = setmetatable({}, Coin)
+	local inistance = Entity.new()
+	setmetatable(inistance, Coin)
 
-	self.x = x
-	self.y = y
-	self.world = world
+	inistance.x = x
+	inistance.y = y
+	inistance.world = world
 
-	self.is_coin = true
-	self.is_collected = false
-	self.timer = 1
+	inistance.is_coin = true
+	inistance.is_collected = false
+	inistance.timer = 1
 
-	self.width = 18
-	self.height = 14
-	self.x_offset = self.width / SCALE
-	self.y_offset = self.height
+	inistance.width = 18
+	inistance.height = 14
+	inistance.x_offset = inistance.width / SCALE
+	inistance.y_offset = inistance.height
 
-	self.current_animation = nil
-	self.animations = {}
+	inistance.current_animation = nil
+	inistance.animations = {}
+	inistance:init()
 
-	self:init()
-
-	return self
+	return inistance
 end
 
 function Coin:init()
@@ -46,6 +47,14 @@ function Coin:init()
 	self.current_animation = self.animations.idle
 end
 
+function Coin:collect()
+	Sfx:play("coin.collect")
+	self.current_animation = self.animations.hit
+	self.is_collected = true
+
+	self.world:remove(self)
+end
+
 function Coin:update(dt)
 	for _, animation in pairs(self.animations) do
 		animation:update(dt)
@@ -54,14 +63,6 @@ function Coin:update(dt)
 	if self.is_collected and self.timer >= 0 then
 		self.timer = self.timer - dt
 	end
-end
-
-function Coin:collect()
-	Sfx:play("coin.collect")
-	self.current_animation = self.animations.hit
-	self.is_collected = true
-
-	self.world:remove(self)
 end
 
 function Coin:draw()

@@ -15,8 +15,9 @@ local Bgm = require("src.bgm")
 local Sfx = require("src.sfx")
 local Player = require("src.player")
 local Enemy = require("src.enemy")
-local Door = require("src.door")
-local Coin = require("src.coin")
+local Entity = require("src.entity")
+-- local Door = require("src.door")
+-- local Coin = require("src.coin")
 local Debug = require("src.debug")
 
 local class = require("classic")
@@ -59,24 +60,10 @@ local function onEntity(entity)
 		World:add(new_enemy, new_enemy.x - new_enemy.w, new_enemy.y - new_enemy.h, new_enemy.w, new_enemy.h)
 		table.insert(level_enemies, new_enemy)
 	elseif entity.id == "Door" then
-		local new_door = Door.new(entity.x, entity.y, entity.props, World)
-		World:add(
-			new_door,
-			new_door.x - new_door.x_offset,
-			new_door.y - new_door.y_offset,
-			new_door.width,
-			new_door.height
-		)
+		local new_door = Entity.Door.new(entity.x, entity.y, entity.props, World)
 		table.insert(level_entities, new_door)
 	elseif entity.id == "Coin" then
-		local new_coin = Coin.new(entity.x, entity.y, World)
-		World:add(
-			new_coin,
-			new_coin.x - new_coin.x_offset,
-			new_coin.y - new_coin.y_offset,
-			new_coin.width,
-			new_coin.height
-		)
+		local new_coin = Entity.Coin.new(entity.x, entity.y, World)
 		table.insert(level_entities, new_coin)
 	else
 		-- Draw other entites as a rectangle
@@ -117,9 +104,6 @@ local function onLevelLoaded(level)
 
 	CameraManager.unsetBounds()
 	CameraManager.unsetDeadzone()
-
-	--changing background color to the one defined in LDtk
-	love.graphics.setBackgroundColor(level.backgroundColor)
 end
 
 local function onLevelCreated(level)
@@ -129,6 +113,8 @@ local function onLevelCreated(level)
 				Sfx:play("door.close")
 				entity:close()
 				player.x, player.y = entity.x - player.width / 2, entity.y - player.height
+			else
+				entity:addToWorld()
 			end
 		end
 	end
@@ -141,6 +127,9 @@ local function onLevelCreated(level)
 		level.width + window_width / 2 / SCALE,
 		level.height + window_height / 2 / SCALE
 	)
+
+	--changing background color to the one defined in LDtk
+	love.graphics.setBackgroundColor(level.backgroundColor)
 end
 --------------------------------------------
 

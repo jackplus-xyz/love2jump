@@ -1,36 +1,38 @@
 local Anim8 = require("lib.anim8.anim8")
+local Entity = require("src.entity.entity")
 local Sfx = require("src.sfx")
 
 local Door = {}
 Door.__index = Door
+setmetatable(Door, Entity)
 
 local sprite_width = 46
 local sprite_height = 56
 
 function Door.new(x, y, props, world)
-	local self = setmetatable({}, Door)
+	local instance = Entity.new()
+	setmetatable(instance, Door)
 
-	self.is_door = true
-	self.is_next = props.isNext
-	self.timer = 3
-	self.world = world
+	instance.is_door = true
+	instance.is_next = props.isNext
+	instance.timer = 3
+	instance.world = world
 
-	self.x = x
-	self.y = y
-	self.width = sprite_width
-	self.height = sprite_height
-	self.x_offset = self.width / SCALE
-	self.y_offset = self.height
+	instance.x = x
+	instance.y = y
+	instance.width = sprite_width
+	instance.height = sprite_height
+	instance.x_offset = instance.width / SCALE
+	instance.y_offset = instance.height
 
-	self.current_animation = nil
-	self.animations = {}
-	self:init()
+	instance.current_animation = nil
+	instance.animations = {}
+	instance:init()
 
-	return self
+	return instance
 end
 
 function Door:init()
-	-- Load images
 	self.idle_image = love.graphics.newImage("/assets/sprites/11-door/idle.png")
 	self.opening_image = love.graphics.newImage("/assets/sprites/11-door/opening.png")
 	self.closing_image = love.graphics.newImage("/assets/sprites/11-door/closing.png")
@@ -46,12 +48,6 @@ function Door:init()
 	self.current_animation = self.animations.idle
 end
 
-function Door:update(dt)
-	for _, animation in pairs(self.animations) do
-		animation:update(dt)
-	end
-end
-
 function Door:open()
 	self.current_animation = self.animations.opening
 	Sfx:play("door.open")
@@ -64,9 +60,16 @@ function Door:close()
 	Sfx:play("door.close")
 end
 
+function Door:update(dt)
+	for _, animation in pairs(self.animations) do
+		animation:update(dt)
+	end
+end
+
 -- FIXME: collision when jumping over a door
 function Door:draw()
 	love.graphics.push()
+
 	self.current_animation:draw(
 		self.current_animation == self.animations.opening and self.opening_image
 			or self.current_animation == self.animations.closing and self.closing_image
