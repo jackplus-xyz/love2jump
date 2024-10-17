@@ -47,6 +47,7 @@ function screen:KeyPressed(key)
 	if Ui.title.title_timer <= 0 then
 		if n_keysdown < 1 then
 			n_keysdown = n_keysdown + 1
+			return
 		end
 
 		if key == Keymaps.up then
@@ -57,9 +58,8 @@ function screen:KeyPressed(key)
 			-- TODO: Implement logic for start a new game/load game
 			if Ui.title.selected_option == "New Game" then
 				next_screen = "landing"
-				print("Starting a new game......")
 			elseif Ui.title.selected_option == "Load Game" then
-				next_screen = "loading"
+				next_screen = "gameplay"
 			elseif Ui.title.selected_option == "Quit" then
 				love.event.quit()
 			end

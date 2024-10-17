@@ -44,25 +44,10 @@ local level_entities = {}
 local level_enemies = {}
 local world_items = {}
 
+local is_save_data = false
 local is_paused = false
 local is_entering = false
 
--------- Debug --------
-local function addBlock(x, y, w, h)
-	local block = { x = x, y = y, w = w, h = h, is_block = true }
-	World:add(block, x, y, w, h)
-end
-
-local function drawBox(box, r, g, b)
-	love.graphics.push()
-
-	love.graphics.setColor(r, g, b, 0.25)
-	love.graphics.rectangle("fill", box.x, box.y, box.w, box.h)
-	love.graphics.setColor(r, g, b)
-	love.graphics.rectangle("line", box.x, box.y, box.w, box.h)
-
-	love.graphics.pop()
-end
 --------- LOVE-LDTK CALLBACKS ----------
 local function onEntity(entity)
 	-- Ensure the player is already created
@@ -105,8 +90,15 @@ local function onLayer(layer)
 	-- Generally, you would create a new object and use that object to draw the layer.
 
 	if layer.id == "Collision" then
-		for i in ipairs(layer.tiles) do
-			addBlock(layer.tiles[i].px[1], layer.tiles[i].px[2], GRID_SIZE, GRID_SIZE)
+		for _, tile in ipairs(layer.tiles) do
+			local collision = {
+				is_block = true,
+				x = tile.px[1],
+				y = tile.px[2],
+				w = GRID_SIZE,
+				h = GRID_SIZE,
+			}
+			World:add(collision, collision.x, collision.y, collision.w, collision.h)
 		end
 	end
 	table.insert(layers, layer) --adding layer to the table we use to draw
@@ -131,11 +123,6 @@ local function onLevelLoaded(level)
 end
 
 local function onLevelCreated(level)
-	--Here we use a string defined in LDtk as a function
-	if level.props.create then
-		load(level.props.create)()
-	end
-
 	if player then
 		for _, entity in pairs(level_entities) do
 			if entity.is_door and not entity.is_next then
