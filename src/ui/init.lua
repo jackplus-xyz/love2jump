@@ -6,6 +6,7 @@ UI.modules = {
 	"landing",
 	"gameplay",
 	"fade",
+	"menu",
 }
 
 function UI:new()

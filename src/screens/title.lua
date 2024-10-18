@@ -1,24 +1,22 @@
 local Ui = require("src.ui")
 local Keymaps = require("config.keymaps")
 local Fonts = require("src.assets.fonts")
+local Bgm = require("src.bgm")
+local Sfx = require("src.sfx")
 
 local screen = {}
 local n_keysdown = 0
 local is_save_file = false
 local next_screen = nil
 
-function screen:CheckForSaveFile()
+function screen:IsSaveFile()
 	-- TODO: check if save file exists
 	return true
 end
 
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
-	love.graphics.setDefaultFilter("nearest", "nearest")
-	love.graphics.setLineStyle("rough")
-	love.graphics.setFont(Fonts.title)
-
 	-- Initialize the title screen with options
-	is_save_file = self:CheckForSaveFile()
+	is_save_file = self:IsSaveFile()
 	Ui.title:setOptions(is_save_file)
 end
 
@@ -46,6 +44,7 @@ end
 function screen:KeyPressed(key)
 	if Ui.title.title_timer <= 0 then
 		if n_keysdown < 1 then
+			Sfx:play("ui.confirm")
 			n_keysdown = n_keysdown + 1
 			return
 		end
@@ -56,6 +55,7 @@ function screen:KeyPressed(key)
 			Ui.title:selectNextOption()
 		elseif key == Keymaps.confirm then
 			-- TODO: Implement logic for start a new game/load game
+			Sfx:play("ui.confirm")
 			if Ui.title.selected_option == "New Game" then
 				next_screen = "landing"
 			elseif Ui.title.selected_option == "Load Game" then

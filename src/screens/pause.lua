@@ -19,7 +19,7 @@ local n_keysdown = 0
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
 	love.graphics.setDefaultFilter("nearest", "nearest")
 	love.graphics.setLineStyle("rough")
-	love.graphics.setFont(fonts.title)
+	love.graphics.setFont(fonts.heading_1)
 
 	screen_manager = ScreenManager
 end
@@ -33,15 +33,15 @@ function screen:Draw()
 	love.graphics.setColor(1, 1, 1)
 	love.graphics.print(
 		title,
-		(love.graphics.getWidth() - fonts.title:getWidth(title)) / 2,
-		title_y - fonts.title:getHeight()
+		(love.graphics.getWidth() - fonts.heading_1:getWidth(title)) / 2,
+		title_y - fonts.heading_1:getHeight()
 	)
 
 	local instruction = "Press Any Key to Begin"
 	if title_timer <= 0 then
 		love.graphics.print(
 			instruction,
-			love.graphics.getWidth() / 2 - fonts.title:getWidth(instruction) / 4,
+			love.graphics.getWidth() / 2 - fonts.heading_1:getWidth(instruction) / 4,
 			title_y + 20,
 			0,
 			0.5,

@@ -1,4 +1,5 @@
 local Fonts = require("src.assets.fonts")
+local Sfx = require("src.sfx")
 
 local Title = {}
 Title.__index = Title
@@ -49,7 +50,7 @@ end
 
 function Title:selectNextOption(direction)
 	direction = direction or 1
-	-- Cycle through options when a key is pressed
+	Sfx:play("ui.select")
 	if self.title_timer <= 0 then
 		self.current_index = (self.current_index - 1 + direction) % #self.options + 1
 		self.selected_option = self.options[self.current_index]
@@ -59,7 +60,7 @@ end
 function Title:draw()
 	local title = "Title"
 	local instruction = "Press Any Key to Begin"
-	local y_offset = 40
+	local y_offset = Fonts.heading_3:getHeight()
 
 	love.graphics.push("all")
 
@@ -67,40 +68,31 @@ function Title:draw()
 	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
 	love.graphics.setColor(1, 1, 1)
+	love.graphics.setFont(Fonts.heading_1)
 	love.graphics.print(
 		title,
-		(love.graphics.getWidth() - Fonts.title:getWidth(title)) / 2,
-		self.title_y - Fonts.title:getHeight()
+		(love.graphics.getWidth() - Fonts.heading_1:getWidth(title)) / 2,
+		self.title_y - Fonts.heading_1:getHeight()
 	)
 
 	if self.title_timer <= 0 then
+		love.graphics.setFont(Fonts.heading_3)
 		if self.is_show_options then
-			-- TODO: add option selection sfx, option selected sfx
 			for i, option in ipairs(self.options) do
 				local is_selected = (self.selected_option == option)
-				local y = self.title_y + ((i + 1) * y_offset)
+				local y = self.title_y + (i * y_offset)
 				love.graphics.setColor(0.4, 0.4, 0.4)
 				if is_selected then
 					love.graphics.setColor(1, 1, 1) -- Highlight selected option
 				end
-				love.graphics.print(
-					option,
-					love.graphics.getWidth() / 2 - Fonts.title:getWidth(option) / 4,
-					y,
-					0,
-					0.5,
-					0.5
-				)
+				love.graphics.print(option, love.graphics.getWidth() / 2 - Fonts.heading_3:getWidth(option) / 2, y)
 			end
 		else
 			if self.is_flash_visible then
 				love.graphics.print(
 					instruction,
-					love.graphics.getWidth() / 2 - Fonts.title:getWidth(instruction) / 4,
-					self.title_y + y_offset,
-					0,
-					0.5,
-					0.5
+					love.graphics.getWidth() / 2 - Fonts.heading_3:getWidth(instruction) / 2,
+					self.title_y + y_offset
 				)
 			end
 		end

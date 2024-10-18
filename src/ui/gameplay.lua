@@ -1,16 +1,16 @@
 local fonts = require("src.assets.fonts")
 local keymaps = require("config.keymaps")
 
-local Playing = {}
-Playing.__index = Playing
+local GamePlay = {}
+GamePlay.__index = GamePlay
 
-function Playing:new()
-	local instance = setmetatable({}, Playing)
+function GamePlay:new()
+	local instance = setmetatable({}, GamePlay)
 	instance:init()
 	return instance
 end
 
-function Playing:init()
+function GamePlay:init()
 	self.landing_instruction_duration = 2
 	self.landing_instruction_timer = self.landing_instruction_duration
 	self.flash_interval = 0.8
@@ -18,7 +18,7 @@ function Playing:init()
 	self.is_flash_visible = true
 end
 
-function Playing:update(dt)
+function GamePlay:update(dt)
 	if self.landing_instruction_timer > 0 then
 		self.landing_instruction_timer = self.landing_instruction_timer - dt
 	else
@@ -30,10 +30,10 @@ function Playing:update(dt)
 	end
 end
 
-function Playing:draw()
+function GamePlay:draw()
 	local instruction = "Press Any Key to Begin"
-	local center_x = love.graphics.getWidth() / 2 - fonts.title:getWidth(instruction) / 4
-	local start_y = fonts.title:getHeight()
+	local center_x = love.graphics.getWidth() / 2 - fonts.heading_1:getWidth(instruction) / 4
+	local start_y = fonts.heading_1:getHeight()
 	local offset_y = start_y / 2
 
 	local keymaps_info = {
@@ -60,7 +60,7 @@ function Playing:draw()
 	if self.is_flash_visible and self.landing_instruction_timer <= 0 then
 		love.graphics.print(
 			instruction,
-			love.graphics.getWidth() / 2 - fonts.title:getWidth(instruction) / 4,
+			love.graphics.getWidth() / 2 - fonts.heading_1:getWidth(instruction) / 4,
 			start_y + offset_y * (#keymaps_info + 1),
 			0,
 			0.5,
@@ -71,4 +71,4 @@ function Playing:draw()
 	love.graphics.pop()
 end
 
-return Playing
+return GamePlay

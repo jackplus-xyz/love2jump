@@ -73,7 +73,7 @@ function Hud:draw()
 	end
 
 	self.animations.coin:draw(self.coin_image, love.graphics.getWidth() / SCALE - start_x * 4, start_y)
-	love.graphics.setFont(Fonts.title)
+	love.graphics.setFont(Fonts.heading_1)
 	love.graphics.print(self.player.coins, love.graphics.getWidth() / SCALE - start_x * SCALE, start_y, 0, 0.25, 0.25)
 
 	love.graphics.pop()

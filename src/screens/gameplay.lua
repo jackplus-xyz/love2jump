@@ -1,7 +1,6 @@
 -- Libraries
 local Ldtk = require("lib.ldtk-love.ldtk")
 local Bump = require("lib.bump.bump")
-local Fonts = require("src.assets.fonts")
 local World = Bump.newWorld(GRID_SIZE)
 local CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
 local screen = {}
@@ -16,8 +15,6 @@ local Sfx = require("src.sfx")
 local Player = require("src.player")
 local Enemy = require("src.enemy")
 local Entity = require("src.entity")
--- local Door = require("src.door")
--- local Coin = require("src.coin")
 local Debug = require("src.debug")
 
 local class = require("classic")
@@ -46,6 +43,7 @@ local level_enemies = {}
 local world_items = {}
 
 local is_save_data = false
+local is_confirm_quit = false
 local is_paused = false
 local is_entering = false
 
@@ -143,18 +141,16 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	Ldtk.onLevelCreated = onLevelCreated
 	Ldtk:goTo(1)
 
+	Ui.fade_in = Ui.fade:new("in", 1)
+	Ui.fade_out = Ui.fade:new("out", 1)
+	Ui.hud.player = player
+
 	CameraManager.setScale(SCALE)
 	CameraManager.setDeadzone(-GRID_SIZE, -GRID_SIZE, GRID_SIZE, GRID_SIZE)
 	CameraManager.setLerp(0.01)
 	CameraManager.setCoords(player.x + player.width / SCALE, player.y - player.height * SCALE)
 
-	Ui:init()
-	Ui.hud.player = player
-	Ui.fade_in = Ui.fade:new("in", 1)
-	Ui.fade_out = Ui.fade:new("out", 1)
-
-	Sfx:load()
-	Bgm:load()
+	-- TODO: Add fade in to bgm
 	Bgm:play()
 
 	Debug:init(World, CameraManager, player)
@@ -200,6 +196,8 @@ function screen:Update(dt)
 	self:handleLevelTransition(dt)
 
 	if is_paused then
+		Ui.menu:update(dt)
+		Bgm:pause()
 		return
 	end
 
@@ -287,28 +285,52 @@ function screen:Draw()
 	end
 
 	if is_paused then
-		love.graphics.push("all")
-		love.graphics.setColor(0, 0, 0, 0.5)
-		love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-
-		love.graphics.setColor(1, 1, 1, 1)
-		love.graphics.setFont(Fonts.title)
-
-		local paused = "Paused"
-		love.graphics.print(
-			paused,
-			(love.graphics.getWidth() - Fonts.title:getWidth(paused)) / 2,
-			love.graphics.getHeight() / 2 - Fonts.title:getHeight()
-		)
-		love.graphics.pop()
+		Ui.menu:draw(is_confirm_quit)
 	end
 end
 
 function screen:KeyPressed(key)
-	-- TODO: Add game states(load/save/pause)
+	if is_confirm_quit then
+		if key == Keymaps.up or key == Keymaps.down then
+			Ui.menu:selectNextChoice()
+		elseif key == Keymaps.confirm then
+			if Ui.menu.selected_choice then
+				love.event.quit()
+			else
+				Sfx:play("ui.cancel")
+				is_confirm_quit = false
+			end
+		end
+	end
+
+	if is_paused then
+		if key == Keymaps.confirm then
+			if Ui.menu.selected_option == "Resume" then
+				is_paused = false
+				Bgm:play()
+			elseif Ui.menu.selected_option == "Settings" then
+			-- TODO: Add settings UI
+			elseif Ui.menu.selected_option == "Save Game" then
+			-- TODO: Save game data
+			elseif Ui.menu.selected_option == "Load Game" then
+			-- TODO: Load game data
+			elseif Ui.menu.selected_option == "Quit" then
+				Sfx:play("ui.warning")
+				is_confirm_quit = true
+				-- love.event.quit()
+			end
+		end
+
+		if key == Keymaps.up then
+			Ui.menu:selectNextOption(-1)
+		elseif key == Keymaps.down then
+			Ui.menu:selectNextOption()
+		end
+
+		return
+	end
+
 	if key == Keymaps.escape then
-		-- TODO: add pause and setttings menu
-		-- love.event.quit()
 		is_paused = not is_paused
 	elseif key == Keymaps.debug then
 		IsDebug = not IsDebug

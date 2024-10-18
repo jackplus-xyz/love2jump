@@ -1,4 +1,4 @@
-local fonts = require("src.assets.fonts")
+local Fonts = require("src.assets.fonts")
 local keymaps = require("config.keymaps")
 
 local Landing = {}
@@ -32,8 +32,8 @@ end
 
 function Landing:draw()
 	local instruction = "Press Any Key to Begin"
-	local center_x = love.graphics.getWidth() / 2 - fonts.title:getWidth(instruction) / 4
-	local start_y = fonts.title:getHeight()
+	local center_x = love.graphics.getWidth() / 2 - Fonts.heading_1:getWidth(instruction) / 4
+	local start_y = Fonts.heading_1:getHeight()
 	local offset_y = start_y / 2
 
 	local keymaps_info = {
@@ -49,22 +49,20 @@ function Landing:draw()
 	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
 	love.graphics.setColor(1, 1, 1)
+	love.graphics.setFont(Fonts.heading_2)
 	love.graphics.print("Keymaps", center_x, start_y)
-	start_y = start_y * 2
 
 	for i, key in pairs(keymaps_info) do
 		local keymap = tostring(key[1]) .. " " .. tostring(key[2])
-		love.graphics.print(keymap, center_x, start_y + offset_y * i, 0, 0.5, 0.5)
+		love.graphics.setFont(Fonts.heading_3)
+		love.graphics.print(keymap, center_x, start_y + offset_y * (i + 1))
 	end
 
 	if self.is_flash_visible and self.landing_instruction_timer <= 0 then
 		love.graphics.print(
 			instruction,
-			love.graphics.getWidth() / 2 - fonts.title:getWidth(instruction) / 4,
-			start_y + offset_y * (#keymaps_info + 1),
-			0,
-			0.5,
-			0.5
+			love.graphics.getWidth() / 2 - Fonts.heading_1:getWidth(instruction) / 4,
+			start_y + offset_y * (#keymaps_info + 2)
 		)
 	end
 

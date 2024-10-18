@@ -18,8 +18,72 @@ local function generateSquare(t, freq)
 	return (t * freq) % 1 < 0.5 and 0.5 or -0.5
 end
 
+local function generateSine(t, freq)
+	return math.sin(t * freq * math.pi * 2) * 0.5
+end
+
 -- Sound effect definitions
 local soundEffects = {
+	-- UI/Interface sounds
+	["ui.select"] = {
+		duration = 0.1,
+		generate = function(t, duration)
+			local freq = 400 + 200 * (t / duration)
+			return generateSine(t, freq) * (1 - t / duration) * 0.3
+		end,
+	},
+	["ui.confirm"] = {
+		duration = 0.2,
+		generate = function(t, duration)
+			-- Three-tone happy confirmation
+			local freq1 = 400
+			local freq2 = 600
+			local freq3 = 800
+			-- Play frequencies in sequence
+			local segment = duration / 3
+			if t < segment then
+				return generateSine(t, freq1) * (1 - t / duration) * 0.3
+			elseif t < segment * 2 then
+				return generateSine(t, freq2) * (1 - t / duration) * 0.3
+			else
+				return generateSine(t, freq3) * (1 - t / duration) * 0.3
+			end
+		end,
+	},
+	["ui.cancel"] = {
+		duration = 0.2,
+		generate = function(t, duration)
+			local freq = 300 - 100 * (t / duration)
+			return generateSine(t, freq) * (1 - t / duration) * 0.3
+		end,
+	},
+	["ui.warning"] = {
+		duration = 0.4,
+		generate = function(t, duration)
+			-- Two repeating tones
+			local freq = 400
+			local pulseRate = 8 -- Controls how fast the warning beeps
+			local pulse = math.sin(t * pulseRate * math.pi * 2)
+			-- Only play sound when pulse is positive (creates beeping effect)
+			return generateTriangle(t, freq) * math.max(0, pulse) * (1 - t / duration) * 0.3
+		end,
+	},
+	["ui.error"] = {
+		duration = 0.3,
+		generate = function(t, duration)
+			local freq = 200 + 50 * math.sin(t * 30)
+			return generateSquare(t, freq) * (1 - t / duration) * 0.25
+		end,
+	},
+	["ui.hover"] = {
+		duration = 0.05,
+		generate = function(t, duration)
+			local freq = 300
+			return generateSine(t, freq) * (1 - t / duration) * 0.15
+		end,
+	},
+
+	-- Your existing sounds...
 	-- Player
 	["player.attack"] = {
 		duration = 0.2,
@@ -54,7 +118,7 @@ local soundEffects = {
 
 	-- Coin
 	["coin.collect"] = {
-		duration = 0.3, -- Short and sweet
+		duration = 0.3,
 		generate = function(t, duration)
 			local freq = 800 + 1000 * (t / duration)
 			return generateSquare(t, freq) * (1 - t / duration)
