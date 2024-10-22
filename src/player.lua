@@ -29,13 +29,25 @@ local hitboxFilter = function(item, other)
 	return "cross"
 end
 
-function player.new(x, y, world)
+function player.new(x, y, world, props)
 	local self = {}
 	setmetatable(self, { __index = Player })
 
 	self.x = x
 	self.y = y
 	self.world = world
+	if props then
+		self.direction = props.direction or 1
+		self.coins = props.coins or 0
+		self.health = props.health or 3
+		self.atk = props.atk or 1
+	else
+		self.direction = 1
+		self.coins = 0
+		self.health = 3
+		self.atk = 1
+	end
+
 	self.is_player = true
 	self.is_next_level = nil
 	self.hitbox = {}
@@ -43,7 +55,7 @@ function player.new(x, y, world)
 	self.width = 18
 	self.height = 26
 	self.speed = 150
-	self.direction = 1
+	self.max_health = 3
 	self.y_velocity = 0
 	self.jump_strength = -320
 	self.jump_cooldown = 0
@@ -51,11 +63,6 @@ function player.new(x, y, world)
 	self.hit_cooldown = 0
 	self.hit_cooldown_time = 0.1
 	self.gravity = 1200
-	self.coins = 0
-
-	self.health = 3
-	self.max_health = 3
-	self.atk = 1
 
 	self.current_animation = nil
 	self.animations = {}

@@ -12,7 +12,7 @@ end
 
 function Title:init()
 	self.title_y = 0
-	self.title_duration = 2
+	self.title_duration = 1
 	self.title_timer = self.title_duration
 	self.flash_interval = 0.8
 	self.flash_timer = 0
