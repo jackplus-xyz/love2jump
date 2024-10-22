@@ -163,6 +163,11 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
 - [x] Interaction between player and enemy(damage)
 - [x] Enemy will be knock back
 - [x] Enemy will attack
+
+### 10/25/2024
+
+#### Added
+
 - [ ] Game states(save/load)
   - [ ] Player status
   - [ ] Entities spawning (Coin/Enemy)
