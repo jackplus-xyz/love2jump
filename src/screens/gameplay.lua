@@ -14,9 +14,9 @@ local Ui = require("src.ui")
 local Bgm = require("src.bgm")
 local Sfx = require("src.sfx")
 local Player = require("src.player")
-local Enemy = require("src.enemy")
 local Entity = require("src.entity")
 local Debug = require("src.debug")
+local EnemyFactory = require("src.enemy.enemy_factory")
 
 local class = require("classic")
 local object = class:extend()
@@ -41,29 +41,33 @@ local layers = {}
 local level_blocks = {}
 local level_entities = {}
 local level_enemies = {}
+local inactive_entities = {}
 local world_items = {}
 
 local is_save_data = false
 local is_confirm_quit = false
 local is_paused = false
+local is_loading = false
 local is_entering = false
 
 --------- LOVE-LDTK CALLBACKS ----------
 local function onEntity(entity)
-	-- Ensure the player is already created
+	if inactive_entities[entity.iid] then
+		return
+	end
+
 	if entity.id == "Player" and not player.is_player then
-		local coor
 		player = Player.new(entity.x, entity.y, World)
 		World:add(player, player.x - player.width / 2, player.y - player.height, player.width, player.height)
-	elseif entity.id == "Enemy" then
-		local new_enemy = Enemy.new(entity.x, entity.y, entity.props, World)
-		World:add(new_enemy, new_enemy.x - new_enemy.w, new_enemy.y - new_enemy.h, new_enemy.w, new_enemy.h)
+	elseif entity.props.Enemy then
+		local new_enemy = EnemyFactory.create(entity, World)
 		table.insert(level_enemies, new_enemy)
 	elseif entity.id == "Door" then
 		local new_door = Entity.Door.new(entity.x, entity.y, entity.props, World)
 		table.insert(level_entities, new_door)
 	elseif entity.id == "Coin" then
 		local new_coin = Entity.Coin.new(entity.x, entity.y, World)
+		-- Check the entity.iid to not add collected coin
 		table.insert(level_entities, new_coin)
 	else
 		-- Draw other entites as a rectangle
@@ -199,6 +203,11 @@ function screen:Update(dt)
 
 	if is_paused then
 		Ui.menu:update(dt)
+		if is_loading then
+			is_paused = false
+			is_loading = false
+			return "loading"
+		end
 		Bgm:pause()
 		return
 	end
@@ -291,21 +300,21 @@ function screen:Draw()
 	end
 end
 
-local function saveGame()
+local function saveGame(slot)
+	slot = slot or 1
 	local game_state = {
 		player = {
-			position = {
-				x = player.x,
-				y = player.y,
-			},
+			x = player.x,
+			y = player.y,
 			direction = player.direction,
 			health = player.health,
 			coins = player.coins,
 			atk = player.atk,
 		},
+		inactive_entities,
 	}
 
-	local success, message = GameProgress.saveGame(1, game_state)
+	local success, message = GameProgress.saveGame(slot, game_state)
 	if success then
 		Sfx:play("ui.confirm")
 	else
@@ -313,6 +322,27 @@ local function saveGame()
 		if IsDebug then
 			print(message)
 		end
+	end
+
+	return success, message
+end
+
+local function loadGame(slot)
+	slot = slot or 1
+	local success, game_state = GameProgress.loadGame(slot)
+	if success then
+		-- Apply the loaded state
+		player.x = game_state.player.x
+		player.y = game_state.player.y
+		player.direction = player.direction
+		player.health = game_state.player.health
+		player.coins = game_state.player.coins
+		player.atk = game_state.player.atk
+
+		Sfx:play("ui.confirm")
+		is_paused = false
+	else
+		Sfx:play("ui.error")
 	end
 end
 
@@ -338,18 +368,8 @@ function screen:KeyPressed(key)
 			elseif Ui.menu.selected_option == "Settings" then
 			-- TODO: Add settings UI
 			elseif Ui.menu.selected_option == "Save Game" then
-				local game_state = {
-					player = {
-						x = player.x,
-						y = player.y,
-						direction = player.direction,
-						health = player.health,
-						coins = player.coins,
-						atk = player.atk,
-					},
-				}
-
-				local success, message = GameProgress.saveGame(1, game_state)
+				local slot = 1
+				local success, message = saveGame(slot)
 				if success then
 					Sfx:play("ui.confirm")
 				else
@@ -360,29 +380,7 @@ function screen:KeyPressed(key)
 				end
 			elseif Ui.menu.selected_option == "Load Game" then
 				-- TODO: Load game data
-				local success, game_state = GameProgress.loadGame(1)
-				if success then
-					-- Apply the loaded state
-					player.x = game_state.player.x
-					player.y = game_state.player.y
-					player.direction = player.direction
-					player.health = game_state.player.health
-					player.coins = game_state.player.coins
-					player.atk = game_state.player.atk
-
-					--
-					-- 	self.enemies = game_state.world.enemies
-					-- 	self.items = game_state.world.items
-					--
-					-- 	self.score = game_state.gameplay.score
-					-- 	self.time_played = game_state.gameplay.time_played
-
-					Sfx:play("ui.confirm")
-					is_paused = false
-				else
-					print(success)
-					print(game_state)
-				end
+				is_loading = true
 			elseif Ui.menu.selected_option == "Quit" then
 				Sfx:play("ui.warning")
 				is_confirm_quit = true

@@ -55,53 +55,59 @@
 				"customFields" : {}
 			}
 		],
-		"Enemy": [
+		"Pig": [
 			{
-				"id": "Enemy",
+				"id": "Pig",
 				"iid": "0260b050-73f0-11ef-8f65-ab824bb2882e",
 				"layer": "Entities",
 				"x": 664,
 				"y": 352,
 				"width": 16,
 				"height": 16,
-				"color": 14120515,
+				"color": 4904771,
 				"customFields": {
 					"patrol": {
 						"cx": 48,
 						"cy": 21
-					}
+					},
+					"max_health": 3,
+					"Enemy": "Pig"
 				}
 			},
 			{
-				"id": "Enemy",
+				"id": "Pig",
 				"iid": "50e977a0-73f0-11ef-8aaa-0788a8d4218e",
 				"layer": "Entities",
 				"x": 1016,
 				"y": 352,
 				"width": 16,
 				"height": 16,
-				"color": 14120515,
+				"color": 4904771,
 				"customFields": {
 					"patrol": {
 						"cx": 52,
 						"cy": 21
-					}
+					},
+					"max_health": 3,
+					"Enemy": "Pig"
 				}
 			},
 			{
-				"id": "Enemy",
+				"id": "Pig",
 				"iid": "88c50d30-73f0-11ef-884d-17a4570a818b",
 				"layer": "Entities",
 				"x": 472,
 				"y": 288,
 				"width": 16,
 				"height": 16,
-				"color": 14120515,
+				"color": 4904771,
 				"customFields": {
 					"patrol": {
 						"cx": 21,
 						"cy": 17
-					}
+					},
+					"max_health": 3,
+					"Enemy": "Pig"
 				}
 			}
 		]

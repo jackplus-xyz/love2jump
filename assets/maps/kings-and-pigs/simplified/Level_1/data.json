@@ -14,37 +14,41 @@
 		"Decorations.png"
 	],
 	"entities": {
-		"Enemy": [
+		"Pig": [
 			{
-				"id": "Enemy",
+				"id": "Pig",
 				"iid": "7493c8c0-4ce0-11ef-b36d-3db5018ef21c",
 				"layer": "Entities",
 				"x": 536,
 				"y": 320,
 				"width": 16,
 				"height": 16,
-				"color": 14120515,
+				"color": 4904771,
 				"customFields": {
 					"patrol": {
 						"cx": 20,
 						"cy": 19
-					}
+					},
+					"max_health": 3,
+					"Enemy": "Pig"
 				}
 			},
 			{
-				"id": "Enemy",
+				"id": "Pig",
 				"iid": "83a58370-73f0-11ef-8aaa-8fb35b9ca40c",
 				"layer": "Entities",
 				"x": 344,
 				"y": 192,
 				"width": 16,
 				"height": 16,
-				"color": 14120515,
+				"color": 4904771,
 				"customFields": {
 					"patrol": {
 						"cx": 16,
 						"cy": 11
-					}
+					},
+					"max_health": 3,
+					"Enemy": "Pig"
 				}
 			}
 		],
