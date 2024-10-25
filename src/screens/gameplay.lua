@@ -1,23 +1,27 @@
 -- Libraries
-local Ldtk = require("lib.ldtk-love.ldtk")
 local Bump = require("lib.bump.bump")
+local Ldtk = require("lib.ldtk-love.ldtk")
 local CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
-local GameProgress = require("src.utils.game_progress")
-local screen = {}
 
 -- Config
 local Keymaps = require("config.keymaps")
 
--- Source
+-- Utilities
+local GameProgress = require("src.utils.game_progress")
+
+-- Source Modules
 local Ui = require("src.ui")
 local Bgm = require("src.bgm")
 local Sfx = require("src.sfx")
+local Debug = require("src.debug")
 local Player = require("src.player")
 local Entity = require("src.entity")
-local Debug = require("src.debug")
 local EnemyFactory = require("src.enemy.enemy_factory")
 
--- Vars
+-- Screen State
+local screen = {}
+
+-- Game State Variables
 local player = {}
 local layers = {}
 local collisions = {}
@@ -26,6 +30,7 @@ local inactive_entities = {}
 local world
 local world_items = {}
 
+-- Level and Game Flow Control
 local prev_level_index = nil
 local is_save_data = false
 local is_confirm_quit = false

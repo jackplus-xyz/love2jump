@@ -1,22 +1,17 @@
 local Ui = require("src.ui")
 local Keymaps = require("config.keymaps")
-local Fonts = require("src.assets.fonts")
-local Bgm = require("src.bgm")
 local Sfx = require("src.sfx")
+
+local GameProgress = require("src.utils.game_progress")
 
 local screen = {}
 local n_keysdown = 0
 local is_save_file = false
 local next_screen = nil
 
-function screen:IsSaveFile()
-	-- TODO: check if save file exists
-	return true
-end
-
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
 	-- Initialize the title screen with options
-	is_save_file = self:IsSaveFile()
+	is_save_file = GameProgress.isSaveFile()
 	Ui.title:setOptions(is_save_file)
 end
 

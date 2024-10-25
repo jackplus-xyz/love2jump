@@ -1,12 +1,30 @@
 local serpent = require("lib.serpent.src.serpent")
+
 local GameProgress = {}
 -- Define the save directory and ensure it exists
 local SAVE_DIR = "saves"
+local default_slot = 1
+
 love.filesystem.createDirectory(SAVE_DIR)
 
 -- Helper function to get the full save path
 local function getSavePath(slot)
 	return SAVE_DIR .. "/save_" .. tostring(slot) .. ".sav"
+end
+
+function GameProgress.isSaveFile(slot)
+	if slot then
+		local save_path = getSavePath(slot)
+		return love.filesystem.getInfo(save_path) ~= nil
+	else
+		local files = love.filesystem.getDirectoryItems(SAVE_DIR)
+		for _, file in ipairs(files) do
+			if file:match("^save_.*%.sav$") then
+				return true
+			end
+		end
+		return false
+	end
 end
 
 -- -- Function to get current game state
