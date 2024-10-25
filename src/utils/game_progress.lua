@@ -76,27 +76,32 @@ end
 -- TODO: add data verification
 function GameProgress.loadGame(slot)
 	local save_path = getSavePath(slot)
+	local message = ""
 
 	if not love.filesystem.getInfo(save_path) then
-		return false, "No save file found in slot " .. tostring(slot)
+		message = "No save file found in slot " .. tostring(slot)
+		return false
 	end
 
 	local content = love.filesystem.read(save_path)
 	if not content then
-		return false, "Failed to read save file"
+		message = "Failed to read save file"
+		return false
 	end
 
 	local success, state = serpent.load(content, { safe = true })
+	message = "Failed to load save file: " .. tostring(state)
 	if not success then
-		return false, "Failed to load save file: " .. tostring(state)
+		return false
 	end
 
 	-- Verify metadata and version compatibility
 	if not state.metadata or state.metadata.version ~= "1.0" then
-		return false, "Incompatible save file version"
+		message = "Incompatible save file version"
+		return false
 	end
 
-	return true, state.data
+	return state.data
 end
 
 return GameProgress

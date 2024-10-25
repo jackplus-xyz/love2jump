@@ -36,7 +36,7 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
   - [kikito/anim8: An animation library for LÖVE](https://github.com/kikito/anim8)
   - [kikito/bump.lua: A collision detection library for Lua](https://github.com/kikito/bump.lua)
   - [V3X3D/CameraMgr: A highly dynamic and robust camera library in around 200 lines of code.](https://gitlab.com/V3X3D/love-libs/-/tree/master/CameraMgr)
-    [thenerdie/Yonder: A ridiculously easy to use game state management library written in Lua, for the LOVE2D framework.](https://github.com/thenerdie/Yonder)
+  - [thenerdie/Yonder: A ridiculously easy to use game state management library written in Lua, for the LOVE2D framework.](https://github.com/thenerdie/Yonder)
 
 ## MVP (Minimum Viable Product) Checklist
 
@@ -85,7 +85,7 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
 
 - [x] Score tracking
 - [x] Basic UI (health, score display)
-- [ ] Game states (menu, play, pause, game over, load, save)
+- [x] Game states (menu, play, pause, game over, load, save)
 
 ```mermaid
 graph TD
@@ -194,16 +194,25 @@ graph TD
 - [x] Preserve entity status across levels
 - [x] Preserve player status across saves
 - [x] Preserve entity status across saves
-- [ ] Enemy will drop items
-- [ ] Enemy will attack
-- [ ] Power-up/EXP
-- [ ] Settings menu
-- [ ] Quit button
-- [ ] Boss Fight
+- [x] Quit button
 
 #### Changed
 
 - [x] Make Enemy class extendable
+
+### 11/01/2024
+
+#### Added
+
+- [ ] Enemy will drop items
+- [ ] Enemy will attack
+- [ ] Enemy update patrol route based if the destination is reachable
+- [ ] Power-up/EXP
+- [ ] Settings menu
+- [ ] Boss Fight
+
+#### Changed
+
 - [ ] Improve enemy patrol logic to handle unreachable points
 - [ ] Improve tileset rules
 

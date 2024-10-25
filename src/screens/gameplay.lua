@@ -22,6 +22,11 @@ local EnemyFactory = require("src.enemy.enemy_factory")
 local screen = {}
 
 -- Game State Variables
+local game_state = {
+	curr_level_index = nil,
+	player_state = {},
+	inactive_entities = {},
+}
 local player = {}
 local layers = {}
 local collisions = {}
@@ -41,26 +46,35 @@ local is_entering = false
 
 --------- LOVE-LDTK CALLBACKS ----------
 
--- Called just before any other callback when a new level is about to be created
-local function onLevelLoaded(level)
-	for i, entity in ipairs(entities) do
-		-- Add entity to inactive_entities list
-		if not entity.is_active then
-			if prev_level_index and not inactive_entities[prev_level_index] then
-				inactive_entities[prev_level_index] = {}
-			end
+local function updateInactiveEntities()
+	inactive_entities = inactive_entities or {}
 
-			if not inactive_entities[prev_level_index][entity.iid] then
-				inactive_entities[prev_level_index][entity.iid] = true
-			end
+	if not prev_level_index then
+		if curr_level_index then
+			prev_level_index = curr_level_index
 		end
 	end
 
-	world = Bump.newWorld(GRID_SIZE)
+	if not inactive_entities[prev_level_index] then
+		inactive_entities[prev_level_index] = {}
+	end
 
+	for i, entity in ipairs(entities) do
+		-- Add inactive entities to the inactive_entities list
+		if not entity.is_active then
+			inactive_entities[prev_level_index][entity.iid] = true
+		end
+	end
+end
+
+-- Called just before any other callback when a new level is about to be created
+local function onLevelLoaded(level)
+	curr_level_index = Ldtk:getCurrent()
+	updateInactiveEntities()
+
+	world = Bump.newWorld(GRID_SIZE)
 	collisions = {}
 	entities = {}
-	curr_level_index = Ldtk:getCurrent()
 
 	CameraManager.unsetBounds()
 	CameraManager.unsetDeadzone()
@@ -130,10 +144,11 @@ end
 --------------------------------------------
 
 local function saveGame(slot)
+	updateInactiveEntities()
 	slot = slot or default_slot
-	local game_state = {
+	game_state = {
 		curr_level_index = Ldtk:getCurrent(),
-		player = player:getState(),
+		player_state = player:getState(),
 		inactive_entities = inactive_entities,
 	}
 
@@ -152,12 +167,17 @@ end
 
 local function loadGame(slot)
 	slot = slot or default_slot
-	local success, game_state = GameProgress.loadGame(slot)
-	if success then
-		-- Apply the loaded state
-		player:setState(game_state.player)
-		inactive_entities = game_state.inactive_entities
 
+	local result = GameProgress.loadGame(slot)
+
+	if result then
+		game_state = result
+		-- Apply the loaded state
+		player:setState(game_state.player_state)
+		inactive_entities = game_state.inactive_entities
+		if not prev_level_index then
+			prev_level_index = tonumber(game_state.curr_level_index)
+		end
 		Ldtk:goTo(tonumber(game_state.curr_level_index))
 
 		Sfx:play("ui.confirm")
