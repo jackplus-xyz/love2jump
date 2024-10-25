@@ -7,12 +7,12 @@ local GameProgress = require("src.utils.game_progress")
 local screen = {}
 local n_keysdown = 0
 local is_save_file = false
-local next_screen = nil
 
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
 	-- Initialize the title screen with options
 	is_save_file = GameProgress.isSaveFile()
 	Ui.title:setOptions(is_save_file)
+	self.screenManager = ScreenManager
 end
 
 function screen:Draw()
@@ -25,13 +25,7 @@ function screen:Update(dt)
 		if is_save_file then
 			Ui.title.is_show_options = true
 		else
-			return "landing"
-		end
-	end
-
-	if Ui.title.is_show_options then
-		if next_screen then
-			return next_screen
+			self.screenManager:SwitchStates("landing")
 		end
 	end
 end
@@ -52,9 +46,9 @@ function screen:KeyPressed(key)
 			-- TODO: Implement logic for start a new game/load game
 			Sfx:play("ui.confirm")
 			if Ui.title.selected_option == "New Game" then
-				next_screen = "landing"
+				self.screenManager:SwitchStates("landing")
 			elseif Ui.title.selected_option == "Load Game" then
-				next_screen = "gameplay"
+				self.screenManager:SwitchStates("gameplay")
 			elseif Ui.title.selected_option == "Quit" then
 				love.event.quit()
 			end

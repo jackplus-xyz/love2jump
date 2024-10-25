@@ -5,6 +5,7 @@ local Sfx = require("src.sfx")
 local n_keysdown = 0
 
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
+	self.screenManager = ScreenManager
 end
 
 function screen:Draw()
@@ -14,7 +15,7 @@ end
 function screen:Update(dt)
 	Ui.landing:update(dt)
 	if Ui.landing.landing_instruction_timer <= 0 and n_keysdown > 0 then
-		return "gameplay"
+		self.screenManager:SwitchStates("gameplay")
 	end
 end
 

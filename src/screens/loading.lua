@@ -5,6 +5,7 @@ local Sfx = require("src.sfx")
 
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
 	Ui.loading:init()
+	self.screenManager = ScreenManager
 end
 
 function screen:Draw()
@@ -14,7 +15,7 @@ end
 function screen:Update(dt)
 	Ui.loading:update(dt)
 	if Ui.loading.loading_timer < 0 then
-		return "gameplay"
+		self.screenManager:SwitchStates("gameplay")
 	end
 end
 
