@@ -23,7 +23,7 @@ function debug:updateInfoTable()
 			"Position",
 			"(" .. string.format("%.2f", self.player.x) .. ", " .. string.format("%.2f", self.player.y) .. ")",
 		},
-		{ "Current Animation Status", self.player.current_animation.status },
+		{ "Current Animation Status", self.player.curr_animation.status },
 		{ "Camera Coords", "(" .. string.format("%.2f", cam_x) .. ", " .. string.format("%.2f", cam_y) .. ")" },
 		{
 			"Camera Bounds",
@@ -44,7 +44,8 @@ function debug:updateInfoTable()
 	}
 end
 
-function debug:update()
+function debug:update(world)
+	self.world = world
 	self:updateInfoTable()
 end
 
@@ -55,25 +56,19 @@ function debug:draw(y_start)
 	local x_offset = 4
 
 	-- Calculate the maximum width of the text entries
-	local max_width = 0
+	local max_h = 0
 	for _, info in ipairs(self.info_table) do
 		local text = info[1] .. ": " .. tostring(info[2])
-		local text_width = fonts.debug:getWidth(text)
-		if text_width > max_width then
-			max_width = text_width
+		local text_h = fonts.debug:getWidth(text)
+		if text_h > max_h then
+			max_h = text_h
 		end
 	end
-	max_width = max_width + x_start + x_offset * 2
+	max_h = max_h + x_start + x_offset * 2
 
 	love.graphics.push()
 	love.graphics.setColor(0, 0, 0, 0.7)
-	love.graphics.rectangle(
-		"fill",
-		GRID_SIZE / 2,
-		GRID_SIZE / 2 + y_start,
-		max_width,
-		y_offset * (#self.info_table + 1)
-	)
+	love.graphics.rectangle("fill", GRID_SIZE / 2, GRID_SIZE / 2 + y_start, max_h, y_offset * (#self.info_table + 1))
 
 	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.setFont(fonts.debug)

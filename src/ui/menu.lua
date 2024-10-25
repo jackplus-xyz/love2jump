@@ -20,8 +20,8 @@ function Menu.new()
 		"No",
 	}
 
-	instance.current_index = 1
-	instance.selected_option = instance.options[instance.current_index]
+	instance.curr_index = 1
+	instance.selected_option = instance.options[instance.curr_index]
 	instance.selected_choice = true
 
 	return instance
@@ -30,8 +30,8 @@ end
 function Menu:selectNextOption(direction)
 	direction = direction or 1
 	Sfx:play("ui.select")
-	self.current_index = (self.current_index - 1 + direction) % #self.options + 1
-	self.selected_option = self.options[self.current_index]
+	self.curr_index = (self.curr_index - 1 + direction) % #self.options + 1
+	self.selected_option = self.options[self.curr_index]
 end
 
 function Menu:selectNextChoice()

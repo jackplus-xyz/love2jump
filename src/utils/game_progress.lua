@@ -55,7 +55,7 @@ function GameProgress.saveGame(slot, game_state)
 	return success, message
 end
 
--- Function to load game
+-- TODO: add data verification
 function GameProgress.loadGame(slot)
 	local save_path = getSavePath(slot)
 
@@ -79,42 +79,6 @@ function GameProgress.loadGame(slot)
 	end
 
 	return true, state.data
-end
-
-function GameProgress.testLoadSaveGame(slot)
-	local a = {
-		1,
-		nil,
-		3,
-		x = 1,
-		["true"] = 2,
-		[not true] = 3,
-		metadata = {
-			timestamp = os.time(),
-			version = "1.0",
-			save_slot = slot,
-		},
-	}
-	love.filesystem.write(getSavePath(slot), serpent.dump(a))
-
-	local save_path = getSavePath(slot)
-	local content = love.filesystem.read(save_path)
-	local success, state = serpent.load(content, { safe = true })
-
-	print("Unserialzed")
-	print(success, state)
-
-	local serialized = serpent.dump(a, {
-		indent = "  ",
-		sortkeys = true,
-		comment = false,
-	})
-
-	love.filesystem.write(getSavePath(slot), serialized)
-	content = love.filesystem.read(save_path)
-	success, state = serpent.load(content, { safe = true })
-	print("Serialzed")
-	print(success, state)
 end
 
 return GameProgress

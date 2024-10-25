@@ -13,21 +13,21 @@ function Hud.new(player)
 end
 
 function Hud:init()
-	local sprite_width = 18
-	local sprite_height = 14
+	local sprite_w= 18
+	local sprite_h = 14
 	self.live_bar_image = love.graphics.newImage("assets/sprites/12-live-and-coins/live-bar-no-outline.png")
 	self.big_heart_idle_image = love.graphics.newImage("assets/sprites/12-live-and-coins/big-heart-idle.png")
 	self.big_heart_hit_image = love.graphics.newImage("assets/sprites/12-live-and-coins/big-heart-hit.png")
 
 	self.animations = {}
 	self.coin_image = love.graphics.newImage("assets/sprites/12-live-and-coins/big-diamond-idle.png")
-	self.coin_grid = Anim8.newGrid(sprite_width, sprite_height, self.coin_image:getWidth(), sprite_height)
+	self.coin_grid = Anim8.newGrid(sprite_w,sprite_h, self.coin_image:getWidth(), sprite_h)
 	self.animations.coin = Anim8.newAnimation(self.coin_grid("1-10", 1), 0.1)
 
 	local big_heart_idle_grid =
-		Anim8.newGrid(sprite_width, sprite_height, self.big_heart_idle_image:getWidth(), sprite_height)
+		Anim8.newGrid(sprite_w,sprite_h, self.big_heart_idle_image:getWidth(), sprite_h)
 	local big_heart_hit_grid =
-		Anim8.newGrid(sprite_width, sprite_height, self.big_heart_hit_image:getWidth(), sprite_height)
+		Anim8.newGrid(sprite_w,sprite_h, self.big_heart_hit_image:getWidth(), sprite_h)
 
 	Hud.live_bar_animations = {
 		big_heart_idle = Anim8.newAnimation(big_heart_idle_grid("1-8", 1), 0.1),

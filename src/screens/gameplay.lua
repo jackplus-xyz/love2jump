@@ -1,7 +1,6 @@
 -- Libraries
 local Ldtk = require("lib.ldtk-love.ldtk")
 local Bump = require("lib.bump.bump")
-local World = Bump.newWorld(GRID_SIZE)
 local CameraManager = require("lib.CameraMgr.CameraMgr").newManager()
 local GameProgress = require("src.utils.game_progress")
 local screen = {}
@@ -18,32 +17,16 @@ local Entity = require("src.entity")
 local Debug = require("src.debug")
 local EnemyFactory = require("src.enemy.enemy_factory")
 
-local class = require("classic")
-local object = class:extend()
-
-function object:new(entity)
-	-- setting up the object using the entity data
-	self.x, self.y = entity.x, entity.y
-	self.w, self.h = entity.width, entity.height
-	self.visible = entity.visible
-end
-
-function object:draw()
-	if self.visible then
-		--draw a rectangle to represent the entity
-		love.graphics.rectangle("fill", self.x, self.y, self.w, self.h)
-	end
-end
-
 -- Vars
 local player = {}
 local layers = {}
-local level_blocks = {}
-local level_entities = {}
-local level_enemies = {}
+local collisions = {}
+local entities = {}
 local inactive_entities = {}
+local world
 local world_items = {}
 
+local prev_level_index = nil
 local is_save_data = false
 local is_confirm_quit = false
 local is_paused = false
@@ -51,88 +34,95 @@ local is_loading = false
 local is_entering = false
 
 --------- LOVE-LDTK CALLBACKS ----------
-local function onEntity(entity)
-	if inactive_entities[entity.iid] then
-		return
-	end
 
-	if entity.id == "Player" and not player.is_player then
-		player = Player.new(entity.x, entity.y, World)
-		World:add(player, player.x - player.width / 2, player.y - player.height, player.width, player.height)
-	elseif entity.props.Enemy then
-		local new_enemy = EnemyFactory.create(entity, World)
-		table.insert(level_enemies, new_enemy)
-	elseif entity.id == "Door" then
-		local new_door = Entity.Door.new(entity.x, entity.y, entity.props, World)
-		table.insert(level_entities, new_door)
-	elseif entity.id == "Coin" then
-		local new_coin = Entity.Coin.new(entity.x, entity.y, World)
-		-- Check the entity.iid to not add collected coin
-		table.insert(level_entities, new_coin)
-	else
-		-- Draw other entites as a rectangle
-		local new_object = object(entity)
-		table.insert(level_blocks, new_object)
-	end
-end
-
-local function onLayer(layer)
-	-- Here we treated the layer as an object and added it to the table we use to draw.
-	-- Generally, you would create a new object and use that object to draw the layer.
-
-	if layer.id == "Collision" then
-		for _, tile in ipairs(layer.tiles) do
-			local collision = {
-				is_block = true,
-				x = tile.px[1],
-				y = tile.px[2],
-				w = GRID_SIZE,
-				h = GRID_SIZE,
-			}
-			World:add(collision, collision.x, collision.y, collision.w, collision.h)
-		end
-	end
-	table.insert(layers, layer) --adding layer to the table we use to draw
-end
-
+-- Called just before any other callback when a new level is about to be created
 local function onLevelLoaded(level)
-	for _, world_item in pairs(world_items) do
-		if not world_item.is_player then
-			World:remove(world_item)
+	for i, entity in ipairs(entities) do
+		-- Add entity to inactive_entities list
+		if not entity.is_active then
+			if not prev_level_index then
+				return
+			end
+
+			if not inactive_entities[prev_level_index] then
+				inactive_entities[prev_level_index] = {}
+			end
+
+			if not inactive_entities[prev_level_index][entity.iid] then
+				inactive_entities[prev_level_index][entity.iid] = true
+			end
 		end
 	end
 
-	level_blocks = {}
-	level_entities = {}
-	level_enemies = {}
+	world = Bump.newWorld(GRID_SIZE)
+
+	collisions = {}
+	entities = {}
 
 	CameraManager.unsetBounds()
 	CameraManager.unsetDeadzone()
 end
 
+local function onLayer(layer)
+	if layer.id == "Collision" then
+		for _, tile in ipairs(layer.tiles) do
+			local collision = {
+				id = "Collision",
+				x = tile.px[1],
+				y = tile.px[2],
+				w = GRID_SIZE,
+				h = GRID_SIZE,
+			}
+			world:add(collision, collision.x, collision.y, collision.w, collision.h)
+		end
+	end
+	table.insert(layers, layer) -- Addlayer to the table we use to draw
+end
+
+local function onEntity(entity)
+	local curr_level_index = Ldtk:getCurrent()
+	if inactive_entities[curr_level_index] and inactive_entities[curr_level_index][entity.iid] then
+		return
+	end
+
+	if entity.id == "Player" then
+		-- TODO: Load player data from save or initialize new player
+		player = Player.new(entity, world)
+	elseif entity.props.Enemy then
+		local new_enemy = EnemyFactory.create(entity, world)
+		table.insert(entities, new_enemy)
+	elseif entity.id == "Door" then
+		local new_door = Entity.Door.new(entity, world)
+		table.insert(entities, new_door)
+	elseif entity.id == "Coin" then
+		local new_coin = Entity.Coin.new(entity, world)
+		table.insert(entities, new_coin)
+	end
+end
+
+-- Called just after all other callbacks when a new level is created
 local function onLevelCreated(level)
-	if player then
-		for _, entity in pairs(level_entities) do
-			if entity.is_door and not entity.is_next then
-				Sfx:play("door.close")
-				entity:close()
-				player.x, player.y = entity.x - player.width / 2, entity.y - player.height
-			else
-				entity:addToWorld()
-			end
+	player:addToWorld(world)
+	for _, entity in pairs(entities) do
+		-- Set player's new location at the door
+		if entity.id == "Door" and not entity.is_next then
+			entity:close()
+			player.x, player.y = entity.x - player.w / 2, entity.y - player.h
+			entity:addToWorld()
+		else
+			entity:addToWorld()
 		end
 	end
 
-	local window_width = love.graphics.getWidth()
-	local window_height = love.graphics.getHeight()
+	local window_w = love.graphics.getWidth()
+	local window_h = love.graphics.getHeight()
 	CameraManager.setBounds(
-		-window_width / 2 / SCALE,
-		-window_height / 2 / SCALE,
-		level.width + window_width / 2 / SCALE,
-		level.height + window_height / 2 / SCALE
+		-window_w / 2 / SCALE,
+		-window_h / 2 / SCALE,
+		level.width + window_w / 2 / SCALE,
+		level.height + window_h / 2 / SCALE
 	)
 
-	--changing background color to the one defined in LDtk
 	love.graphics.setBackgroundColor(level.backgroundColor)
 end
 --------------------------------------------
@@ -154,12 +144,12 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	CameraManager.setScale(SCALE)
 	CameraManager.setDeadzone(-GRID_SIZE, -GRID_SIZE, GRID_SIZE, GRID_SIZE)
 	CameraManager.setLerp(0.01)
-	CameraManager.setCoords(player.x + player.width / SCALE, player.y - player.height * SCALE)
+	CameraManager.setCoords(player.x + player.w / SCALE, player.y - player.h * SCALE)
 
 	-- TODO: Add fade in to bgm
 	Bgm:play()
 
-	Debug:init(World, CameraManager, player)
+	Debug:init(world, CameraManager, player)
 end
 
 function screen:openDoor(dt)
@@ -168,6 +158,7 @@ function screen:openDoor(dt)
 		Ui.fade_in:update(dt)
 		return
 	else
+		prev_level_index = Ldtk:getCurrent()
 		if player.is_next_level then
 			Ldtk:next()
 		else
@@ -197,10 +188,6 @@ function screen:handleLevelTransition(dt)
 end
 
 function screen:Update(dt)
-	world_items = World:getItems()
-
-	self:handleLevelTransition(dt)
-
 	if is_paused then
 		Ui.menu:update(dt)
 		if is_loading then
@@ -212,15 +199,17 @@ function screen:Update(dt)
 		return
 	end
 
-	for _, level_enemy in ipairs(level_enemies) do
-		level_enemy:update(dt)
+	self:handleLevelTransition(dt)
+
+	player:update(dt)
+
+	for _, entity in ipairs(entities) do
+		entity:update(dt)
 	end
 
-	for _, level_entity in ipairs(level_entities) do
-		level_entity:update(dt)
+	for _, collision in ipairs(collisions) do
+		collision:update()
 	end
-
-	player:update(dt, World)
 
 	Ui.hud:update(dt)
 
@@ -229,11 +218,11 @@ function screen:Update(dt)
 	--  return "gameover"
 	-- end
 
-	CameraManager.setTarget(player.x + player.width / 2, player.y + player.height / 2)
+	CameraManager.setTarget(player.x + player.w / 2, player.y + player.h / 2)
 	CameraManager.update(dt)
 
 	if IsDebug then
-		Debug:update()
+		Debug:update(world)
 	end
 end
 
@@ -244,25 +233,21 @@ function screen:Draw()
 		layer:draw()
 	end
 
-	for _, level_block in ipairs(level_blocks) do
-		level_block:draw()
+	for _, collision in ipairs(collisions) do
+		collision:draw()
 	end
 
-	for _, level_entity in ipairs(level_entities) do
-		level_entity:draw()
-	end
-
-	for _, level_enemy in ipairs(level_enemies) do
-		level_enemy:draw()
+	for _, entity in ipairs(entities) do
+		entity:draw()
 	end
 
 	player:draw()
 
 	if IsDebug then
 		love.graphics.push("all")
-		world_items = World:getItems()
+		world_items = world:getItems()
 		for _, item in pairs(world_items) do
-			local x, y, w, h = World:getRect(item)
+			local x, y, w, h = world:getRect(item)
 			if item.is_hitbox then
 				love.graphics.setColor(0, 1, 1, 0.1)
 				love.graphics.rectangle("fill", x, y, w, h)
@@ -302,17 +287,7 @@ end
 
 local function saveGame(slot)
 	slot = slot or 1
-	local game_state = {
-		player = {
-			x = player.x,
-			y = player.y,
-			direction = player.direction,
-			health = player.health,
-			coins = player.coins,
-			atk = player.atk,
-		},
-		inactive_entities,
-	}
+	local game_state = {}
 
 	local success, message = GameProgress.saveGame(slot, game_state)
 	if success then
@@ -327,24 +302,25 @@ local function saveGame(slot)
 	return success, message
 end
 
-local function loadGame(slot)
-	slot = slot or 1
-	local success, game_state = GameProgress.loadGame(slot)
-	if success then
-		-- Apply the loaded state
-		player.x = game_state.player.x
-		player.y = game_state.player.y
-		player.direction = player.direction
-		player.health = game_state.player.health
-		player.coins = game_state.player.coins
-		player.atk = game_state.player.atk
-
-		Sfx:play("ui.confirm")
-		is_paused = false
-	else
-		Sfx:play("ui.error")
-	end
-end
+-- TODO: implement load game logic
+-- local function loadGame(slot)
+-- 	slot = slot or 1
+-- 	local success, game_state = GameProgress.loadGame(slot)
+-- 	if success then
+-- 		-- Apply the loaded state
+-- 		player.x = game_state.player.x
+-- 		player.y = game_state.player.y
+-- 		player.direction = player.direction
+-- 		player.health = game_state.player.health
+-- 		player.coins = game_state.player.coins
+-- 		player.atk = game_state.player.atk
+--
+-- 		Sfx:play("ui.confirm")
+-- 		is_paused = false
+-- 	else
+-- 		Sfx:play("ui.error")
+-- 	end
+-- end
 
 function screen:KeyPressed(key)
 	if is_confirm_quit then

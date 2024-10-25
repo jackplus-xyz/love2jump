@@ -1,44 +1,46 @@
 local StateMachine = require("src.utils.state_machine")
 
----@class Enemy
-local enemy = {}
-
--- class table
 local Enemy = {}
+Enemy.__index = Enemy
 
-function enemy.new(entity, world)
-	local self = {}
-	setmetatable(self, { __index = Enemy })
+local enemy_filter = function(item, other)
+	if other.id == "Hitbox" then
+		return "cross"
+	else
+		return "slide"
+	end
+end
+
+function Enemy.new(entity, world)
+	local self = setmetatable({}, Enemy)
 
 	self.iid = entity.iid
 	self.id = "Enemy"
 	self.type = entity.props.Enemy
 	self.x = entity.x
 	self.y = entity.y
-	self.world = world
 	self.max_health = entity.props.max_health
 	self.health = self.max_health
+	self.world = world
 
-	self.current_animation = nil
+	self.is_active = true
+
+	self.image_map = {}
 	self.animations = {}
+	self.curr_animation = nil
 	self.state_machine = StateMachine.new()
-
-	self:init()
+	self.enemy_filter = enemy_filter
 
 	return self
 end
 
-function Enemy:init() end
+function Enemy:addToWorld()
+	self.world:add(self, self.x - self.w, self.y - self.h, self.w, self.h, self.enemy_filter)
+end
 
-function Enemy:addToWorld() end
-
-function Enemy:loadAnimations() end
-
-function Enemy:setupStates() end
-
-function Enemy:attacked(atk)
+function Enemy:hit(atk)
 	self.health = self.health - atk
-	self.state_machine:setState("attacked")
+	self.state_machine:setState("hit")
 end
 
 function Enemy:move(goal_x, goal_y)
@@ -67,17 +69,17 @@ function Enemy:applyGravity(dt)
 end
 
 function Enemy:setAirborneAnimation()
-	self.current_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
+	self.curr_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
 end
 
 function Enemy:update(dt)
 	self.state_machine:update(dt)
-	if self.current_animation then
+	if self.curr_animation then
 		self:applyGravity(dt)
-		self.current_animation:update(dt)
+		self.curr_animation:update(dt)
 	end
 end
 
 function Enemy:draw() end
 
-return enemy
+return Enemy

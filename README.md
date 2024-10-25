@@ -162,31 +162,31 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
 
 - [x] Interaction between player and enemy(damage)
 - [x] Enemy will be knock back
-- [x] Enemy will attack
 
 ### 10/25/2024
 
 #### Added
 
-- [ ] Game states(save/load)
-  - [ ] Player status
-  - [ ] Entities spawning (Coin/Enemy)
-- [ ] Enemy drop items
-  - [ ] Power-up/EXP
+- [x] Save and Load Game states from a file
+- [x] Preserve entity status across levels
+- [ ] Preserve player status across saves
+- [ ] Enemy will drop items
+- [ ] Enemy will attack
+- [ ] Power-up/EXP
 - [ ] Settings menu
 - [ ] Quit button
 - [ ] Boss Fight
 
 #### Changed
 
-- [ ] Make Enemy class extendable
+- [x] Make Enemy class extendable
 - [ ] Improve enemy patrol logic to handle unreachable points
 - [ ] Improve tileset rules
 
 #### Fixed
 
 - [ ] Door Collision
-- [ ] Enemy Collision
+- [ ] Hitbox and Enemy Collision
 
 ## Resources
 

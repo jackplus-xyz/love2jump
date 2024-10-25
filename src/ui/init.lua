@@ -4,6 +4,7 @@ UI.modules = {
 	"hud",
 	"title",
 	"landing",
+	"loading",
 	"gameplay",
 	"fade",
 	"menu",

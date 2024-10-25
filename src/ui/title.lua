@@ -22,7 +22,7 @@ function Title:init()
 	self.options = { "New Game" } -- Default option
 	self.is_show_options = false
 	self.selected_option = nil
-	self.current_index = 1
+	self.curr_index = 1
 end
 
 function Title:setOptions(has_save_file)
@@ -52,8 +52,8 @@ function Title:selectNextOption(direction)
 	direction = direction or 1
 	Sfx:play("ui.select")
 	if self.title_timer <= 0 then
-		self.current_index = (self.current_index - 1 + direction) % #self.options + 1
-		self.selected_option = self.options[self.current_index]
+		self.curr_index = (self.curr_index - 1 + direction) % #self.options + 1
+		self.selected_option = self.options[self.curr_index]
 	end
 end
 

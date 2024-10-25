@@ -1,20 +1,15 @@
 local Anim8 = require("lib.anim8.anim8")
-local StateMachine = require("src.utils.state_machine")
 local Sfx = require("src.sfx")
 local Enemy = require("src.enemy.enemy")
 
----@class Pig
-local pig = {}
-
--- class table
 local Pig = {}
-setmetatable(Pig, { __index = Enemy })
+Pig.__index = Pig
+setmetatable(Pig, Enemy)
 
-local image_map = {}
-
-function pig.new(entity, world)
+function Pig.new(entity, world)
 	local self = Enemy.new(entity, world)
-	setmetatable(self, { __index = Pig })
+	setmetatable(self, Pig)
+
 	self.patrol = entity.props.patrol
 
 	self.w = 18
@@ -32,18 +27,13 @@ function pig.new(entity, world)
 end
 
 function Pig:init()
-	self:addToWorld()
 	self:loadAnimations()
 	self:setupStates()
 end
 
-function Pig:addToWorld()
-	self.world:add(self, self.x - self.w, self.y - self.h, self.w, self.h)
-end
-
 function Pig:loadAnimations()
-	local sprite_width = 34
-	local sprite_height = 28
+	local sprite_w= 34
+	local sprite_h = 28
 
 	-- Load images
 	self.attack_image = love.graphics.newImage("/assets/sprites/03-pig/attack.png")
@@ -56,14 +46,14 @@ function Pig:loadAnimations()
 	self.run_image = love.graphics.newImage("/assets/sprites/03-pig/run.png")
 
 	-- Create a grid for the animations
-	local attack_grid = Anim8.newGrid(sprite_width, sprite_height, self.attack_image:getWidth(), sprite_height)
-	local dead_grid = Anim8.newGrid(sprite_width, sprite_height, self.dead_image:getWidth(), sprite_height)
-	local fall_grid = Anim8.newGrid(sprite_width, sprite_height, self.fall_image:getWidth(), sprite_height)
-	local ground_grid = Anim8.newGrid(sprite_width, sprite_height, self.ground_image:getWidth(), sprite_height)
-	local hit_grid = Anim8.newGrid(sprite_width, sprite_height, self.hit_image:getWidth(), sprite_height)
-	local idle_grid = Anim8.newGrid(sprite_width, sprite_height, self.idle_image:getWidth(), sprite_height)
-	local jump_grid = Anim8.newGrid(sprite_width, sprite_height, self.jump_image:getWidth(), sprite_height)
-	local run_grid = Anim8.newGrid(sprite_width, sprite_height, self.run_image:getWidth(), sprite_height)
+	local attack_grid = Anim8.newGrid(sprite_w,sprite_h, self.attack_image:getWidth(), sprite_h)
+	local dead_grid = Anim8.newGrid(sprite_w,sprite_h, self.dead_image:getWidth(), sprite_h)
+	local fall_grid = Anim8.newGrid(sprite_w,sprite_h, self.fall_image:getWidth(), sprite_h)
+	local ground_grid = Anim8.newGrid(sprite_w,sprite_h, self.ground_image:getWidth(), sprite_h)
+	local hit_grid = Anim8.newGrid(sprite_w,sprite_h, self.hit_image:getWidth(), sprite_h)
+	local idle_grid = Anim8.newGrid(sprite_w,sprite_h, self.idle_image:getWidth(), sprite_h)
+	local jump_grid = Anim8.newGrid(sprite_w,sprite_h, self.jump_image:getWidth(), sprite_h)
+	local run_grid = Anim8.newGrid(sprite_w,sprite_h, self.run_image:getWidth(), sprite_h)
 
 	-- Create the animations
 	self.animations.attack = Anim8.newAnimation(attack_grid("1-5", 1), 0.1, "pauseAtEnd")
@@ -75,7 +65,7 @@ function Pig:loadAnimations()
 	self.animations.jump = Anim8.newAnimation(jump_grid("1-1", 1), 0.1)
 	self.animations.run = Anim8.newAnimation(run_grid("1-6", 1), 0.1)
 
-	image_map = {
+	self.image_map = {
 		[self.animations.idle] = self.idle_image,
 		[self.animations.run] = self.run_image,
 		[self.animations.jump] = self.jump_image,
@@ -86,7 +76,7 @@ function Pig:loadAnimations()
 	}
 
 	-- Set the initial animation to idle
-	self.current_animation = self.animations.idle
+	self.curr_animation = self.animations.idle
 end
 
 function Pig:setupStates()
@@ -94,7 +84,7 @@ function Pig:setupStates()
 
 	self.state_machine:addState("grounded", {
 		enter = function()
-			self.current_animation = self.animations.idle
+			self.curr_animation = self.animations.idle
 		end,
 		update = function(_, dt)
 			if self.y_velocity ~= 0 then
@@ -116,7 +106,7 @@ function Pig:setupStates()
 
 		self.state_machine:addState("grounded.to_target", {
 			enter = function()
-				self.current_animation = self.animations.run
+				self.curr_animation = self.animations.run
 			end,
 			update = function(_, dt)
 				if self.y_velocity ~= 0 then
@@ -139,7 +129,7 @@ function Pig:setupStates()
 
 		self.state_machine:addState("grounded.at_target", {
 			enter = function()
-				self.current_animation = self.animations.idle
+				self.curr_animation = self.animations.idle
 			end,
 			update = function(_, dt)
 				wait_timer = wait_timer - dt
@@ -153,7 +143,7 @@ function Pig:setupStates()
 
 		self.state_machine:addState("grounded.to_start", {
 			enter = function()
-				self.current_animation = self.animations.run
+				self.curr_animation = self.animations.run
 			end,
 			update = function(_, dt)
 				if self.y_velocity ~= 0 then
@@ -176,7 +166,7 @@ function Pig:setupStates()
 
 		self.state_machine:addState("grounded.at_start", {
 			enter = function()
-				self.current_animation = self.animations.idle
+				self.curr_animation = self.animations.idle
 			end,
 			update = function(_, dt)
 				wait_timer = wait_timer - dt
@@ -197,32 +187,32 @@ function Pig:setupStates()
 			self:setAirborneAnimation()
 
 			if self.y_velocity == 0 then
-				self.current_animation = self.animations.ground
+				self.curr_animation = self.animations.ground
 				self.state_machine:setState(self.state_machine.prevState.name)
 			end
 		end,
 	})
 
-	self.state_machine:addState("attacked", {
+	self.state_machine:addState("hit", {
 		enter = function()
-			self.current_animation = self.animations.hit
-			Sfx:play("enemy.attacked")
+			self.curr_animation = self.animations.hit
+			Sfx:play("enemy.hit")
 
-			local _, _, cols, len = self.world:check(self, self.x, self.y)
-
-			local x_offset = 10
-			local hitbox_direction = 0.5
-			for i = 1, len do
-				local other = cols[i].other
-				if other.is_hitbox then
-					if other.x > self.x then
-						hitbox_direction = -1
-					end
-				end
-			end
-
-			local actual_x, actual_y, _, _ = self.world:move(self, self.x + x_offset * hitbox_direction, self.y)
-			self.x, self.y = actual_x, actual_y
+			-- local _, _, cols, len = self.world:check(self, self.x, self.y)
+			--
+			-- local x_offset = 10
+			-- local hitbox_direction = 0.5
+			-- for i = 1, len do
+			-- 	local other = cols[i].other
+			-- 	if other.is_hitbox then
+			-- 		if other.x > self.x then
+			-- 			hitbox_direction = -1
+			-- 		end
+			-- 	end
+			-- end
+			--
+			-- local actual_x, actual_y, _, _ = self.world:move(self, self.x + x_offset * hitbox_direction, self.y)
+			-- self.x, self.y = actual_x, actual_y
 		end,
 		update = function(_, dt)
 			if self.health <= 0 then
@@ -235,36 +225,20 @@ function Pig:setupStates()
 
 	self.state_machine:addState("dead", {
 		enter = function()
-			self.current_animation = self.animations.dead
+			self.curr_animation = self.animations.dead
 			Sfx:play("enemy.dead")
 		end,
 		update = function(_, dt)
-			if self.current_animation and self.current_animation.status == "paused" then
+			if self.curr_animation and self.curr_animation.status == "paused" then
 				self.world:remove(self)
-				self.current_animation = nil
+				self.is_active = false
+				self.curr_animation = nil
 			end
 		end,
 	})
 
 	-- Set default state
 	self.state_machine:setState("grounded")
-end
-
-function Pig:hit(atk)
-	self.health = self.health - atk
-	self.state_machine:setState("hit")
-end
-
-function Pig:move(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y)
-
-	if goal_x > self.x then
-		self.direction = 1
-	else
-		self.direction = -1
-	end
-
-	self.x, self.y = actual_x, actual_y
 end
 
 -- TODO: improve patrol logic to check if target is reachable
@@ -276,55 +250,20 @@ function Pig:isPathTo(goal_x, goal_y)
 	return false
 end
 
-function Pig:applyGravity(dt)
-	self.y_velocity = self.y_velocity + self.gravity * dt
-
-	local goal_y = self.y + self.y_velocity * dt
-	local _, _, _, len = self.world:check(self, self.x, goal_y)
-
-	if len > 0 then
-		self.y_velocity = 0
-	else
-		self:move(self.x, goal_y)
-	end
-end
-
-function Pig:setAirborneAnimation()
-	self.current_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
-end
-
-function Pig:update(dt)
-	self.state_machine:update(dt)
-	if self.current_animation then
-		self:applyGravity(dt)
-		self.current_animation:update(dt)
-	end
-end
-
 function Pig:draw()
-	-- Flip the sprite based on direction
+	-- Flip the sprite based on direction (enemy sprites face opposite direction from the player)
 	local scale_x = (self.direction == -1) and 1 or -1
-	local offset_x = (self.direction == -1) and 0 or self.w -- Shift the sprite to the correct position when flipped
-
-	local current_image = image_map[self.current_animation] or self.idle_image
+	local offset_x = (self.direction == -1) and 0 or self.w
+	local curr_image = self.image_map[self.curr_animation] or self.idle_image
 
 	love.graphics.push()
 
 	-- TODO: add animation offset across enemy
-	if self.current_animation then
-		self.current_animation:draw(
-			current_image,
-			self.x + offset_x, -- Adjust the x position when flipping
-			self.y,
-			0,
-			scale_x, -- Flip horizontally when direction is left (-1)
-			1,
-			self.w / SCALE,
-			10
-		)
+	if self.curr_animation then
+		self.curr_animation:draw(curr_image, self.x + offset_x, self.y, 0, scale_x, 1, self.w / SCALE, 10)
 	end
 
 	love.graphics.pop()
 end
 
-return pig
+return Pig

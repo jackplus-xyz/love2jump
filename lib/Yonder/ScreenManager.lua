@@ -34,6 +34,7 @@ local gameStates = { -- this is where you set the directories of your screens
 local screens = {
 	"title",
 	"landing",
+	"loading",
 	"gameplay",
 }
 
