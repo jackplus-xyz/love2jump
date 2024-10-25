@@ -69,10 +69,7 @@ end
 function self:Update(dt)
 	if currState ~= nil then
 		if gameStates[currState].Update then
-			local newState = gameStates[currState]:Update(dt)
-			if newState then
-				self:SwitchStates(newState)
-			end
+			gameStates[currState]:Update(dt)
 			puts(":Update called; DT = " .. dt .. "; FPS = " .. 1 / dt, true)
 		else
 			puts(":Update called but unimplemented; DT = " .. dt .. "; FPS = " .. 1 / dt, true)

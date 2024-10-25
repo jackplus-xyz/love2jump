@@ -364,6 +364,25 @@ function Player:applyGravity(dt)
 	end
 end
 
+function Player:getState()
+	return {
+		x = self.x,
+		y = self.y,
+		max_health = self.max_health,
+		health = self.health,
+		coins = self.coins,
+		atk = self.atk,
+	}
+end
+
+function Player:setState(player_state)
+	for key, value in pairs(player_state) do
+		if self[key] ~= nil then
+			self[key] = value
+		end
+	end
+end
+
 function Player:update(dt)
 	self:applyGravity(dt)
 	self.state_machine:update(dt)

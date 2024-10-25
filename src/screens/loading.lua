@@ -6,6 +6,7 @@ local Sfx = require("src.sfx")
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
 	Ui.loading:init()
 	self.screenManager = ScreenManager
+	self.screenManager.shared = { is_load_save = true }
 end
 
 function screen:Draw()

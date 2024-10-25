@@ -13,6 +13,7 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	is_save_file = GameProgress.isSaveFile()
 	Ui.title:setOptions(is_save_file)
 	self.screenManager = ScreenManager
+	self.screenManager.shared = self.screenManager.shared or {}
 end
 
 function screen:Draw()
@@ -48,6 +49,7 @@ function screen:KeyPressed(key)
 			if Ui.title.selected_option == "New Game" then
 				self.screenManager:SwitchStates("landing")
 			elseif Ui.title.selected_option == "Load Game" then
+				self.screenManager.shared = { is_load_save = true }
 				self.screenManager:SwitchStates("gameplay")
 			elseif Ui.title.selected_option == "Quit" then
 				love.event.quit()

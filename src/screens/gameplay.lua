@@ -29,13 +29,14 @@ local entities = {}
 local inactive_entities = {}
 local world
 local world_items = {}
+local default_slot = 1
+local default_level_index = 1
 
 -- Level and Game Flow Control
 local prev_level_index = nil
-local is_save_data = false
+local curr_level_index = nil
 local is_confirm_quit = false
 local is_paused = false
-local is_loading = false
 local is_entering = false
 
 --------- LOVE-LDTK CALLBACKS ----------
@@ -45,11 +46,7 @@ local function onLevelLoaded(level)
 	for i, entity in ipairs(entities) do
 		-- Add entity to inactive_entities list
 		if not entity.is_active then
-			if not prev_level_index then
-				return
-			end
-
-			if not inactive_entities[prev_level_index] then
+			if prev_level_index and not inactive_entities[prev_level_index] then
 				inactive_entities[prev_level_index] = {}
 			end
 
@@ -63,6 +60,7 @@ local function onLevelLoaded(level)
 
 	collisions = {}
 	entities = {}
+	curr_level_index = Ldtk:getCurrent()
 
 	CameraManager.unsetBounds()
 	CameraManager.unsetDeadzone()
@@ -85,7 +83,6 @@ local function onLayer(layer)
 end
 
 local function onEntity(entity)
-	local curr_level_index = Ldtk:getCurrent()
 	if inactive_entities[curr_level_index] and inactive_entities[curr_level_index][entity.iid] then
 		return
 	end
@@ -132,7 +129,47 @@ local function onLevelCreated(level)
 end
 --------------------------------------------
 
+local function saveGame(slot)
+	slot = slot or default_slot
+	local game_state = {
+		curr_level_index = Ldtk:getCurrent(),
+		player = player:getState(),
+		inactive_entities = inactive_entities,
+	}
+
+	local success, message = GameProgress.saveGame(slot, game_state)
+	if success then
+		Sfx:play("ui.confirm")
+	else
+		Sfx:play("ui.error")
+		if IsDebug then
+			print(message)
+		end
+	end
+
+	return success, message
+end
+
+local function loadGame(slot)
+	slot = slot or default_slot
+	local success, game_state = GameProgress.loadGame(slot)
+	if success then
+		-- Apply the loaded state
+		player:setState(game_state.player)
+		inactive_entities = game_state.inactive_entities
+
+		Ldtk:goTo(tonumber(game_state.curr_level_index))
+
+		Sfx:play("ui.confirm")
+	else
+		Sfx:play("ui.error")
+	end
+end
+
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
+	self.screenManager = ScreenManager
+	local is_load_save = self.screenManager.shared.is_load_save
+
 	-- load ldtk maps
 	Ldtk:load("assets/maps/kings-and-pigs.ldtk")
 	Ldtk:setFlipped(true)
@@ -140,7 +177,11 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	Ldtk.onEntity = onEntity
 	Ldtk.onLevelLoaded = onLevelLoaded
 	Ldtk.onLevelCreated = onLevelCreated
-	Ldtk:goTo(1)
+
+	Ldtk:goTo(default_level_index)
+	if is_load_save then
+		loadGame()
+	end
 
 	Ui.fade_in = Ui.fade:new("in", 1)
 	Ui.fade_out = Ui.fade:new("out", 1)
@@ -195,11 +236,6 @@ end
 function screen:Update(dt)
 	if is_paused then
 		Ui.menu:update(dt)
-		if is_loading then
-			is_paused = false
-			is_loading = false
-			return "loading"
-		end
 		Bgm:pause()
 		return
 	end
@@ -290,43 +326,6 @@ function screen:Draw()
 	end
 end
 
-local function saveGame(slot)
-	slot = slot or 1
-	local game_state = {}
-
-	local success, message = GameProgress.saveGame(slot, game_state)
-	if success then
-		Sfx:play("ui.confirm")
-	else
-		Sfx:play("ui.error")
-		if IsDebug then
-			print(message)
-		end
-	end
-
-	return success, message
-end
-
--- TODO: implement load game logic
--- local function loadGame(slot)
--- 	slot = slot or 1
--- 	local success, game_state = GameProgress.loadGame(slot)
--- 	if success then
--- 		-- Apply the loaded state
--- 		player.x = game_state.player.x
--- 		player.y = game_state.player.y
--- 		player.direction = player.direction
--- 		player.health = game_state.player.health
--- 		player.coins = game_state.player.coins
--- 		player.atk = game_state.player.atk
---
--- 		Sfx:play("ui.confirm")
--- 		is_paused = false
--- 	else
--- 		Sfx:play("ui.error")
--- 	end
--- end
-
 function screen:KeyPressed(key)
 	if is_confirm_quit then
 		if key == Keymaps.up or key == Keymaps.down then
@@ -349,7 +348,8 @@ function screen:KeyPressed(key)
 			elseif Ui.menu.selected_option == "Settings" then
 			-- TODO: Add settings UI
 			elseif Ui.menu.selected_option == "Save Game" then
-				local slot = 1
+				-- TODO: add slot selection
+				local slot
 				local success, message = saveGame(slot)
 				if success then
 					Sfx:play("ui.confirm")
@@ -361,7 +361,7 @@ function screen:KeyPressed(key)
 				end
 			elseif Ui.menu.selected_option == "Load Game" then
 				-- TODO: Load game data
-				is_loading = true
+				self.screenManager:SwitchStates("loading")
 			elseif Ui.menu.selected_option == "Quit" then
 				Sfx:play("ui.warning")
 				is_confirm_quit = true

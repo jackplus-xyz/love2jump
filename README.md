@@ -87,6 +87,29 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
 - [x] Basic UI (health, score display)
 - [ ] Game states (menu, play, pause, game over, load, save)
 
+```mermaid
+graph TD
+  A[Game Start] --> B[Title Screen]
+
+  B -- No Save File --> C[New Game or Quit]
+  B -- Save File Exists --> D[New Game or Load Game or Quit]
+
+  C --> E[New Game]
+  C --> F[Quit]
+  D --> E[New Game]
+  D --> G[Load Game]
+  D --> F[Quit]
+
+  E --> H[Landing]
+  H --> I[Gameplay]
+  G --> I[Gameplay]
+
+  I --> J{Is New Game?}
+  J -- New Game --> E
+  J -- Load Game --> G
+  J -- Save --> F
+```
+
 ### Audio
 
 - [x] Basic sound effects
@@ -169,7 +192,8 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
 
 - [x] Save and Load Game states from a file
 - [x] Preserve entity status across levels
-- [ ] Preserve player status across saves
+- [x] Preserve player status across saves
+- [x] Preserve entity status across saves
 - [ ] Enemy will drop items
 - [ ] Enemy will attack
 - [ ] Power-up/EXP
