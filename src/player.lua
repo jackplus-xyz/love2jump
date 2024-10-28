@@ -6,6 +6,8 @@ local Sfx = require("src.sfx")
 local Player = {}
 Player.__index = Player
 
+-- Define collision behaviors for different entity types:
+-- types: "touch" | "cross" | "slide" | "bounce" | nil
 local collision_types = {
 	Coin = "cross",
 	Door = "cross",
@@ -185,11 +187,6 @@ function Player:setupStates()
 			self:setAirborneAnimation()
 		end,
 		update = function(_, dt)
-			-- Update jump cooldown
-			if self.jump_cooldown > 0 then
-				self.jump_cooldown = self.jump_cooldown - dt
-			end
-
 			self:setAirborneAnimation()
 			self:handleMovement(dt)
 
@@ -215,11 +212,6 @@ function Player:setupStates()
 			Sfx:play("player.attack")
 		end,
 		update = function(_, dt)
-			-- Update jump cooldown
-			if self.jump_cooldown > 0 then
-				self.jump_cooldown = self.jump_cooldown - dt
-			end
-
 			self:handleMovement(dt)
 			self:updateHitbox(dt)
 
@@ -352,16 +344,27 @@ function Player:move(goal_x, goal_y)
 end
 
 function Player:applyGravity(dt)
+	-- Update jump cooldown
+	if self.jump_cooldown > 0 then
+		self.jump_cooldown = self.jump_cooldown - dt
+	end
+
 	self.y_velocity = self.y_velocity + self.gravity * dt
 
 	local goal_y = self.y + self.y_velocity * dt
 	local _, actual_y, cols, len = self.world:check(self, self.x, goal_y, playerFilter)
 
 	if len > 0 then
-		self.y_velocity = 0
-	else
-		self:move(self.x, actual_y)
+		for i = 1, len do
+			local other = cols[i].other
+			if other.id == "Collision" then
+				self.y_velocity = 0
+				return
+			end
+		end
 	end
+
+	self:move(self.x, actual_y)
 end
 
 function Player:getState()

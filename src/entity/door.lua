@@ -13,7 +13,7 @@ function Door.new(entity, world)
 	local self = Entity.new(entity, world)
 	setmetatable(self, Door)
 
-	self.w = sprite_h
+	self.w = sprite_w
 	self.h = sprite_h
 	self.x_offset = self.w / SCALE
 	self.y_offset = self.h

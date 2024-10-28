@@ -13,15 +13,20 @@ function Coin.new(entity, world)
 	local self = Entity.new(entity, world)
 	setmetatable(self, Coin)
 
-	self.w = sprite_h
-	self.h = sprite_h
-	self.x_offset = self.w / SCALE
+	self.w = 11
+	self.h = 14
+	self.x_offset = self.w
 	self.y_offset = self.h
 	self.timer = 1
 
 	self:init()
 
 	return self
+end
+
+function Coin:addToWorld()
+	self.is_active = true
+	self.world:add(self, self.x - self.w / 2, self.y - self.y_offset, self.w, self.h)
 end
 
 function Coin:init()
