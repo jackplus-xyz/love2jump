@@ -15,11 +15,14 @@ function Pig.new(entity, world)
 	self.w = 18
 	self.h = 17
 	self.speed = 100
+	self.knock_back_offset = 15
 	self.direction = 0
 	self.y_velocity = 0
 	self.jump_strength = -1300
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
+	self.hit_cooldown = 0
+	self.hit_cooldown_time = 0.2
 	self.gravity = 1000
 
 	self:init()
@@ -32,7 +35,7 @@ function Pig:init()
 end
 
 function Pig:loadAnimations()
-	local sprite_w= 34
+	local sprite_w = 34
 	local sprite_h = 28
 
 	-- Load images
@@ -46,14 +49,14 @@ function Pig:loadAnimations()
 	self.run_image = love.graphics.newImage("/assets/sprites/03-pig/run.png")
 
 	-- Create a grid for the animations
-	local attack_grid = Anim8.newGrid(sprite_w,sprite_h, self.attack_image:getWidth(), sprite_h)
-	local dead_grid = Anim8.newGrid(sprite_w,sprite_h, self.dead_image:getWidth(), sprite_h)
-	local fall_grid = Anim8.newGrid(sprite_w,sprite_h, self.fall_image:getWidth(), sprite_h)
-	local ground_grid = Anim8.newGrid(sprite_w,sprite_h, self.ground_image:getWidth(), sprite_h)
-	local hit_grid = Anim8.newGrid(sprite_w,sprite_h, self.hit_image:getWidth(), sprite_h)
-	local idle_grid = Anim8.newGrid(sprite_w,sprite_h, self.idle_image:getWidth(), sprite_h)
-	local jump_grid = Anim8.newGrid(sprite_w,sprite_h, self.jump_image:getWidth(), sprite_h)
-	local run_grid = Anim8.newGrid(sprite_w,sprite_h, self.run_image:getWidth(), sprite_h)
+	local attack_grid = Anim8.newGrid(sprite_w, sprite_h, self.attack_image:getWidth(), sprite_h)
+	local dead_grid = Anim8.newGrid(sprite_w, sprite_h, self.dead_image:getWidth(), sprite_h)
+	local fall_grid = Anim8.newGrid(sprite_w, sprite_h, self.fall_image:getWidth(), sprite_h)
+	local ground_grid = Anim8.newGrid(sprite_w, sprite_h, self.ground_image:getWidth(), sprite_h)
+	local hit_grid = Anim8.newGrid(sprite_w, sprite_h, self.hit_image:getWidth(), sprite_h)
+	local idle_grid = Anim8.newGrid(sprite_w, sprite_h, self.idle_image:getWidth(), sprite_h)
+	local jump_grid = Anim8.newGrid(sprite_w, sprite_h, self.jump_image:getWidth(), sprite_h)
+	local run_grid = Anim8.newGrid(sprite_w, sprite_h, self.run_image:getWidth(), sprite_h)
 
 	-- Create the animations
 	self.animations.attack = Anim8.newAnimation(attack_grid("1-5", 1), 0.1, "pauseAtEnd")
@@ -197,28 +200,20 @@ function Pig:setupStates()
 		enter = function()
 			self.curr_animation = self.animations.hit
 			Sfx:play("enemy.hit")
-
-			-- local _, _, cols, len = self.world:check(self, self.x, self.y)
-			--
-			-- local x_offset = 10
-			-- local hitbox_direction = 0.5
-			-- for i = 1, len do
-			-- 	local other = cols[i].other
-			-- 	if other.is_hitbox then
-			-- 		if other.x > self.x then
-			-- 			hitbox_direction = -1
-			-- 		end
-			-- 	end
-			-- end
-			--
-			-- local actual_x, actual_y, _, _ = self.world:move(self, self.x + x_offset * hitbox_direction, self.y)
-			-- self.x, self.y = actual_x, actual_y
+			self:applyKnockback(self.knock_back_offset)
 		end,
 		update = function(_, dt)
-			if self.health <= 0 then
-				self.state_machine:setState("dead")
-			else
-				self.state_machine:setState("grounded")
+			if self.hit_cooldown > 0 then
+				self.hit_cooldown = self.hit_cooldown - dt
+			end
+
+			if self.hit_cooldown <= 0 then
+				if self.health <= 0 then
+					self.state_machine:setState("dead")
+				else
+					self.state_machine:setState("grounded")
+				end
+				self.hit_cooldown = self.hit_cooldown_time
 			end
 		end,
 	})
@@ -243,7 +238,7 @@ end
 
 -- TODO: improve patrol logic to check if target is reachable
 function Pig:isPathTo(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y)
+	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, self.enemy_filter)
 	if self.y == goal_y and len == 0 then
 		return true
 	end

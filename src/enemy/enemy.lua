@@ -38,6 +38,25 @@ function Enemy:addToWorld()
 	self.world:add(self, self.x - self.w, self.y - self.h, self.w, self.h, self.enemy_filter)
 end
 
+function Enemy:applyKnockback(x_offset)
+	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemy_filter)
+
+	x_offset = x_offset or 0
+	local hitbox_direction = 0.5
+	for i = 1, len do
+		local other = cols[i].other
+		if other.is_hitbox then
+			if other.x > self.x then
+				hitbox_direction = -1
+			end
+		end
+	end
+
+	local actual_x, actual_y, _, _ =
+		self.world:move(self, self.x + x_offset * hitbox_direction, self.y, self.enemy_filter)
+	self.x, self.y = actual_x, actual_y
+end
+
 function Enemy:hit(atk)
 	self.health = self.health - atk
 	self.state_machine:setState("hit")
