@@ -199,6 +199,7 @@ function Pig:setupStates()
 	self.state_machine:addState("hit", {
 		enter = function()
 			self.curr_animation = self.animations.hit
+			self.hit_cooldown = self.hit_cooldown_time
 			Sfx:play("enemy.hit")
 			self:applyKnockback(self.knock_back_offset)
 		end,
@@ -208,11 +209,7 @@ function Pig:setupStates()
 			end
 
 			if self.hit_cooldown <= 0 then
-				if self.health <= 0 then
-					self.state_machine:setState("dead")
-				else
-					self.state_machine:setState("grounded")
-				end
+				self.state_machine:setState("grounded")
 				self.hit_cooldown = self.hit_cooldown_time
 			end
 		end,
@@ -225,8 +222,7 @@ function Pig:setupStates()
 		end,
 		update = function(_, dt)
 			if self.curr_animation and self.curr_animation.status == "paused" then
-				self.world:remove(self)
-				self.is_active = false
+				self:removeFromWorld()
 				self.curr_animation = nil
 			end
 		end,
