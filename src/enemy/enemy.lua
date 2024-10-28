@@ -3,7 +3,7 @@ local StateMachine = require("src.utils.state_machine")
 local Enemy = {}
 Enemy.__index = Enemy
 
-local enemy_filter = function(item, other)
+local enemyFilter = function(item, other)
 	if other.id == "Hitbox" then
 		return "cross"
 	else
@@ -29,7 +29,7 @@ function Enemy.new(entity, world)
 	self.animations = {}
 	self.curr_animation = nil
 	self.state_machine = StateMachine.new()
-	self.enemy_filter = enemy_filter
+	self.enemy_filter = enemyFilter
 
 	return self
 end
@@ -38,13 +38,32 @@ function Enemy:addToWorld()
 	self.world:add(self, self.x - self.w, self.y - self.h, self.w, self.h, self.enemy_filter)
 end
 
+function Enemy:applyKnockback(x_offset)
+	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemy_filter)
+
+	x_offset = x_offset or 0
+	local hitbox_direction = 0.5
+	for i = 1, len do
+		local other = cols[i].other
+		if other.is_hitbox then
+			if other.x > self.x then
+				hitbox_direction = -1
+			end
+		end
+	end
+
+	local actual_x, actual_y, _, _ =
+		self.world:move(self, self.x + x_offset * hitbox_direction, self.y, self.enemy_filter)
+	self.x, self.y = actual_x, actual_y
+end
+
 function Enemy:hit(atk)
 	self.health = self.health - atk
 	self.state_machine:setState("hit")
 end
 
 function Enemy:move(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y)
+	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y, self.enemy_filter)
 
 	if goal_x > self.x then
 		self.direction = 1
@@ -59,7 +78,7 @@ function Enemy:applyGravity(dt)
 	self.y_velocity = self.y_velocity + self.gravity * dt
 
 	local goal_y = self.y + self.y_velocity * dt
-	local _, _, _, len = self.world:check(self, self.x, goal_y)
+	local _, _, _, len = self.world:check(self, self.x, goal_y, self.enemy_filter)
 
 	if len > 0 then
 		self.y_velocity = 0
