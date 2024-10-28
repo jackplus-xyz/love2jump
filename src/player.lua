@@ -6,6 +6,7 @@ local Sfx = require("src.sfx")
 local Player = {}
 Player.__index = Player
 
+-- Define collision behaviors for different entity types
 local collision_types = {
 	Coin = "cross",
 	Door = "cross",
