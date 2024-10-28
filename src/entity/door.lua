@@ -70,7 +70,6 @@ function Door:update(dt)
 	end
 end
 
--- FIXME: collision when jumping over a door
 function Door:draw()
 	love.graphics.push()
 	local curr_image = self.image_map[self.curr_animation] or self.idle_image

@@ -102,7 +102,6 @@ local function onEntity(entity)
 	end
 
 	if entity.id == "Player" then
-		-- TODO: Load player data from save or initialize new player
 		player = Player.new(entity, world)
 	elseif entity.props.Enemy then
 		local new_enemy = EnemyFactory.create(entity, world)
@@ -212,7 +211,7 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	CameraManager.setLerp(0.01)
 	CameraManager.setCoords(player.x + player.w / SCALE, player.y - player.h * SCALE)
 
-	-- TODO: Add fade in to bgm
+	-- TODO: add fade in to bgm
 	Bgm:play()
 
 	Debug:init(world, CameraManager, player)
@@ -366,7 +365,7 @@ function screen:KeyPressed(key)
 				is_paused = false
 				Bgm:play()
 			elseif Ui.menu.selected_option == "Settings" then
-			-- TODO: Add settings UI
+			-- TODO: add settings UI
 			elseif Ui.menu.selected_option == "Save Game" then
 				-- TODO: add slot selection
 				local slot
@@ -380,7 +379,6 @@ function screen:KeyPressed(key)
 					end
 				end
 			elseif Ui.menu.selected_option == "Load Game" then
-				-- TODO: Load game data
 				self.screenManager:SwitchStates("loading")
 			elseif Ui.menu.selected_option == "Quit" then
 				Sfx:play("ui.warning")

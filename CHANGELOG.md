@@ -2,6 +2,58 @@
 
 This document tracks significant changes, features, and fixes for each update.
 
+## States Design
+
+### Player States
+
+```mermaid
+stateDiagram-v2
+[*] --> Grounded
+Grounded --> Airborne : Jump
+Airborne --> Grounded : Land
+
+    state Grounded {
+        [*] --> Idle
+        Idle --> Moving : Move
+        Moving --> Idle : Stop
+        Idle --> Attacking : Attack
+        Moving --> Attacking : Attack
+        Attacking --> Idle : Attack End
+    }
+
+    state Airborne {
+        [*] --> Jumping
+        Jumping --> Falling : Peak
+        Jumping --> AirAttacking : Attack
+        Falling --> AirAttacking : Attack
+    }
+```
+
+### Game States
+
+```mermaid
+graph TD
+  A[Game Start] --> B[Title Screen]
+
+  B -- No Save File --> C[New Game or Quit]
+  B -- Save File Exists --> D[New Game or Load Game or Quit]
+
+  C --> E[New Game]
+  C --> F[Quit]
+  D --> E[New Game]
+  D --> G[Load Game]
+  D --> F[Quit]
+
+  E --> H[Landing]
+  H --> I[Gameplay]
+  G --> I[Gameplay]
+
+  I --> J{Is New Game?}
+  J -- New Game --> E
+  J -- Load Game --> G
+  J -- Save --> F
+```
+
 ## Checkpoints
 
 ### 09/20/2024

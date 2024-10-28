@@ -44,7 +44,6 @@ function screen:KeyPressed(key)
 		elseif key == Keymaps.down then
 			Ui.title:selectNextOption()
 		elseif key == Keymaps.confirm then
-			-- TODO: Implement logic for start a new game/load game
 			Sfx:play("ui.confirm")
 			if Ui.title.selected_option == "New Game" then
 				self.screenManager:SwitchStates("landing")

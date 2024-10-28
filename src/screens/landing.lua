@@ -6,6 +6,7 @@ local n_keysdown = 0
 
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
 	self.screenManager = ScreenManager
+	self.screenManager.shared = { is_load_save = false }
 end
 
 function screen:Draw()

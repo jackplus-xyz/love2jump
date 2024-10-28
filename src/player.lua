@@ -15,7 +15,6 @@ local collision_types = {
 	Collision = "slide",
 }
 
--- FIXME: weird collision between enemy and player
 local playerFilter = function(item, other)
 	return collision_types[other.id] or nil -- Return nil for undefined collision_types
 end
