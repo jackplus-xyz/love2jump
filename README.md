@@ -1,5 +1,11 @@
 # Love Arcade
 
+## Introduction
+
+"Love Arcade" is a personal project focused on learning the fundamentals of game development. It provides an opportunity to deepen my understanding of game logic with building, deploying, and publishing a playable game. For this project, I'm focusing on implementing game logics and developing a clean and scalable Lua program
+
+Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlong.org/wezterm/index.html), I developed an appreciation for Lua's simplicity and flexibility, which is why I chose it for this project. LÖVE, commonly known as Love2D, offers a lightweight yet powerful framework with a supportive community, making it a great choice for 2D game creation.
+
 ## Project Overview
 
 **Project Name:** Love Arcade
@@ -12,10 +18,13 @@
 
 ## Project Goals
 
-1. Develop a playable 2D platformer game with at least 3 levels
+1. Develop a playable 2D platformer game with at least 3 levels + a boss fight
 2. Learn and implement game development concepts using Lua and LÖVE
-3. Create an engaging player experience with smooth gameplay and interesting mechanics
-4. Successfully deploy the game on [specify platforms]
+3. UI/UX: Create an engaging playing experience with smooth gameplay and interesting mechanics
+4. Performance optimization: Ensure the game run at 60 fps
+5. Testing: Create unitests to ensure the game can be built and run successfully without crashing
+6. Deployment: deploy the game on Steam/macOS/Web
+7. Publication: publish it as a free game on Steam
 
 ## Technologies and Tools
 
@@ -27,55 +36,7 @@
   - [kikito/anim8: An animation library for LÖVE](https://github.com/kikito/anim8)
   - [kikito/bump.lua: A collision detection library for Lua](https://github.com/kikito/bump.lua)
   - [V3X3D/CameraMgr: A highly dynamic and robust camera library in around 200 lines of code.](https://gitlab.com/V3X3D/love-libs/-/tree/master/CameraMgr)
-
-## Development Progress
-
-### Completed Tasks
-
-1. **Learning:**
-
-   - [x] Lua programming language
-   - [x] LÖVE game engine
-   - [x] LDTK level editor
-
-2. **Core Systems:**
-
-   - [x] Main game loop with LÖVE
-   - [x] Map rendering using `love-ldtk`
-   - [x] Player animation system using `anim8`
-   - [x] Player state management
-   - [x] Debug information display
-   - [x] Collision detection and resolution with `bump`
-   - [x] Gravity implementation
-   - [x] Player movement refinement
-   - [x] Camera system
-
-3. **Gameplay Elements:**
-   - [x] Basic enemy implementation
-
-### In Progress
-
-- [ ] Level transition system (FIXME)
-
-### Upcoming Tasks
-
-1. **Gameplay Features:**
-
-   - [ ] Power-up system
-   - [ ] Interactable entities (doors, chests)
-   - [ ] Game state management (load/save/pause)
-   - [ ] Score system
-   - [ ] Additional enemy types and behaviors
-
-2. **Audio:**
-
-   - [ ] Background music (BGM)
-   - [ ] Sound effects (SFX)
-
-3. **Polish and Optimization:**
-   - [ ] Performance optimization
-   - [ ] UI/UX improvements
-   - [ ] Bug fixing and playtesting
+  - [thenerdie/Yonder: A ridiculously easy to use game state management library written in Lua, for the LOVE2D framework.](https://github.com/thenerdie/Yonder)
 
 ## MVP (Minimum Viable Product) Checklist
 
@@ -111,91 +72,154 @@
 - [x] Collision detection and resolution
 - [x] Gravity and jumping
 - [x] Camera system
-- [ ] Basic enemy interaction
+- [x] Basic enemy interaction
 
 ### Level Design
 
 - [x] LDTK integration
 - [ ] 3 unique levels
-- [ ] Level transition system
+- [ ] Boss Fight
+- [x] Level transition system
 
 ### Gameplay Systems
 
-- [ ] Score tracking
-- [ ] Basic UI (health, score display)
-- [ ] Game states (menu, play, pause, game over)
+- [x] Score tracking
+- [x] Basic UI (health, score display)
+- [x] Game states (menu, play, pause, game over, load, save)
+
+```mermaid
+graph TD
+  A[Game Start] --> B[Title Screen]
+
+  B -- No Save File --> C[New Game or Quit]
+  B -- Save File Exists --> D[New Game or Load Game or Quit]
+
+  C --> E[New Game]
+  C --> F[Quit]
+  D --> E[New Game]
+  D --> G[Load Game]
+  D --> F[Quit]
+
+  E --> H[Landing]
+  H --> I[Gameplay]
+  G --> I[Gameplay]
+
+  I --> J{Is New Game?}
+  J -- New Game --> E
+  J -- Load Game --> G
+  J -- Save --> F
+```
 
 ### Audio
 
-- [ ] Basic sound effects
-- [ ] Background music
-
-## Development Timeline
-
-1. **Week 1-2 09/06: Core Mechanics and Prototyping**
-
-   - [x] Set up development environment
-   - [x] Implement basic player movement and physics
-   - [x] Create prototype level
-
-2. **Week 3-4 09/20: Level Design and Enemy Implementation**
-
-   - [x] Integrate LDTK for level design
-   - [x] Implement basic enemy AI
-   - [ ] Design and create 3 levels
-
-3. **Week 5-6 10/04: Gameplay Systems and Polish**
-
-   - [ ] Implement score system
-   - [ ] Add game states (menu, pause, game over)
-   - [ ] Create basic UI
-   - [ ] Implement sound effects and background music
-
-4. **Week 7-8 10/18: Testing and Deployment**
-   - [ ] Thorough playtesting and bug fixing
-   - [ ] Performance optimization
-   - [ ] Prepare for deployment on target platforms
+- [x] Basic sound effects
+- [x] Background music
 
 ## Checkpoints
 
 ### 09/20/2024
 
-- [x] Fix collision
+#### Added
+
+- [x] Camera
+- [x] Gravity implementation
+- [x] Collision
   - [x] Use rectangle to show collision blocks
   - [x] Add debug info of collision/gravity
-- [x] Add gravity
-- [x] Fix movement
-- [x] Implement camera system
-- [x] Level changing (FIXME)
-- [x] Add one enemy type
-- [-] Game states (load/save/pause)
-- [-] Score system
+- [x] Level switching
+- [x] Enemy
+
+#### Fixed
+
+- [x] Player movement
 
 ### 10/04/2024
 
-- [x] Replace game assets with place holder
-- [-] Add interaction between player and enemy(attack, damage)
-  - [ ] Research strategy for player enemy interaction
-  - [ ] Implement hitbox
-  - [x] Fix enemy animation
-    - The enemy entities was in `level_elements` and wasn't updated
-  - [ ] Add enemy logic(patrol, attack)
-- [ ] Add interactive entity(i.e. door, chest)
-- [x] Implement basic UI elements
-  - [x] Add health bar
-  - [ ] Offset health animations
-- [ ] Add SFX to attack
-- [ ] Add BGM
-- [ ] Fix level transition system
-- [ ] Implement power-up system
-- [ ] Game states (load/save/pause)
-- [ ] Score system
+#### Added
 
-## Notes and Ideas
+- [x] Research strategy for player enemy interaction
+- [x] Enemy patrol logic
+- [x] Interactive entity: door, chest
+- [x] Basic UI elements: health bar
+- [x] BGM
+- [x] Attacking SFX
+- [x] Score system(Coins)
 
-- Consider adding a double-jump or wall-jump mechanic for more interesting platforming
-- Explore the possibility of adding a simple crafting or upgrade system
-- Think about a cohesive art style and theme for the game world
+#### Changed
+
+- [x] Offset health animations
+
+#### Fixed
+
+- [x] Fix enemy animation
+
+### 10/11/2024
+
+#### Added
+
+- [x] Game screens (title, landing, playing)
+- [x] Level transition animation
+- [x] Hitbox
+- [x] Interaction between player and enemy(attack)
+- [x] Interaction between player and coin
+- [x] Interaction between player and door
+
+#### Changed
+
+- [x] Update debugging collision correctly
+- [x] Improve UI module structure
+- [x] Improve gravity logic
+
+#### Fixed
+
+- [x] Level transitioning
+- [x] Animated is overwritten after `love.graphics.setColor()` is called
+- [x] Tile on the corner is not drawn correctly
+- [x] Improve enemy patrol logic to handle falling
+- [x] Enemy image `offset_x` is too high
+- [x] Enemy movement animation doesn't flip correctly
+
+### 10/18/2024
+
+#### Added
+
+- [x] Interaction between player and enemy(damage)
+- [x] Enemy will be knock back
+
+### 10/25/2024
+
+#### Added
+
+- [x] Save and Load Game states from a file
+- [x] Preserve entity status across levels
+- [x] Preserve player status across saves
+- [x] Preserve entity status across saves
+- [x] Quit button
+
+#### Changed
+
+- [x] Make Enemy class extendable
+
+### 11/01/2024
+
+#### Added
+
+- [ ] Enemy will drop items
+- [ ] Enemy will attack
+- [ ] Enemy update patrol route based if the destination is reachable
+- [ ] Power-up/EXP
+- [ ] Settings menu
+- [ ] Boss Fight
+
+#### Changed
+
+- [ ] Improve enemy patrol logic to handle unreachable points
+- [ ] Improve tileset rules
+
+#### Fixed
+
+- [ ] Door Collision
+- [ ] Hitbox and Enemy Collision
 
 ## Resources
 

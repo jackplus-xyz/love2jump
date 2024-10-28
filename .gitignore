@@ -47,3 +47,4 @@ luac.out
 # Custom
 .DS_Store
 docs
+log*
