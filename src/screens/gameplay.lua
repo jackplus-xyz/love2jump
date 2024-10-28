@@ -34,6 +34,7 @@ local entities = {}
 local inactive_entities = {}
 local world
 local world_items = {}
+local excluded_items = { Collision = true, Hitbox = true }
 local default_slot = 1
 local default_level_index = 1
 
@@ -261,14 +262,22 @@ function screen:Update(dt)
 
 	self:handleLevelTransition(dt)
 
-	player:update(dt)
-
-	for _, entity in ipairs(entities) do
-		entity:update(dt)
-	end
-
+	-- player:update(dt)
+	--
+	-- for _, entity in ipairs(entities) do
+	-- 	entity:update(dt)
+	-- end
+	--
 	for _, collision in ipairs(collisions) do
 		collision:update()
+	end
+
+	world_items = world:getItems()
+
+	for _, item in ipairs(world_items) do
+		if not excluded_items[item.id] then
+			item:update(dt)
+		end
 	end
 
 	Ui.hud:update(dt)
@@ -297,18 +306,18 @@ function screen:Draw()
 		collision:draw()
 	end
 
-	for _, entity in ipairs(entities) do
-		entity:draw()
+	for _, item in ipairs(world_items) do
+		if not excluded_items[item.id] then
+			item:draw()
+		end
 	end
-
-	player:draw()
 
 	if IsDebug then
 		love.graphics.push("all")
 		world_items = world:getItems()
 		for _, item in pairs(world_items) do
 			local x, y, w, h = world:getRect(item)
-			if item.is_hitbox then
+			if item.id == "Hitbox" then
 				love.graphics.setColor(0, 1, 1, 0.1)
 				love.graphics.rectangle("fill", x, y, w, h)
 				love.graphics.setColor(0, 1, 1)
