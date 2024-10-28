@@ -3,7 +3,7 @@ local StateMachine = require("src.utils.state_machine")
 local Enemy = {}
 Enemy.__index = Enemy
 
-local enemy_filter = function(item, other)
+local enemyFilter = function(item, other)
 	if other.id == "Hitbox" then
 		return "cross"
 	else
@@ -29,7 +29,7 @@ function Enemy.new(entity, world)
 	self.animations = {}
 	self.curr_animation = nil
 	self.state_machine = StateMachine.new()
-	self.enemy_filter = enemy_filter
+	self.enemy_filter = enemyFilter
 
 	return self
 end
@@ -44,7 +44,7 @@ function Enemy:hit(atk)
 end
 
 function Enemy:move(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y)
+	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y, self.enemy_filter)
 
 	if goal_x > self.x then
 		self.direction = 1
@@ -59,7 +59,7 @@ function Enemy:applyGravity(dt)
 	self.y_velocity = self.y_velocity + self.gravity * dt
 
 	local goal_y = self.y + self.y_velocity * dt
-	local _, _, _, len = self.world:check(self, self.x, goal_y)
+	local _, _, _, len = self.world:check(self, self.x, goal_y, self.enemy_filter)
 
 	if len > 0 then
 		self.y_velocity = 0
