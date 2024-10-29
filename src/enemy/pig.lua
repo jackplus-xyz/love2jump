@@ -237,8 +237,8 @@ function Pig:setupStates()
 						y = self.y,
 						world = self.world,
 					}
-					local new_coin = Entity.Coin.new(entity, self.world)
-					self:dropItem(new_coin, 25)
+					local new_coin = Entity.Coin.new(entity)
+					self:dropItem(new_coin, 100)
 
 					self.drop_cooldown = self.drop_cooldown_time
 					self.drop_count = self.drop_count - 1

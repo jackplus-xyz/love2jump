@@ -316,6 +316,7 @@ function Player:addHitboxToWorld()
 		h = self.h + hitbox_h,
 		is_active = true,
 		update = update,
+		player = self,
 	}
 	self.world:add(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h, hitboxFilter)
 end

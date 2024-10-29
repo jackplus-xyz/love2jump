@@ -33,30 +33,36 @@ function Enemy.new(entity)
 	return self
 end
 
--- FIXME: knockback direction
 function Enemy:applyKnockback(x_offset)
 	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemy_filter)
 
 	x_offset = x_offset or 0
-	local hitbox_direction = 0.5
+	local hitbox_direction = 0
 	for i = 1, len do
 		local other = cols[i].other
-		if other.is_hitbox then
-			if other.x > self.x then
+		if other.id == "Hitbox" and other.player then
+			if other.player.x > self.x then
+				hitbox_direction = 1
+				break
+			else
 				hitbox_direction = -1
+				break
 			end
 		end
 	end
 
+	-- flip the hitbox_direction
 	local actual_x, actual_y, _, _ =
-		self.world:move(self, self.x + x_offset * hitbox_direction, self.y, self.enemy_filter)
+		self.world:move(self, self.x + x_offset * -hitbox_direction, self.y, self.enemy_filter)
 	self.x, self.y = actual_x, actual_y
+	self.direction = hitbox_direction
 end
 
 function Enemy:hit(atk)
 	self.health = self.health - atk
 	if self.health <= 0 then
 		self.state_machine:setState("dead")
+		self:applyKnockback(self.knock_back_offset)
 	else
 		self.state_machine:setState("hit")
 	end
