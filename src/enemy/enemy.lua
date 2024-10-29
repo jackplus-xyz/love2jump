@@ -1,4 +1,5 @@
 local StateMachine = require("src.utils.state_machine")
+local Entity = require("src.entity")
 
 local Enemy = {}
 Enemy.__index = Enemy
@@ -35,9 +36,16 @@ function Enemy.new(entity, world)
 end
 
 function Enemy:addToWorld()
+	self.is_active = true
 	self.world:add(self, self.x - self.w, self.y - self.h, self.w, self.h, self.enemy_filter)
 end
 
+function Enemy:removeFromWorld()
+	self.is_active = false
+	self.world:remove(self)
+end
+
+-- FIXME: knockback direction
 function Enemy:applyKnockback(x_offset)
 	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemy_filter)
 
@@ -59,7 +67,11 @@ end
 
 function Enemy:hit(atk)
 	self.health = self.health - atk
-	self.state_machine:setState("hit")
+	if self.health <= 0 then
+		self.state_machine:setState("dead")
+	else
+		self.state_machine:setState("hit")
+	end
 end
 
 function Enemy:move(goal_x, goal_y)
@@ -75,20 +87,37 @@ function Enemy:move(goal_x, goal_y)
 end
 
 function Enemy:applyGravity(dt)
+	if self.jump_cooldown > 0 then
+		self.jump_cooldown = self.jump_cooldown - dt
+	end
+
 	self.y_velocity = self.y_velocity + self.gravity * dt
 
 	local goal_y = self.y + self.y_velocity * dt
-	local _, _, _, len = self.world:check(self, self.x, goal_y, self.enemy_filter)
+	local _, actual_y, cols, len = self.world:check(self, self.x, goal_y, self.enemy_filter)
 
 	if len > 0 then
-		self.y_velocity = 0
-	else
-		self:move(self.x, goal_y)
+		for i = 1, len do
+			local other = cols[i].other
+			if other.id == "Collision" then
+				self.y_velocity = 0
+				return
+			end
+		end
 	end
+
+	self:move(self.x, actual_y)
 end
 
 function Enemy:setAirborneAnimation()
 	self.curr_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
+end
+
+function Enemy:dropItem(item, x_velocity)
+	self.spawnDrop(item)
+
+	x_velocity = math.random(-1, 1) * x_velocity
+	item:spawn(x_velocity)
 end
 
 function Enemy:update(dt)

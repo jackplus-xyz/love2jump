@@ -1,6 +1,7 @@
 local Anim8 = require("lib.anim8.anim8")
 local Sfx = require("src.sfx")
 local Enemy = require("src.enemy.enemy")
+local Entity = require("src.entity")
 
 local Pig = {}
 Pig.__index = Pig
@@ -24,6 +25,8 @@ function Pig.new(entity, world)
 	self.hit_cooldown = 0
 	self.hit_cooldown_time = 0.2
 	self.gravity = 1000
+	self.drop_cooldown = 0
+	self.drop_cooldown_time = 0.1
 
 	self:init()
 	return self
@@ -199,6 +202,7 @@ function Pig:setupStates()
 	self.state_machine:addState("hit", {
 		enter = function()
 			self.curr_animation = self.animations.hit
+			self.hit_cooldown = self.hit_cooldown_time
 			Sfx:play("enemy.hit")
 			self:applyKnockback(self.knock_back_offset)
 		end,
@@ -208,11 +212,7 @@ function Pig:setupStates()
 			end
 
 			if self.hit_cooldown <= 0 then
-				if self.health <= 0 then
-					self.state_machine:setState("dead")
-				else
-					self.state_machine:setState("grounded")
-				end
+				self.state_machine:setState("grounded")
 				self.hit_cooldown = self.hit_cooldown_time
 			end
 		end,
@@ -222,12 +222,32 @@ function Pig:setupStates()
 		enter = function()
 			self.curr_animation = self.animations.dead
 			Sfx:play("enemy.dead")
+			self.drop_cooldown = self.drop_cooldown_time
+			self.drop_count = 3
 		end,
 		update = function(_, dt)
-			if self.curr_animation and self.curr_animation.status == "paused" then
-				self.world:remove(self)
-				self.is_active = false
-				self.curr_animation = nil
+			if self.drop_count > 0 then
+				if self.drop_cooldown > 0 then
+					self.drop_cooldown = self.drop_cooldown - dt
+				else
+					local entity = {
+						id = "Coin",
+						x = self.x + self.w / 2,
+						y = self.y,
+						world = self.world,
+					}
+					local new_coin = Entity.Coin.new(entity, self.world)
+					self:dropItem(new_coin, 25)
+
+					self.drop_cooldown = self.drop_cooldown_time
+					self.drop_count = self.drop_count - 1
+				end
+			else
+				if self.curr_animation and self.curr_animation.status == "paused" then
+					self:removeFromWorld()
+					self.curr_animation = nil
+					return
+				end
 			end
 		end,
 	})

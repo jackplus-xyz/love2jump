@@ -34,6 +34,7 @@ local entities = {}
 local inactive_entities = {}
 local world
 local world_items = {}
+local excluded_items = { Collision = true, Hitbox = true }
 local default_slot = 1
 local default_level_index = 1
 
@@ -105,6 +106,10 @@ local function onEntity(entity)
 		player = Player.new(entity, world)
 	elseif entity.props.Enemy then
 		local new_enemy = EnemyFactory.create(entity, world)
+		new_enemy.spawnDrop = function(item)
+			item:addToWorld()
+			table.insert(entities, item)
+		end
 		table.insert(entities, new_enemy)
 	elseif entity.id == "Door" then
 		local new_door = Entity.Door.new(entity, world)
@@ -308,16 +313,20 @@ function screen:Draw()
 		world_items = world:getItems()
 		for _, item in pairs(world_items) do
 			local x, y, w, h = world:getRect(item)
-			if item.is_hitbox then
+			if item.id == "Hitbox" then
 				love.graphics.setColor(0, 1, 1, 0.1)
 				love.graphics.rectangle("fill", x, y, w, h)
 				love.graphics.setColor(0, 1, 1)
 				love.graphics.rectangle("line", x, y, w, h)
+				love.graphics.setColor(1, 1, 1)
+				love.graphics.circle("fill", x, y, 1)
 			else
 				love.graphics.setColor(1, 0, 0, 0.25)
 				love.graphics.rectangle("fill", x, y, w, h)
 				love.graphics.setColor(1, 0, 0)
 				love.graphics.rectangle("line", x, y, w, h)
+				love.graphics.setColor(1, 1, 1)
+				love.graphics.circle("fill", item.x, item.y, 1)
 			end
 		end
 		love.graphics.pop()
