@@ -23,7 +23,7 @@ local hitboxFilter = function(item, other)
 	return "cross"
 end
 
-function Player.new(entity, world)
+function Player.new(entity)
 	local self = setmetatable({}, Player)
 
 	self.id = "Player"
@@ -41,8 +41,6 @@ function Player.new(entity, world)
 		self.health = self.max_health
 		self.atk = 1
 	end
-
-	self.world = world
 
 	self.is_player = true
 	self.is_next_level = nil
@@ -69,7 +67,9 @@ end
 
 function Player:addToWorld(world)
 	self.world = world or self.world
-	self.world:add(self, self.x - self.w / 2, self.y - self.h, self.w, self.h)
+	self.world:add(self, self.x, self.y, self.w, self.h, playerFilter)
+	local x, y = self.world:getRect(self)
+	self.x, self.y = x, y
 end
 
 function Player:loadAnimations()
@@ -402,20 +402,21 @@ end
 
 function Player:draw()
 	local scale_x = (self.direction == -1) and -1 or 1 -- Flip the sprite based on direction
-	local offset_x = (self.direction == -1) and self.w or 0 -- Shift the sprite to the correct position when flipped
+	local offset_x = (self.direction == -1) and 41 or 22 -- Shift the sprite to the correct position when flipped
+	local offset_y = 18
 	local curr_image = self.image_map[self.curr_animation] or self.idle_image
 
 	love.graphics.push()
 
 	self.curr_animation:draw(
 		curr_image,
-		self.x + offset_x,
+		self.x,
 		self.y,
 		0,
 		scale_x, -- Flip horizontally when direction is left (-1)
 		1,
-		21,
-		18
+		offset_x,
+		offset_y
 	)
 
 	love.graphics.pop()

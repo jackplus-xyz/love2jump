@@ -17,12 +17,12 @@ end
 local sprite_w = 18
 local sprite_h = 14
 
-function Coin.new(entity, world)
-	local self = Entity.new(entity, world)
+function Coin.new(entity)
+	local self = Entity.new(entity)
 	setmetatable(self, Coin)
 
-	self.w = 11
-	self.h = 14
+	self.w = 12
+	self.h = 10
 	self.x_offset = self.w / 2
 	self.y_offset = self.h
 	self.timer = 1
@@ -35,11 +35,6 @@ function Coin.new(entity, world)
 	self:init()
 
 	return self
-end
-
-function Coin:addToWorld()
-	self.is_active = true
-	self.world:add(self, self.x - self.x_offset, self.y - self.y_offset, self.w, self.h, coinFilter)
 end
 
 function Coin:init()
@@ -114,15 +109,13 @@ function Coin:update(dt)
 end
 
 function Coin:draw()
+	local offset_x = 5
+	local offset_y = 2
 	local curr_image = self.image_map[self.curr_animation] or self.idle_image
 
 	-- TODO: add animation offset across coins
 	if self.is_active or self.timer >= 0 then
-		if self.is_spawn then
-			self.curr_animation:draw(curr_image, self.x, self.y, 0, 1, 1, self.w / 2)
-		else
-			self.curr_animation:draw(curr_image, self.x, self.y, 0, 1, 1, self.w, self.y_offset)
-		end
+		self.curr_animation:draw(curr_image, self.x, self.y, 0, 1, 1, offset_x, offset_y)
 	end
 end
 

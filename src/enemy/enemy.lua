@@ -1,5 +1,4 @@
 local StateMachine = require("src.utils.state_machine")
-local Entity = require("src.entity")
 
 local Enemy = {}
 Enemy.__index = Enemy
@@ -12,7 +11,7 @@ local enemyFilter = function(item, other)
 	end
 end
 
-function Enemy.new(entity, world)
+function Enemy.new(entity)
 	local self = setmetatable({}, Enemy)
 
 	self.iid = entity.iid
@@ -22,7 +21,6 @@ function Enemy.new(entity, world)
 	self.y = entity.y
 	self.max_health = entity.props.max_health
 	self.health = self.max_health
-	self.world = world
 
 	self.is_active = true
 
@@ -33,16 +31,6 @@ function Enemy.new(entity, world)
 	self.enemy_filter = enemyFilter
 
 	return self
-end
-
-function Enemy:addToWorld()
-	self.is_active = true
-	self.world:add(self, self.x - self.w, self.y - self.h, self.w, self.h, self.enemy_filter)
-end
-
-function Enemy:removeFromWorld()
-	self.is_active = false
-	self.world:remove(self)
 end
 
 -- FIXME: knockback direction
@@ -127,7 +115,5 @@ function Enemy:update(dt)
 		self.curr_animation:update(dt)
 	end
 end
-
-function Enemy:draw() end
 
 return Enemy

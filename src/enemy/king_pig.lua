@@ -3,28 +3,26 @@ local Sfx = require("src.sfx")
 local Enemy = require("src.enemy.enemy")
 local Entity = require("src.entity")
 
-local Pig = {}
-Pig.__index = Pig
-setmetatable(Pig, Enemy)
+local King_Pig = {}
+King_Pig.__index = King_Pig
+setmetatable(King_Pig, Enemy)
 
-function Pig.new(entity)
+function King_Pig.new(entity)
 	local self = Enemy.new(entity)
-	setmetatable(self, Pig)
-
-	self.patrol = entity.props.patrol
+	setmetatable(self, King_Pig)
 
 	self.w = 15
-	self.h = 17
+	self.h = 20
 
 	self.speed = 100
-	self.knock_back_offset = 15
+	self.knock_back_offset = 5
 	self.direction = 0
 	self.y_velocity = 0
 	self.jump_strength = -1300
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
 	self.hit_cooldown = 0
-	self.hit_cooldown_time = 0.4
+	self.hit_cooldown_time = 0.2
 	self.gravity = 1000
 	self.drop_cooldown = 0
 	self.drop_cooldown_time = 0.1
@@ -33,24 +31,24 @@ function Pig.new(entity)
 	return self
 end
 
-function Pig:init()
+function King_Pig:init()
 	self:loadAnimations()
 	self:setupStates()
 end
 
-function Pig:loadAnimations()
-	local sprite_w = 34
+function King_Pig:loadAnimations()
+	local sprite_w = 38
 	local sprite_h = 28
 
 	-- Load images
-	self.attack_image = love.graphics.newImage("/assets/sprites/03-pig/attack.png")
-	self.dead_image = love.graphics.newImage("/assets/sprites/03-pig/dead.png")
-	self.fall_image = love.graphics.newImage("/assets/sprites/03-pig/fall.png")
-	self.ground_image = love.graphics.newImage("/assets/sprites/03-pig/ground.png")
-	self.hit_image = love.graphics.newImage("/assets/sprites/03-pig/hit.png")
-	self.idle_image = love.graphics.newImage("/assets/sprites/03-pig/idle.png")
-	self.jump_image = love.graphics.newImage("/assets/sprites/03-pig/jump.png")
-	self.run_image = love.graphics.newImage("/assets/sprites/03-pig/run.png")
+	self.attack_image = love.graphics.newImage("/assets/sprites/02-king-pig/attack.png")
+	self.dead_image = love.graphics.newImage("/assets/sprites/02-king-pig/dead.png")
+	self.fall_image = love.graphics.newImage("/assets/sprites/02-king-pig/fall.png")
+	self.ground_image = love.graphics.newImage("/assets/sprites/02-king-pig/ground.png")
+	self.hit_image = love.graphics.newImage("/assets/sprites/02-king-pig/hit.png")
+	self.idle_image = love.graphics.newImage("/assets/sprites/02-king-pig/idle.png")
+	self.jump_image = love.graphics.newImage("/assets/sprites/02-king-pig/jump.png")
+	self.run_image = love.graphics.newImage("/assets/sprites/02-king-pig/run.png")
 
 	-- Create a grid for the animations
 	local attack_grid = Anim8.newGrid(sprite_w, sprite_h, self.attack_image:getWidth(), sprite_h)
@@ -68,7 +66,7 @@ function Pig:loadAnimations()
 	self.animations.fall = Anim8.newAnimation(fall_grid("1-1", 1), 0.1)
 	self.animations.ground = Anim8.newAnimation(ground_grid("1-1", 1), 0.1)
 	self.animations.hit = Anim8.newAnimation(hit_grid("1-2", 1), 0.1)
-	self.animations.idle = Anim8.newAnimation(idle_grid("1-11", 1), 0.1)
+	self.animations.idle = Anim8.newAnimation(idle_grid("1-12", 1), 0.1)
 	self.animations.jump = Anim8.newAnimation(jump_grid("1-1", 1), 0.1)
 	self.animations.run = Anim8.newAnimation(run_grid("1-6", 1), 0.1)
 
@@ -86,7 +84,7 @@ function Pig:loadAnimations()
 	self.curr_animation = self.animations.idle
 end
 
-function Pig:setupStates()
+function King_Pig:setupStates()
 	local start_x, start_y = self.x, self.y
 
 	self.state_machine:addState("grounded", {
@@ -237,7 +235,7 @@ function Pig:setupStates()
 						y = self.y,
 						world = self.world,
 					}
-					local new_coin = Entity.Coin.new(entity, self.world)
+					local new_coin = Entity.Coin.new(entity)
 					self:dropItem(new_coin, 25)
 
 					self.drop_cooldown = self.drop_cooldown_time
@@ -258,7 +256,7 @@ function Pig:setupStates()
 end
 
 -- TODO: improve patrol logic to check if target is reachable
-function Pig:isPathTo(goal_x, goal_y)
+function King_Pig:isPathTo(goal_x, goal_y)
 	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, self.enemy_filter)
 	if self.y == goal_y and len == 0 then
 		return true
@@ -266,15 +264,14 @@ function Pig:isPathTo(goal_x, goal_y)
 	return false
 end
 
-function Pig:draw()
+function King_Pig:draw()
 	local scale_x = (self.direction == -1) and 1 or -1
 	local offset_x = (self.direction == -1) and 12 or 28
-	local offset_y = 10
+	local offset_y = 8
 	local curr_image = self.image_map[self.curr_animation] or self.idle_image
 
 	love.graphics.push()
 
-	-- TODO: add animation offset across enemy
 	if self.curr_animation then
 		self.curr_animation:draw(curr_image, self.x, self.y, 0, scale_x, 1, offset_x, offset_y)
 	end
@@ -282,4 +279,4 @@ function Pig:draw()
 	love.graphics.pop()
 end
 
-return Pig
+return King_Pig
