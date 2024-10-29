@@ -1,4 +1,5 @@
 local StateMachine = require("src.utils.state_machine")
+local Entity = require("src.entity")
 
 local Enemy = {}
 Enemy.__index = Enemy
@@ -44,6 +45,7 @@ function Enemy:removeFromWorld()
 	self.world:remove(self)
 end
 
+-- FIXME: knockback direction
 function Enemy:applyKnockback(x_offset)
 	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemy_filter)
 
@@ -109,6 +111,13 @@ end
 
 function Enemy:setAirborneAnimation()
 	self.curr_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
+end
+
+function Enemy:dropItem(item, x_velocity)
+	self.spawnDrop(item)
+
+	x_velocity = math.random(-1, 1) * x_velocity
+	item:spawn(x_velocity)
 end
 
 function Enemy:update(dt)

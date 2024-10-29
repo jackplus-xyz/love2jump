@@ -141,7 +141,7 @@ graph TD
 
 #### Added
 
-- [ ] Item drops from defeated enemies
+- [x] Item drops from defeated enemies
 - [ ] Enemy attack behaviors
 - [ ] Dynamic patrol route adjustments for enemies
 - [ ] Power-ups and experience points (EXP)

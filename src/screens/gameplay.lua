@@ -106,6 +106,10 @@ local function onEntity(entity)
 		player = Player.new(entity, world)
 	elseif entity.props.Enemy then
 		local new_enemy = EnemyFactory.create(entity, world)
+		new_enemy.spawnDrop = function(item)
+			item:addToWorld()
+			table.insert(entities, item)
+		end
 		table.insert(entities, new_enemy)
 	elseif entity.id == "Door" then
 		local new_door = Entity.Door.new(entity, world)
@@ -262,22 +266,14 @@ function screen:Update(dt)
 
 	self:handleLevelTransition(dt)
 
-	-- player:update(dt)
-	--
-	-- for _, entity in ipairs(entities) do
-	-- 	entity:update(dt)
-	-- end
-	--
-	for _, collision in ipairs(collisions) do
-		collision:update()
+	player:update(dt)
+
+	for _, entity in ipairs(entities) do
+		entity:update(dt)
 	end
 
-	world_items = world:getItems()
-
-	for _, item in ipairs(world_items) do
-		if not excluded_items[item.id] then
-			item:update(dt)
-		end
+	for _, collision in ipairs(collisions) do
+		collision:update()
 	end
 
 	Ui.hud:update(dt)
@@ -306,11 +302,11 @@ function screen:Draw()
 		collision:draw()
 	end
 
-	for _, item in ipairs(world_items) do
-		if not excluded_items[item.id] then
-			item:draw()
-		end
+	for _, entity in ipairs(entities) do
+		entity:draw()
 	end
+
+	player:draw()
 
 	if IsDebug then
 		love.graphics.push("all")
@@ -322,11 +318,15 @@ function screen:Draw()
 				love.graphics.rectangle("fill", x, y, w, h)
 				love.graphics.setColor(0, 1, 1)
 				love.graphics.rectangle("line", x, y, w, h)
+				love.graphics.setColor(1, 1, 1)
+				love.graphics.circle("fill", x, y, 1)
 			else
 				love.graphics.setColor(1, 0, 0, 0.25)
 				love.graphics.rectangle("fill", x, y, w, h)
 				love.graphics.setColor(1, 0, 0)
 				love.graphics.rectangle("line", x, y, w, h)
+				love.graphics.setColor(1, 1, 1)
+				love.graphics.circle("fill", item.x, item.y, 1)
 			end
 		end
 		love.graphics.pop()
