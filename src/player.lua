@@ -277,6 +277,21 @@ function Player:setupStates()
 		end,
 	})
 
+	self.state_machine:addState("dead", {
+		enter = function()
+			self.curr_animation = self.animations.dead
+			Sfx:play("player.dead")
+		end,
+		update = function(_, dt)
+			if self.curr_animation then
+				self.curr_animation:update(dt)
+			end
+
+			if self.curr_animation.status == "paused" then
+				self.curr_animation = nil
+			end
+		end,
+	})
 	-- Set default state
 	self.state_machine:setState("grounded")
 end
