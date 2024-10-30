@@ -71,7 +71,7 @@ end
 function Enemy:move(goal_x, goal_y)
 	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y, self.enemy_filter)
 
-	if goal_x > self.x then
+	if actual_x > self.x then
 		self.direction = 1
 	else
 		self.direction = -1
@@ -94,8 +94,10 @@ function Enemy:applyGravity(dt)
 		for i = 1, len do
 			local other = cols[i].other
 			if other.id == "Collision" then
-				self.y_velocity = 0
-				return
+				if cols[i].normal.y < 0 then
+					self.y_velocity = 0
+					return
+				end
 			end
 		end
 	end

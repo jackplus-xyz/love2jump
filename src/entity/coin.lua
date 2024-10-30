@@ -91,6 +91,7 @@ function Coin:spawn(x_velocity)
 	self.is_spawn = true
 	self.x_velocity = x_velocity or 0
 	self.y_velocity = self.jump_strength
+	Sfx:play("coin.spawn")
 end
 
 function Coin:update(dt)

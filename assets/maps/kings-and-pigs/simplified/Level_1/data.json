@@ -30,7 +30,8 @@
 						"cy": 19
 					},
 					"max_health": 3,
-					"Enemy": "Pig"
+					"Enemy": "Pig",
+					"Loot": []
 				}
 			},
 			{
@@ -48,7 +49,8 @@
 						"cy": 11
 					},
 					"max_health": 3,
-					"Enemy": "Pig"
+					"Enemy": "Pig",
+					"Loot": []
 				}
 			}
 		],
