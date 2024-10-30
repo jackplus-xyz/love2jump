@@ -65,7 +65,8 @@
 						"Coin",
 						"Coin",
 						"Coin"
-					]
+					],
+					"atk": 0
 				}
 			},
 			{
@@ -88,23 +89,30 @@
 						"Coin",
 						"Coin",
 						"Coin"
-					]
+					],
+					"atk": 0
 				}
 			},
 			{
 				"id": "Pig",
 				"iid": "ee412ec0-73f0-11ef-8eec-6d1e14b79b6d",
 				"layer": "Entities",
-				"x": 392,
-				"y": 256,
+				"x": 152,
+				"y": 288,
 				"width": 16,
 				"height": 16,
 				"color": 4904771,
 				"customFields": {
-					"patrol": null,
-					"max_health": 0,
+					"patrol": {
+						"cx": 14,
+						"cy": 17
+					},
+					"max_health": 3,
 					"Enemy": "Pig",
-					"Loot": []
+					"Loot": [
+						"Coin"
+					],
+					"atk": 1
 				}
 			}
 		],
@@ -113,8 +121,8 @@
 				"id": "King_Pig",
 				"iid": "d8517a40-73f0-11ef-8eec-f5a3580e4d43",
 				"layer": "Entities",
-				"x": 184,
-				"y": 288,
+				"x": 552,
+				"y": 256,
 				"width": 16,
 				"height": 16,
 				"color": 16690740,

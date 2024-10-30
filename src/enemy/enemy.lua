@@ -21,6 +21,7 @@ function Enemy.new(entity)
 	self.y = entity.y
 	self.max_health = entity.props.max_health
 	self.health = self.max_health
+	self.atk = entity.props.atk
 
 	self.is_active = true
 

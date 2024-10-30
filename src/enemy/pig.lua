@@ -6,6 +6,10 @@ local EntityFactory = require("src.entity.entity_factory")
 
 Dialogue:loadAnimations()
 
+local hitboxFilter = function(item, other)
+	return "cross"
+end
+
 local Pig = {}
 Pig.__index = Pig
 setmetatable(Pig, Enemy)
@@ -28,10 +32,14 @@ function Pig.new(entity)
 	self.y_velocity = 0
 	self.gravity = 1000
 	self.jump_strength = -1300
+	self.hitbox_w = 12
+	self.hitbox_h = 10
 
 	-- Timers
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
+	self.attack_cooldown = 0
+	self.attack_cooldown_time = 2
 	self.hit_cooldown = 0
 	self.hit_cooldown_time = 0.4
 	self.drop_cooldown = 0
@@ -86,6 +94,7 @@ function Pig:loadAnimations()
 
 	self.image_map = {
 		[self.animations.idle] = self.idle_image,
+		[self.animations.attack] = self.attack_image,
 		[self.animations.run] = self.run_image,
 		[self.animations.jump] = self.jump_image,
 		[self.animations.fall] = self.fall_image,
@@ -110,6 +119,29 @@ function Pig:setupStates()
 
 			if self.patrol then
 				self.state_machine:setState("grounded.to_target")
+			end
+		end,
+	})
+
+	self.state_machine:addState("grounded.attacking", {
+		enter = function()
+			self:attack()
+			self.attack_cooldown = self.attack_cooldown_time
+		end,
+		update = function(_, dt)
+			self.attack_cooldown = self.attack_cooldown - dt
+
+			if self.hitbox.is_active then
+				self.hitbox:update()
+			end
+
+			if self.curr_animation.status == "paused" then
+				self.curr_animation = self.animations.idle
+			end
+
+			if self.attack_cooldown <= 0 then
+				self:removeHitbox()
+				self.state_machine:setState("grounded")
 			end
 		end,
 	})
@@ -152,6 +184,20 @@ function Pig:setupStates()
 		end,
 		update = function(_, dt)
 			wait_timer = wait_timer - dt
+
+			local function filter(item)
+				return item.id == "Player"
+			end
+			local items, len = self.world:querySegment(
+				self.direction > 0 and self.x + self.w or self.x - self.hitbox_w,
+				self.y,
+				self.hitbox_w,
+				self.hitbox_h,
+				filter
+			)
+			if len > 0 then
+				self.state_machine:setState("grounded.attacking")
+			end
 
 			if wait_timer <= 0 then
 				wait_timer = wait_time
@@ -308,9 +354,55 @@ function Pig:isPlayerInSight()
 	return is_player_insight
 end
 
+function Pig:addHitboxToWorld()
+	local function update()
+		self.world:update(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h, hitboxFilter)
+		local _, _, cols, len = self.world:check(self.hitbox, self.hitbox.x, self.hitbox.y, hitboxFilter)
+		for i = 1, len do
+			local other = cols[i].other
+			if other.id == "Player" and self.hitbox.is_active then
+				other:hit(self.atk)
+			end
+		end
+		self.hitbox.is_active = false
+	end
+
+	local hixbox_x = (self.direction == -1) and self.x - self.hitbox_w or self.x + self.w
+	self.hitbox = {
+		id = "Hitbox",
+		x = hixbox_x,
+		y = self.y - self.hitbox_h,
+		w = self.hitbox_w,
+		h = self.h + self.hitbox_h,
+		is_active = true,
+		update = update,
+		enemy = self,
+	}
+	self.world:add(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h, hitboxFilter)
+end
+
+function Enemy:removeHitbox()
+	self.world:remove(self.hitbox)
+	self.hitbox = {}
+end
+
+function Enemy:attack()
+	self.curr_animation = self.animations.attack
+	self.curr_animation:gotoFrame(1)
+	self.curr_animation:resume()
+	Sfx:play("enemy.attack")
+	self:addHitboxToWorld()
+end
+
 function Pig:update(dt)
 	if not self.is_active then
 		return
+	end
+
+	if self.iid == "ee412ec0-73f0-11ef-8eec-6d1e14b79b6d" then
+		print("----------")
+		print(self.state_machine:getState())
+		print(self.attack_cooldown)
 	end
 
 	-- Update target if player is spotted

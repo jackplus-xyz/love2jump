@@ -51,9 +51,14 @@ function Player.new(entity)
 	self.speed = 150
 	self.y_velocity = 0
 	self.jump_strength = -320
+	self.gravity = 1200
+	self.knock_back_offset = 5
+
+	-- Timers
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
-	self.gravity = 1200
+	self.hit_cooldown = 0
+	self.hit_cooldown_time = 0.4
 
 	self.image_map = {}
 	self.animations = {}
@@ -253,6 +258,25 @@ function Player:setupStates()
 		end,
 	})
 
+	self.state_machine:addState("hit", {
+		enter = function()
+			self.curr_animation = self.animations.hit
+			self.hit_cooldown = self.hit_cooldown_time
+			Sfx:play("player.hit")
+			self:applyKnockback(self.knock_back_offset)
+		end,
+		update = function(_, dt)
+			if self.hit_cooldown > 0 then
+				self.hit_cooldown = self.hit_cooldown - dt
+			end
+
+			if self.hit_cooldown <= 0 then
+				self.state_machine:setState("grounded")
+				self.hit_cooldown = self.hit_cooldown_time
+			end
+		end,
+	})
+
 	-- Set default state
 	self.state_machine:setState("grounded")
 end
@@ -372,6 +396,51 @@ function Player:applyGravity(dt)
 	self:move(self.x, actual_y)
 end
 
+function Player:applyKnockback(x_offset)
+	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemy_filter)
+
+	x_offset = x_offset or 0
+	local hitbox_direction = 0
+	for i = 1, len do
+		local other = cols[i].other
+		if other.id == "Hitbox" and other.enemy then
+			if other.enemy.x > self.x then
+				hitbox_direction = 1
+				break
+			else
+				hitbox_direction = -1
+				break
+			end
+		end
+	end
+
+	-- flip the hitbox_direction
+	local actual_x, actual_y, _, _ =
+		self.world:move(self, self.x + x_offset * hitbox_direction, self.y, self.enemy_filter)
+	self.x, self.y = actual_x, actual_y
+	self.direction = hitbox_direction
+end
+
+function Player:hit(atk)
+	self.health = self.health - atk
+	if self.health <= 0 then
+		self.state_machine:setState("dead")
+		self:applyKnockback(self.knock_back_offset)
+	else
+		self.state_machine:setState("hit")
+	end
+end
+
+function Player:update(dt)
+	self:applyGravity(dt)
+	self.state_machine:update(dt)
+	self.curr_animation:update(dt)
+end
+
+function Player:keypressed(key)
+	self.state_machine:handleEvent("keypressed", key)
+end
+
 function Player:getState()
 	return {
 		x = self.x,
@@ -389,16 +458,6 @@ function Player:setState(player_state)
 			self[key] = value
 		end
 	end
-end
-
-function Player:update(dt)
-	self:applyGravity(dt)
-	self.state_machine:update(dt)
-	self.curr_animation:update(dt)
-end
-
-function Player:keypressed(key)
-	self.state_machine:handleEvent("keypressed", key)
 end
 
 function Player:draw()

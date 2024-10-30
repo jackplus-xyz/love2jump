@@ -31,7 +31,8 @@
 					},
 					"max_health": 3,
 					"Enemy": "Pig",
-					"Loot": []
+					"Loot": [],
+					"atk": 0
 				}
 			},
 			{
@@ -50,7 +51,8 @@
 					},
 					"max_health": 3,
 					"Enemy": "Pig",
-					"Loot": []
+					"Loot": [],
+					"atk": 0
 				}
 			}
 		],

@@ -203,7 +203,7 @@ stateDiagram-v2
 
 - [x] Item drops from defeated enemies
 - [x] Enemy chases player behaviors
-- [ ] Enemy attack behaviors
+- [x] Enemy attack behaviors
 - [ ] Dynamic patrol route adjustments for enemies
 - [ ] Power-ups and experience points (EXP)
 - [ ] Settings menu for in-game options
