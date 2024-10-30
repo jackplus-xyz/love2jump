@@ -49,6 +49,13 @@ function Pig.new(entity)
 	self.dialogue_timer = 0
 	self.dialogue_time = 2
 
+	self.start_x, self.start_y = self.x, self.y
+	if self.patrol then
+		self.target_x, self.target_y =
+			self.patrol.cx * GRID_SIZE / SCALE + GRID_SIZE / SCALE / SCALE,
+			self.patrol.cy * GRID_SIZE / SCALE + GRID_SIZE / SCALE
+	end
+
 	self:init()
 	return self
 end
@@ -118,7 +125,12 @@ function Pig:setupStates()
 			end
 
 			if self.patrol then
-				self.state_machine:setState("grounded.to_target")
+				local dx = self.target_x - self.x
+				local dy = self.target_y - self.y
+				local distance = math.sqrt(dx * dx + dy * dy)
+				if distance < GRID_SIZE then
+					self.state_machine:setState("grounded.to_target")
+				end
 			end
 		end,
 	})
@@ -148,12 +160,6 @@ function Pig:setupStates()
 
 	local wait_time = 2
 	local wait_timer = wait_time
-	self.start_x, self.start_y = self.x, self.y
-	if self.patrol then
-		self.target_x, self.target_y =
-			self.patrol.cx * GRID_SIZE / SCALE + GRID_SIZE / SCALE / SCALE,
-			self.patrol.cy * GRID_SIZE / SCALE + GRID_SIZE / SCALE
-	end
 
 	self.state_machine:addState("grounded.to_target", {
 		enter = function()
