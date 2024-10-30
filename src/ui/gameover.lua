@@ -1,26 +1,26 @@
 local Fonts = require("src.assets.fonts")
 
-local Loading = {}
-Loading.__index = Loading
+local Gameover = {}
+Gameover.__index = Gameover
 
-function Loading:new()
-	local instance = setmetatable({}, Loading)
+function Gameover:new()
+	local instance = setmetatable({}, Gameover)
 	instance:init()
 	return instance
 end
 
-function Loading:init()
+function Gameover:init()
 	self.loading_timer = 1
 end
 
-function Loading:update(dt)
+function Gameover:update(dt)
 	if self.loading_timer > 0 then
 		self.loading_timer = self.loading_timer - dt
 	end
 end
 
-function Loading:draw()
-	local title = "Loading..."
+function Gameover:draw()
+	local title = "Gameover"
 	local center_x = love.graphics.getWidth() / 2 - Fonts.heading_1:getWidth(title) / 4
 	local center_y = love.graphics.getHeight() / 2 - Fonts.heading_1:getHeight() / 2
 
@@ -35,4 +35,4 @@ function Loading:draw()
 	love.graphics.pop()
 end
 
-return Loading
+return Gameover

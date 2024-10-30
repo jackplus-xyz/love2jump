@@ -282,10 +282,10 @@ function screen:Update(dt)
 
 	Ui.hud:update(dt)
 
-	-- TODO: add gameover screen
-	-- if player.health <= 0 then
-	--  return "gameover"
-	-- end
+	if player.state_machine:getState("dead") then
+		-- TODO: add fade in to gameover
+		self.screenManager:SwitchStates("gameover")
+	end
 
 	CameraManager.setTarget(player.x + player.w / 2, player.y + player.h / 2)
 	CameraManager.update(dt)
