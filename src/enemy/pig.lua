@@ -152,7 +152,6 @@ function Pig:setupStates()
 			end
 
 			if self.attack_cooldown <= 0 then
-				self:removeHitbox()
 				self.state_machine:setState("grounded")
 			end
 		end,
@@ -263,6 +262,7 @@ function Pig:setupStates()
 		end,
 	})
 
+	-- TODO: draw shock dialogue
 	self.state_machine:addState("hit", {
 		enter = function()
 			self.curr_animation = self.animations.hit
@@ -286,6 +286,8 @@ function Pig:setupStates()
 		enter = function()
 			self.curr_animation = self.animations.dead
 			Sfx:play("enemy.dead")
+			Dialogue:hide("shock")
+			self.death_timer = 1
 			self.drop_timer = 0.2
 			self.drop_interval = 0.2
 			self.current_drop_index = 1 -- Track which loot we're currently dropping
@@ -316,8 +318,11 @@ function Pig:setupStates()
 				end
 			-- After all loot is dropped and animation is finished, remove from world
 			elseif self.curr_animation and self.curr_animation.status == "paused" then
-				self:removeFromWorld()
-				self.curr_animation = nil
+				self.death_timer = self.death_timer - dt
+				if self.death_timer <= 1 then
+					self:removeFromWorld()
+					self.curr_animation = nil
+				end
 			end
 		end,
 	})
@@ -344,7 +349,7 @@ function Pig:isPlayerInSight()
 	local items, len = self.world:querySegment(
 		self.x,
 		self.y + offset_y,
-		self.x + self.direction * love.graphics.getWidth(),
+		self.x + self.direction * self.w * 10,
 		self.y + offset_y,
 		sightFilter
 	)
@@ -371,6 +376,7 @@ function Pig:addHitboxToWorld()
 			end
 		end
 		self.hitbox.is_active = false
+		self:removeHitbox()
 	end
 
 	local hixbox_x = (self.direction == -1) and self.x - self.hitbox_w or self.x + self.w
@@ -408,7 +414,6 @@ function Pig:update(dt)
 	if self.iid == "ee412ec0-73f0-11ef-8eec-6d1e14b79b6d" then
 		print("----------")
 		print(self.state_machine:getState())
-		print(self.attack_cooldown)
 	end
 
 	-- Update target if player is spotted
@@ -449,9 +454,14 @@ function Pig:draw()
 		self.curr_animation:draw(curr_image, self.x, self.y, 0, scale_x, 1, offset_x, offset_y)
 	end
 
-	if self.chase_cooldown > 0 then
+	-- TODO: improve dialogue drawing logic
+	if self.chase_cooldown > 0 and not self.state_machine:getState("dead") then
 		Dialogue:draw("shock", self.x - 8, self.y - self.h)
 	end
+
+	-- if IsDebug then
+	-- 	love.graphics.line(self.x, self.y + offset_y, self.x + self.direction * self.w * 10, self.y + offset_y)
+	-- end
 
 	love.graphics.pop()
 end
