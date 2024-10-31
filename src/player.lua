@@ -411,7 +411,7 @@ function Player:applyGravity(dt)
 end
 
 function Player:applyKnockback(x_offset)
-	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemy_filter)
+	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemyFilter)
 
 	x_offset = x_offset or 0
 	local hitbox_direction = 0
@@ -430,7 +430,7 @@ function Player:applyKnockback(x_offset)
 
 	-- flip the hitbox_direction
 	local actual_x, actual_y, _, _ =
-		self.world:move(self, self.x + x_offset * hitbox_direction, self.y, self.enemy_filter)
+		self.world:move(self, self.x + x_offset * hitbox_direction, self.y, self.enemyFilter)
 	self.x, self.y = actual_x, actual_y
 	self.direction = hitbox_direction
 end
