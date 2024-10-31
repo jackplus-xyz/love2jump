@@ -6,10 +6,6 @@ local EntityFactory = require("src.entity.entity_factory")
 
 Dialogue:loadAnimations()
 
-local hitboxFilter = function(item, other)
-	return "cross"
-end
-
 local Pig = {}
 Pig.__index = Pig
 setmetatable(Pig, Enemy)
@@ -273,9 +269,7 @@ function Pig:setupStates()
 		update = function(_, dt)
 			if self.hit_cooldown > 0 then
 				self.hit_cooldown = self.hit_cooldown - dt
-			end
-
-			if self.hit_cooldown <= 0 then
+			else
 				self.state_machine:setState("grounded")
 				self.hit_cooldown = self.hit_cooldown_time
 			end
@@ -365,55 +359,9 @@ function Pig:isPlayerInSight()
 	return is_player_insight
 end
 
-function Pig:addHitboxToWorld()
-	local function update()
-		self.world:update(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h, hitboxFilter)
-		local _, _, cols, len = self.world:check(self.hitbox, self.hitbox.x, self.hitbox.y, hitboxFilter)
-		for i = 1, len do
-			local other = cols[i].other
-			if other.id == "Player" and self.hitbox.is_active then
-				other:hit(self.atk)
-			end
-		end
-		self.hitbox.is_active = false
-		self:removeHitbox()
-	end
-
-	local hixbox_x = (self.direction == -1) and self.x - self.hitbox_w or self.x + self.w
-	self.hitbox = {
-		id = "Hitbox",
-		x = hixbox_x,
-		y = self.y - self.hitbox_h,
-		w = self.hitbox_w,
-		h = self.h + self.hitbox_h,
-		is_active = true,
-		update = update,
-		enemy = self,
-	}
-	self.world:add(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h, hitboxFilter)
-end
-
-function Enemy:removeHitbox()
-	self.world:remove(self.hitbox)
-	self.hitbox = {}
-end
-
-function Enemy:attack()
-	self.curr_animation = self.animations.attack
-	self.curr_animation:gotoFrame(1)
-	self.curr_animation:resume()
-	Sfx:play("enemy.attack")
-	self:addHitboxToWorld()
-end
-
 function Pig:update(dt)
 	if not self.is_active then
 		return
-	end
-
-	if self.iid == "ee412ec0-73f0-11ef-8eec-6d1e14b79b6d" then
-		print("----------")
-		print(self.state_machine:getState())
 	end
 
 	-- Update target if player is spotted
@@ -439,6 +387,10 @@ function Pig:update(dt)
 		self.curr_animation:update(dt)
 	end
 	Dialogue:update(dt)
+
+	if self.iid == "ee412ec0-73f0-11ef-8eec-6d1e14b79b6d" then
+		print(self.state_machine:getState(), self.x, self.y, self.y_velocity)
+	end
 end
 
 function Pig:draw()
