@@ -89,18 +89,15 @@ function Enemy:applyGravity(dt)
 	self.y_velocity = self.y_velocity + self.gravity * dt
 
 	local goal_y = self.y + self.y_velocity * dt
-	local _, actual_y, cols, len = self.world:check(self, self.x, goal_y, self.enemy_filter)
+	local function gravityFilter(item, other)
+		if other.id == "Collision" or other.id == "Enemy" or other.id == "Player" then
+			return "slide"
+		end
+	end
+	local _, actual_y, cols, len = self.world:check(self, self.x, goal_y, gravityFilter)
 
 	if len > 0 then
-		for i = 1, len do
-			local other = cols[i].other
-			if other.id == "Collision" then
-				if cols[i].normal.y < 0 then
-					self.y_velocity = 0
-					return
-				end
-			end
-		end
+		self.y_velocity = 0
 	end
 
 	self:move(self.x, actual_y)
