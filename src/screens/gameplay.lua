@@ -285,6 +285,7 @@ function screen:Update(dt)
 	if player.state_machine:getState("dead") then
 		-- TODO: add fade in to gameover
 		self.screenManager:SwitchStates("gameover")
+		return
 	end
 
 	CameraManager.setTarget(player.x + player.w / 2, player.y + player.h / 2)

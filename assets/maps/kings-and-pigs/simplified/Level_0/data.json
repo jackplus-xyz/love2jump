@@ -114,6 +114,40 @@
 					],
 					"atk": 8
 				}
+			},
+			{
+				"id": "Pig",
+				"iid": "adf8ce50-73f0-11ef-8eec-632bae852838",
+				"layer": "Entities",
+				"x": 360,
+				"y": 288,
+				"width": 16,
+				"height": 16,
+				"color": 4904771,
+				"customFields": {
+					"patrol": null,
+					"max_health": 3,
+					"Enemy": "Pig",
+					"Loot": [],
+					"atk": 10
+				}
+			},
+			{
+				"id": "Pig",
+				"iid": "aed87ff0-73f0-11ef-8eec-e11de5c3ab13",
+				"layer": "Entities",
+				"x": 392,
+				"y": 256,
+				"width": 16,
+				"height": 16,
+				"color": 4904771,
+				"customFields": {
+					"patrol": null,
+					"max_health": 3,
+					"Enemy": "Pig",
+					"Loot": [],
+					"atk": 10
+				}
 			}
 		],
 		"King_Pig": [

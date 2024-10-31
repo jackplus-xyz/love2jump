@@ -39,9 +39,9 @@ function screen:KeyPressed(key)
 			return
 		end
 
-		if key == Keymaps.up then
+		if key == Keymaps.up or key == Keymaps.left then
 			Ui.title:selectNextOption(-1)
-		elseif key == Keymaps.down then
+		elseif key == Keymaps.down or key == Keymaps.right then
 			Ui.title:selectNextOption()
 		elseif key == Keymaps.confirm then
 			Sfx:play("ui.confirm")

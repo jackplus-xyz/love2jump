@@ -205,6 +205,7 @@ stateDiagram-v2
 - [x] Enemy chases player behaviors
 - [x] Enemy attack behaviors
 - [x] Player dead state
+- [x] Gameover Screen
 - [ ] Dynamic patrol route adjustments for enemies
 - [ ] Power-ups and experience points (EXP)
 - [ ] Settings menu for in-game options

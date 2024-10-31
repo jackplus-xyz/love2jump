@@ -83,7 +83,6 @@ local soundEffects = {
 		end,
 	},
 
-	-- Your existing sounds...
 	-- Player
 	["player.attack"] = {
 		duration = 0.2,
@@ -97,6 +96,30 @@ local soundEffects = {
 		generate = function(t, duration)
 			local freq = 250 + 150 * (1 - t / duration)
 			return generateSquare(t, freq) * (1 - t / duration) * 0.8
+		end,
+	},
+	["player.dead"] = {
+		duration = 0.8,
+		generate = function(t, duration)
+			-- Downward pitch slide with vibrato
+			local freq = 400 * (1 - t / duration) + 50 * math.sin(t * 30)
+			-- Mix square and triangle waves for a dramatic effect
+			local sound = (generateSquare(t, freq) * 0.6 + generateTriangle(t, freq) * 0.4)
+			return sound * (1 - t / duration) * 0.8
+		end,
+	},
+	["player.jump"] = {
+		duration = 0.2,
+		generate = function(t, duration)
+			local freq = 200 + 400 * (t / duration)
+			return generateSine(t, freq) * (1 - t / duration) * 0.4
+		end,
+	},
+	["player.land"] = {
+		duration = 0.15,
+		generate = function(t, duration)
+			local freq = 300 - 200 * (t / duration)
+			return generateTriangle(t, freq) * (1 - t / duration) * 0.5
 		end,
 	},
 
@@ -133,6 +156,14 @@ local soundEffects = {
 	},
 
 	-- Enemy
+	["enemy.attack"] = {
+		duration = 0.3,
+		generate = function(t, duration)
+			local freq = 200 + 300 * (1 - t / duration)
+			-- Combine noise and square wave for an aggressive sound
+			return generateNoise() * generateSquare(t, freq) * (1 - t / duration) * 0.6
+		end,
+	},
 	["enemy.hit"] = {
 		duration = 0.15,
 		generate = function(t, duration)
