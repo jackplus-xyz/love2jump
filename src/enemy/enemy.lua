@@ -230,6 +230,7 @@ end
 
 function Enemy:attack()
 	Sfx:play("enemy.attack")
+	self.curr_animation = self.animations.attack
 	self:addHitboxToWorld()
 end
 
