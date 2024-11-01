@@ -10,8 +10,8 @@
 	"customFields" : {},
 	"layers": [
 		"Bg_textures.png",
-		"Collision.png",
-		"Decorations.png"
+		"Decorations.png",
+		"Collision.png"
 	],
 	"entities": {
 		"Door": [
@@ -161,10 +161,10 @@
 		"Player": [
 			{
 				"id": "Player",
-				"iid": "f9ab1690-73f0-11ef-8eec-51a0c7c2494b",
+				"iid": "027c2060-73f0-11ef-a005-bf46cbdff724",
 				"layer": "Entities",
 				"x": 88,
-				"y": 208,
+				"y": 192,
 				"width": 16,
 				"height": 16,
 				"color": 12470831,

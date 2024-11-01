@@ -10,8 +10,8 @@
 	"customFields" : {},
 	"layers": [
 		"Bg_textures.png",
-		"Collision.png",
-		"Decorations.png"
+		"Decorations.png",
+		"Collision.png"
 	],
 	"entities" : {}
 }

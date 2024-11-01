@@ -115,10 +115,6 @@ function Pig:setupStates()
 			self.curr_animation = self.animations.idle
 		end,
 		update = function(_, dt)
-			if self.y_velocity ~= 0 then
-				self.state_machine:setState("airborne")
-			end
-
 			if self.target_x and self.target_y then
 				local dx = self.target_x - self.x
 				local dy = self.target_y - self.y
@@ -160,9 +156,7 @@ function Pig:setupStates()
 			self.curr_animation = self.animations.run
 		end,
 		update = function(_, dt)
-			-- if self.y_velocity ~= 0 then
-			-- 	self.state_machine:setState("airborne")
-			-- end
+			self:checkAirborne()
 
 			local dx = self.target_x - self.x
 			local dy = self.target_y - self.y
@@ -172,7 +166,7 @@ function Pig:setupStates()
 				self.state_machine:setState("grounded.at_target")
 			else
 				local goal_x = self.x + (dx / distance) * self.speed * dt
-				local goal_y = self.y + (dy / distance) * self.speed * dt
+				local goal_y = self.y + (dy / distance) * self.y_velocity * dt
 
 				self:move(goal_x, goal_y)
 			end
@@ -202,9 +196,7 @@ function Pig:setupStates()
 			self.curr_animation = self.animations.run
 		end,
 		update = function(_, dt)
-			if self.y_velocity ~= 0 then
-				self.state_machine:setState("airborne")
-			end
+			self:checkAirborne()
 
 			local dx = self.start_x - self.x
 			local dy = self.start_y - self.y

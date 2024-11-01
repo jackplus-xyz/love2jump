@@ -96,6 +96,12 @@ function Enemy:applyGravity(dt)
 	self:move(self.x, actual_y)
 end
 
+function Enemy:checkAirborne()
+	if self.y_velocity ~= 0 then
+		self.state_machine:setState("airborne")
+	end
+end
+
 function Enemy:setAirborneAnimation()
 	self.curr_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
 end
