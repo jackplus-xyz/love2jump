@@ -16,18 +16,24 @@ function Pig.new(entity)
 
 	if entity.props then
 		self.props = entity.props
-		self.patrol = entity.props.patrol
+		if entity.props.patrol then
+			self.target_x, self.target_y =
+				entity.props.patrol.cx * GRID_SIZE / SCALE + GRID_SIZE / SCALE / SCALE,
+				entity.props.patrol.cy * GRID_SIZE / SCALE + GRID_SIZE / SCALE
+		end
 	end
 
+	-- Initialize Patrol Path
+	self.start_x, self.start_y = self.x, self.y
 	self.w = 15
 	self.h = 17
 
 	self.knock_back_offset = 15
 	self.speed = 100
-	self.direction = 1
 	self.y_velocity = 0
 	self.gravity = 1000
 	self.jump_strength = -1300
+	self.max_jump_attempts = 1
 	self.hitbox_w = 12
 	self.hitbox_h = 10
 
@@ -44,13 +50,6 @@ function Pig.new(entity)
 	self.chase_cooldown_time = 10
 	self.dialogue_timer = 0
 	self.dialogue_time = 2
-
-	self.start_x, self.start_y = self.x, self.y
-	if self.patrol then
-		self.target_x, self.target_y =
-			self.patrol.cx * GRID_SIZE / SCALE + GRID_SIZE / SCALE / SCALE,
-			self.patrol.cy * GRID_SIZE / SCALE + GRID_SIZE / SCALE
-	end
 
 	self:init()
 	return self
@@ -120,11 +119,11 @@ function Pig:setupStates()
 				self.state_machine:setState("airborne")
 			end
 
-			if self.patrol then
+			if self.target_x and self.target_y then
 				local dx = self.target_x - self.x
 				local dy = self.target_y - self.y
 				local distance = math.sqrt(dx * dx + dy * dy)
-				if distance < GRID_SIZE then
+				if distance > GRID_SIZE then
 					self.state_machine:setState("grounded.to_target")
 				end
 			end
@@ -161,9 +160,9 @@ function Pig:setupStates()
 			self.curr_animation = self.animations.run
 		end,
 		update = function(_, dt)
-			if self.y_velocity ~= 0 then
-				self.state_machine:setState("airborne")
-			end
+			-- if self.y_velocity ~= 0 then
+			-- 	self.state_machine:setState("airborne")
+			-- end
 
 			local dx = self.target_x - self.x
 			local dy = self.target_y - self.y
@@ -174,6 +173,7 @@ function Pig:setupStates()
 			else
 				local goal_x = self.x + (dx / distance) * self.speed * dt
 				local goal_y = self.y + (dy / distance) * self.speed * dt
+
 				self:move(goal_x, goal_y)
 			end
 		end,
@@ -186,17 +186,7 @@ function Pig:setupStates()
 		update = function(_, dt)
 			wait_timer = wait_timer - dt
 
-			local function filter(item)
-				return item.id == "Player"
-			end
-			local items, len = self.world:querySegment(
-				self.direction > 0 and self.x + self.w or self.x - self.hitbox_w,
-				self.y,
-				self.hitbox_w,
-				self.hitbox_h,
-				filter
-			)
-			if len > 0 then
+			if self:isPlayerInAttackRange() then
 				self.state_machine:setState("grounded.attacking")
 			end
 
@@ -264,7 +254,6 @@ function Pig:setupStates()
 			self.curr_animation = self.animations.hit
 			self.hit_cooldown = self.hit_cooldown_time
 			Sfx:play("enemy.hit")
-			self:applyKnockback(self.knock_back_offset)
 		end,
 		update = function(_, dt)
 			if self.hit_cooldown > 0 then
@@ -281,18 +270,16 @@ function Pig:setupStates()
 			self.curr_animation = self.animations.dead
 			Sfx:play("enemy.dead")
 			Dialogue:hide("shock")
-			self.death_timer = 1
 			self.drop_timer = 0.2
 			self.drop_interval = 0.2
+			self.dead_timer = 0.2 -- make the body stay for while
 			self.current_drop_index = 1 -- Track which loot we're currently dropping
+			self.world:remove(self)
 		end,
 		update = function(_, dt)
 			-- wait for death animation to complete
-			if self.curr_animation then
-				self.curr_animation:update(dt)
-			end
+			self.curr_animation:update(dt)
 
-			-- If we have loot to drop
 			if self.props.Loot and self.current_drop_index <= #self.props.Loot then
 				if self.drop_timer > 0 then
 					self.drop_timer = self.drop_timer - dt
@@ -310,12 +297,12 @@ function Pig:setupStates()
 					self.current_drop_index = self.current_drop_index + 1
 					self.drop_timer = self.drop_interval -- Reset timer for next drop
 				end
-			-- After all loot is dropped and animation is finished, remove from world
-			elseif self.curr_animation and self.curr_animation.status == "paused" then
-				self.death_timer = self.death_timer - dt
-				if self.death_timer <= 1 then
+			-- remove the entity after all the loots are dropped
+			elseif self.curr_animation.status == "paused" then
+				if self.dead_timer > 0 then
+					self.dead_timer = self.dead_timer - dt
+				else
 					self:removeFromWorld()
-					self.curr_animation = nil
 				end
 			end
 		end,
@@ -323,40 +310,6 @@ function Pig:setupStates()
 
 	-- Set default state
 	self.state_machine:setState("grounded")
-end
-
--- TODO: improve patrol logic to check if target is reachable
--- function Pig:isPathTo(goal_x, goal_y)
--- 	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, self.enemy_filter)
--- 	if self.y == goal_y and len == 0 then
--- 		return true
--- 	end
--- 	return false
--- end
-
-function Pig:isPlayerInSight()
-	local is_player_insight = false
-	local offset_y = 8
-	local sightFilter = function(item)
-		return item.id ~= "Enemy"
-	end
-	local items, len = self.world:querySegment(
-		self.x,
-		self.y + offset_y,
-		self.x + self.direction * self.w * 10,
-		self.y + offset_y,
-		sightFilter
-	)
-
-	if len > 0 and items[1].id == "Player" then
-		is_player_insight = true
-		-- TODO: use isPathTo to integrate y movement
-		-- self.target_x, self.target_y = items[1].x, items[1].y
-		self.target_x = items[1].x
-		self.target_y = self.y
-	end
-
-	return is_player_insight
 end
 
 function Pig:update(dt)
@@ -372,25 +325,26 @@ function Pig:update(dt)
 			Dialogue:hide("shock")
 		end
 	else
-		if self:isPlayerInSight() then
-			Dialogue:show("shock")
-			Sfx:play("dialogue.shock")
-			self.dialogue_timer = self.dialogue_time
-			self.chase_cooldown = self.chase_cooldown_time
-			self.state_machine:setState("grounded.to_target")
+		local player_last_known_point = self:isPlayerInSight(8, self.w * 8)
+		if player_last_known_point then
+			if self:isPathTo(player_last_known_point.x, player_last_known_point.y, dt) then
+				self:setTarget(player_last_known_point.x, player_last_known_point.y)
+				Dialogue:show("shock")
+				Sfx:play("dialogue.shock")
+				self.dialogue_timer = self.dialogue_time
+				self.chase_cooldown = self.chase_cooldown_time
+				self.state_machine:setState("grounded.to_target")
+			end
 		end
 	end
 
-	self.state_machine:update(dt)
-	if self.curr_animation then
+	if not self.state_machine:getState("dead") then
 		self:applyGravity(dt)
-		self.curr_animation:update(dt)
 	end
-	Dialogue:update(dt)
 
-	if self.iid == "ee412ec0-73f0-11ef-8eec-6d1e14b79b6d" then
-		print(self.state_machine:getState(), self.x, self.y, self.y_velocity)
-	end
+	self.state_machine:update(dt)
+	self.curr_animation:update(dt)
+	Dialogue:update(dt)
 end
 
 function Pig:draw()
@@ -402,18 +356,13 @@ function Pig:draw()
 	love.graphics.push()
 
 	-- TODO: add animation offset across enemy
-	if self.curr_animation then
+	if self.is_active then
 		self.curr_animation:draw(curr_image, self.x, self.y, 0, scale_x, 1, offset_x, offset_y)
+		-- TODO: improve dialogue drawing logic
+		if self.chase_cooldown > 0 then
+			Dialogue:draw("shock", self.x - 8, self.y - self.h)
+		end
 	end
-
-	-- TODO: improve dialogue drawing logic
-	if self.chase_cooldown > 0 and not self.state_machine:getState("dead") then
-		Dialogue:draw("shock", self.x - 8, self.y - self.h)
-	end
-
-	-- if IsDebug then
-	-- 	love.graphics.line(self.x, self.y + offset_y, self.x + self.direction * self.w * 10, self.y + offset_y)
-	-- end
 
 	love.graphics.pop()
 end

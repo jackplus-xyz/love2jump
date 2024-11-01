@@ -257,7 +257,7 @@ end
 
 -- TODO: improve patrol logic to check if target is reachable
 function King_Pig:isPathTo(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, self.enemy_filter)
+	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, self.enemyFilter)
 	if self.y == goal_y and len == 0 then
 		return true
 	end

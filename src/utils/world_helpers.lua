@@ -10,7 +10,9 @@ end
 
 function world_helpers.removeFromWorld(self)
 	self.is_active = false
-	self.world:remove(self)
+	if self.world:hasItem(self) then
+		self.world:remove(self)
+	end
 end
 
 return world_helpers

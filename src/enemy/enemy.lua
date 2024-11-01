@@ -4,6 +4,14 @@ local Sfx = require("src.sfx")
 local Enemy = {}
 Enemy.__index = Enemy
 
+local collision_types = {
+	Coin = "cross",
+	Door = "cross",
+	Enemy = "slide",
+	Player = "slide",
+	Collision = "slide",
+}
+
 function Enemy.new(entity)
 	local self = setmetatable({}, Enemy)
 
@@ -15,6 +23,7 @@ function Enemy.new(entity)
 	self.max_health = entity.props.max_health
 	self.health = self.max_health
 	self.atk = entity.props.atk
+	self.direction = math.random(-1, 1) <= 0 and 1 or -1
 
 	self.is_active = true
 
@@ -24,11 +33,7 @@ function Enemy.new(entity)
 	self.state_machine = StateMachine.new()
 
 	self.enemyFilter = function(_, other)
-		if other.id == "Hitbox" then
-			return "cross"
-		else
-			return "slide"
-		end
+		return collision_types[other.id] or nil -- Return nil for undefined collision_types
 	end
 	self.hitboxFilter = function(_, _)
 		return "cross"
@@ -37,24 +42,8 @@ function Enemy.new(entity)
 	return self
 end
 
-function Enemy:applyKnockback(x_offset)
-	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemyFilter)
-
+function Enemy:applyKnockback(x_offset, hitbox_direction)
 	x_offset = x_offset or 0
-	local hitbox_direction = 0
-	for i = 1, len do
-		local other = cols[i].other
-		if other.id == "Hitbox" and other.player then
-			if other.player.x > self.x then
-				hitbox_direction = 1
-				break
-			else
-				hitbox_direction = -1
-				break
-			end
-		end
-	end
-
 	-- flip the hitbox_direction
 	local actual_x, actual_y, _, _ =
 		self.world:move(self, self.x + x_offset * -hitbox_direction, self.y, self.enemyFilter)
@@ -62,11 +51,12 @@ function Enemy:applyKnockback(x_offset)
 	self.direction = hitbox_direction
 end
 
-function Enemy:hit(atk)
-	self.health = self.health - atk
+function Enemy:hit(player)
+	self.health = self.health - player.atk
+	local hitbox_direction = player.x > self.x and 1 or -1
+	self:applyKnockback(self.knock_back_offset, hitbox_direction)
 	if self.health <= 0 then
 		self.state_machine:setState("dead")
-		self:applyKnockback(self.knock_back_offset)
 	else
 		self.state_machine:setState("hit")
 	end
@@ -77,7 +67,7 @@ function Enemy:move(goal_x, goal_y)
 
 	if actual_x > self.x then
 		self.direction = 1
-	else
+	elseif actual_x < self.x then
 		self.direction = -1
 	end
 
@@ -110,77 +100,86 @@ function Enemy:setAirborneAnimation()
 	self.curr_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
 end
 
-function Enemy:dropItem(item, x_velocity)
+function Enemy:dropItem(item, x_velocity, randomness)
+	randomness = randomness or 1
+	x_velocity = x_velocity or 0
+	x_velocity = math.random(-randomness, randomness) * x_velocity
 	self.spawnDrop(item)
-
-	x_velocity = math.random(-1, 1) * x_velocity
 	item:spawn(x_velocity)
 end
 
-function Enemy:isPathTo(dt)
-	if not self.target_x and self.target_y then
-		return false
-	end
+--- Check if the player is in sight.
+---@param offset_y number: Distance from top to eye (optional).
+---@param range number: Distance to check if Player is in sight (optional).
+---@return table|nil: Coordinates of the player if in sight, otherwise nil.
+function Enemy:isPlayerInSight(offset_y, range)
+	offset_y = offset_y or 0 -- Distance from top to eye
+	range = range or 0
 
 	local sightFilter = function(item)
-		return item.id ~= "Enemy"
+		return item ~= self -- Ignore self
 	end
 
-	local items, len = self.world:querySegment(self.x, self.y + self.h, self.target_x, self.y + self.h, sightFilter)
+	local items, len = self.world:querySegment(
+		self.direction > 0 and self.x + self.w or self.x - range,
+		self.y + offset_y,
+		self.direction > 0 and self.x + self.w + range or self.x,
+		self.y + offset_y,
+		sightFilter
+	)
 
-	-- TODO: factor in gravity and jumping
+	if len > 0 and items[1].id == "Player" then
+		return { x = items[1].x, y = items[1].y }
+	end
+end
 
-	-- local max_jump_height = 50 -- Maximum height the enemy can jump
-	-- local gravity = 9.8
-	-- local move_speed = 30 -- Horizontal movement speed of the enemy
-	-- local time_step = 0.1 -- Simulation time step
-	-- local max_attempts = 100 -- Maximum number of simulation steps
-	--
-	-- -- Starting position
-	-- local x, y = self.x, self.y
-	-- local vy = 0 -- Vertical velocity, used for jumping/falling
-	--
-	-- for i = 1, max_attempts do
-	-- 	-- Calculate target direction
-	-- 	local dx = self.target_x - x
-	-- 	local dy = self.target_y - y
-	--
-	-- 	-- If close enough to target, return true
-	-- 	if math.abs(dx) < 1 and math.abs(dy) < 1 then
-	-- 		return true
-	-- 	end
-	--
-	-- 	-- Horizontal movement towards target
-	-- 	local stepX = math.min(math.abs(dx), move_speed * time_step) * (dx > 0 and 1 or -1)
-	--
-	-- 	-- Apply gravity for falling
-	-- 	vy = vy + gravity * time_step
-	-- 	local stepY = vy * time_step
-	--
-	-- 	-- Check if a jump is needed (if obstacle ahead and below target)
-	-- 	if math.abs(dx) < move_speed * time_step and dy < max_jump_height then
-	-- 		vy = -math.sqrt(2 * gravity * max_jump_height) -- Jump with enough force to reach max height
-	-- 	end
-	--
-	-- 	-- Check for collisions at next position
-	-- 	local futureX, futureY = x + stepX, y + stepY
-	-- 	local actualX, actualY, cols, len = self.world:check(self, futureX, futureY)
-	--
-	-- 	if len > 0 then
-	-- 		-- If collision occurs and is not a valid path, return false
-	-- 		for _, col in ipairs(cols) do
-	-- 			if col.other.isObstacle then
-	-- 				return false -- Path blocked by an obstacle
-	-- 			end
-	-- 		end
-	-- 	else
-	-- 		-- Update position if no collision
-	-- 		x, y = actualX, actualY
-	-- 	end
-	-- end
+function Enemy:isPathTo(target_x, target_y, dt)
+	local max_jump_height = (self.jump_strength + self.gravity * dt) * dt
+	local start_x = self.direction > 0 and self.x + self.w or self.x
+	local start_y = self.y + self.h
 
-	-- Return false if maximum steps are reached without a clear path
+	local pathFilter = function(item)
+		return collision_types[item.id] and collision_types[item.id] ~= "cross"
+	end
+
+	local current_x, current_y = start_x, start_y
+
+	if self.max_jump_attempts then
+		for i = 1, self.max_jump_attempts do
+			local items, len = self.world:querySegment(current_x, current_y, target_x, target_y, pathFilter)
+
+			if len == 0 or max_jump_height >= items[1].h then
+				return true
+			end
+
+			current_x, current_y = items[1].x, items[1].y + self.h
+		end
+	end
+
 	return false
+end
+
+function Enemy:isPlayerInAttackRange()
+	local function playerFilter(item)
+		return item.id == "Player"
+	end
+
+	local items, len = self.world:querySegment(
+		self.direction > 0 and self.x + self.w or self.x - self.hitbox_w,
+		self.y,
+		self.hitbox_w,
+		self.hitbox_h,
+		playerFilter
+	)
+
+	return len > 0
+end
+
+function Enemy:setTarget(target_x, target_y)
+	self.target_x = target_x or self.target_x
+	self.target_y = target_y or self.target_y
+	target_x = target_x or self.target_x
+	self.target_x, self.target_y = target_x, target_y
 end
 
 function Enemy:addHitboxToWorld(hitboxFilter)

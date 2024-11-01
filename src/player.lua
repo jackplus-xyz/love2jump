@@ -57,6 +57,8 @@ function Player.new(entity)
 	-- Timers
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
+	self.attack_cooldown = 0
+	self.attack_cooldown_time = 0.1
 	self.hit_cooldown = 0
 	self.hit_cooldown_time = 0.4
 
@@ -146,6 +148,10 @@ function Player:setupStates()
 				self.jump_cooldown = self.jump_cooldown - dt
 			end
 
+			if self.attack_cooldown > 0 then
+				self.attack_cooldown = self.attack_cooldown - dt
+			end
+
 			if self.y_velocity ~= 0 then
 				self.state_machine:setState("airborne")
 			end
@@ -155,7 +161,7 @@ function Player:setupStates()
 				self.y_velocity = self.jump_strength
 				self.jump_cooldown = self.jump_cooldown_time
 				self.state_machine:setState("airborne")
-			elseif key == Keymaps.attack then
+			elseif key == Keymaps.attack and self.attack_cooldown <= 0 then
 				self.state_machine:setState("grounded.attacking")
 			elseif key == Keymaps.up then
 				local _, _, cols, len = self.world:check(self, self.x, self.y, playerFilter)
@@ -194,6 +200,10 @@ function Player:setupStates()
 			self:setAirborneAnimation()
 			self:handleMovement(dt)
 
+			if self.attack_cooldown > 0 then
+				self.attack_cooldown = self.attack_cooldown - dt
+			end
+
 			if self.y_velocity == 0 then
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState("grounded")
@@ -201,7 +211,7 @@ function Player:setupStates()
 		end,
 		keypressed = function(_, key)
 			-- Handle airborne attack
-			if key == Keymaps.attack then
+			if key == Keymaps.attack and self.attack_cooldown <= 0 then
 				self.state_machine:setState("airborne.attacking")
 			end
 		end,
@@ -340,7 +350,7 @@ function Player:addHitboxToWorld()
 		for i = 1, len do
 			local other = cols[i].other
 			if other.id == "Enemy" and self.hitbox.is_active then
-				other:hit(self.atk)
+				other:hit(self)
 			end
 		end
 		self.hitbox.is_active = false
@@ -369,6 +379,7 @@ function Player:attack()
 	self.curr_animation = self.animations.attack
 	self.curr_animation:gotoFrame(1)
 	self.curr_animation:resume()
+	self.attack_cooldown = self.attack_cooldown_time
 	Sfx:play("player.attack")
 	self:addHitboxToWorld()
 end

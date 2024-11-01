@@ -7,10 +7,10 @@ Coin.__index = Coin
 setmetatable(Coin, Entity)
 
 local coinFilter = function(item, other)
-	if other.id == "Player" or other.id == "Coin" then
-		return "cross"
-	else
+	if other.id == "Collision" then
 		return "slide"
+	else
+		return "cross"
 	end
 end
 
@@ -25,7 +25,7 @@ function Coin.new(entity)
 	self.h = 10
 	self.x_offset = self.w / 2
 	self.y_offset = self.h
-	self.timer = 1
+	self.timer = 0.5
 	self.x_velocity = 0
 	self.y_velocity = 0
 	self.jump_strength = -250
