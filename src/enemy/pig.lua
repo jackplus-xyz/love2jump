@@ -1,32 +1,53 @@
 local Anim8 = require("lib.anim8.anim8")
 local Sfx = require("src.sfx")
 local Enemy = require("src.enemy.enemy")
-local Entity = require("src.entity")
+local EntityFactory = require("src.entity.entity_factory")
 
 local Pig = {}
 Pig.__index = Pig
 setmetatable(Pig, Enemy)
 
-function Pig.new(entity, world)
-	local self = Enemy.new(entity, world)
+function Pig.new(entity)
+	local self = Enemy.new(entity)
 	setmetatable(self, Pig)
 
-	self.patrol = entity.props.patrol
+	if entity.props then
+		self.props = entity.props
+		if entity.props.patrol then
+			self.target_x, self.target_y =
+				entity.props.patrol.cx * GRID_SIZE / SCALE + GRID_SIZE / SCALE / SCALE,
+				entity.props.patrol.cy * GRID_SIZE / SCALE + GRID_SIZE / SCALE
+		end
+	end
 
-	self.w = 18
+	-- Initialize Patrol Path
+	self.start_x, self.start_y = self.x, self.y
+	self.w = 15
 	self.h = 17
-	self.speed = 100
+
 	self.knock_back_offset = 15
-	self.direction = 0
+	self.speed = 100
 	self.y_velocity = 0
-	self.jump_strength = -1300
+	self.gravity = 1000
+	self.jump_strength = -320
+	self.jump_attempt = 1
+	self.max_jump_attempts = 1
+	self.hitbox_w = 12
+	self.hitbox_h = 10
+
+	-- Timers
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
+	self.attack_cooldown = 0
+	self.attack_cooldown_time = 2
 	self.hit_cooldown = 0
-	self.hit_cooldown_time = 0.2
-	self.gravity = 1000
+	self.hit_cooldown_time = 0.4
 	self.drop_cooldown = 0
 	self.drop_cooldown_time = 0.1
+	self.chase_cooldown = 0
+	self.chase_cooldown_time = 10
+	self.dialogue_timer = 0
+	self.dialogue_time = 0.5
 
 	self:init()
 	return self
@@ -73,6 +94,7 @@ function Pig:loadAnimations()
 
 	self.image_map = {
 		[self.animations.idle] = self.idle_image,
+		[self.animations.attack] = self.attack_image,
 		[self.animations.run] = self.run_image,
 		[self.animations.jump] = self.jump_image,
 		[self.animations.fall] = self.fall_image,
@@ -86,104 +108,139 @@ function Pig:loadAnimations()
 end
 
 function Pig:setupStates()
-	local start_x, start_y = self.x, self.y
-
 	self.state_machine:addState("grounded", {
 		enter = function()
 			self.curr_animation = self.animations.idle
 		end,
 		update = function(_, dt)
-			if self.y_velocity ~= 0 then
-				self.state_machine:setState("airborne")
-			end
-
-			if self.patrol then
-				self.state_machine:setState("grounded.to_target")
+			if self.target_x and self.target_y then
+				local dx = self.target_x - self.x
+				local dy = self.target_y - self.y
+				local distance = math.sqrt(dx * dx + dy * dy)
+				if distance > GRID_SIZE then
+					self.state_machine:setState("grounded.to_target")
+				end
 			end
 		end,
 	})
 
-	if self.patrol then
-		local wait_time = 2
-		local wait_timer = wait_time
-		local target_x, target_y =
-			self.patrol.cx * GRID_SIZE / SCALE + GRID_SIZE / SCALE / SCALE,
-			self.patrol.cy * GRID_SIZE / SCALE + GRID_SIZE / SCALE
+	self.state_machine:addState("grounded.attacking", {
+		enter = function()
+			self:attack()
+			self.attack_cooldown = self.attack_cooldown_time
+		end,
+		update = function(_, dt)
+			self.attack_cooldown = self.attack_cooldown - dt
 
-		self.state_machine:addState("grounded.to_target", {
-			enter = function()
-				self.curr_animation = self.animations.run
-			end,
-			update = function(_, dt)
-				if self.y_velocity ~= 0 then
-					self.state_machine:setState("airborne")
-				end
+			if self.hitbox.is_active then
+				self.hitbox:update()
+			end
 
-				local dx = target_x - self.x
-				local dy = target_y - self.y
-				local distance = math.sqrt(dx * dx + dy * dy)
-
-				if distance < GRID_SIZE then
-					self.state_machine:setState("grounded.at_target")
-				else
-					local goal_x = self.x + (dx / distance) * self.speed * dt
-					local goal_y = self.y + (dy / distance) * self.speed * dt
-					self:move(goal_x, goal_y)
-				end
-			end,
-		})
-
-		self.state_machine:addState("grounded.at_target", {
-			enter = function()
+			if self.curr_animation.status == "paused" then
 				self.curr_animation = self.animations.idle
-			end,
-			update = function(_, dt)
-				wait_timer = wait_timer - dt
+			end
 
-				if wait_timer <= 0 then
-					wait_timer = wait_time
-					self.state_machine:setState("grounded.to_start")
+			if self.attack_cooldown <= 0 then
+				self.state_machine:setState("grounded")
+			end
+		end,
+	})
+
+	local wait_time = 2
+	local wait_timer = wait_time
+
+	self.state_machine:addState("grounded.to_target", {
+		enter = function()
+			self.curr_animation = self.animations.run
+		end,
+		update = function(_, dt)
+			self:checkAirborne()
+
+			local dx = self.target_x - self.x
+			local dy = self.target_y - self.y
+			local distance = math.sqrt(dx * dx + dy * dy)
+
+			if distance < GRID_SIZE then
+				self.state_machine:setState("grounded.at_target")
+			else
+				-- Check if there's obstacle to target
+				local goal_x = self.x + (dx / distance) * self.speed * dt
+				-- TODO: check if self.h is required
+				local goal_y = self.y + (dy / distance) * self.y_velocity * dt
+				local jumpFilter = function(item)
+					return item.id == "Collision"
 				end
-			end,
-		})
+				local items, len = self.world:queryPoint(goal_x, goal_y, jumpFilter)
 
-		self.state_machine:addState("grounded.to_start", {
-			enter = function()
-				self.curr_animation = self.animations.run
-			end,
-			update = function(_, dt)
-				if self.y_velocity ~= 0 then
-					self.state_machine:setState("airborne")
+				-- Encounter an obstacle, check if can jump over it
+				if len > 0 then
+					local max_jump_height = self.jump_strength * self.jump_strength / self.gravity / 2
+					local _, _, _, item_h = self.world:getRect(items[1])
+					if max_jump_height > item_h and self.jump_attempt <= self.max_jump_attempts then
+						self:jump()
+						self.state_machine:setState("airborne.to_target")
+					else
+						self.state_machine:setState("grounded.at_target")
+					end
 				end
 
-				local dx = start_x - self.x
-				local dy = start_y - self.y
-				local distance = math.sqrt(dx * dx + dy * dy)
+				self:move(goal_x, goal_y)
+			end
+		end,
+	})
 
-				if distance < GRID_SIZE then
-					self.state_machine:setState("grounded.at_start")
-				else
-					local move_x = (dx / distance) * self.speed * dt
-					local move_y = (dy / distance) * self.speed * dt
-					self:move(self.x + move_x, self.y + move_y)
-				end
-			end,
-		})
+	self.state_machine:addState("grounded.at_target", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+		end,
+		update = function(_, dt)
+			wait_timer = wait_timer - dt
 
-		self.state_machine:addState("grounded.at_start", {
-			enter = function()
-				self.curr_animation = self.animations.idle
-			end,
-			update = function(_, dt)
-				wait_timer = wait_timer - dt
+			if self:isPlayerInAttackRange() then
+				self.state_machine:setState("grounded.attacking")
+			end
 
-				if wait_timer <= 0 then
-					wait_timer = wait_time
-					self.state_machine:setState("grounded.to_target")
-				end
-			end,
-		})
-	end
+			if wait_timer <= 0 then
+				wait_timer = wait_time
+				self.state_machine:setState("grounded.to_start")
+			end
+		end,
+	})
+
+	self.state_machine:addState("grounded.to_start", {
+		enter = function()
+			self.curr_animation = self.animations.run
+		end,
+		update = function(_, dt)
+			self:checkAirborne()
+
+			local dx = self.start_x - self.x
+			local dy = self.start_y - self.y
+			local distance = math.sqrt(dx * dx + dy * dy)
+
+			if distance < GRID_SIZE then
+				self.state_machine:setState("grounded.at_start")
+			else
+				local move_x = (dx / distance) * self.speed * dt
+				local move_y = (dy / distance) * self.speed * dt
+				self:move(self.x + move_x, self.y + move_y)
+			end
+		end,
+	})
+
+	self.state_machine:addState("grounded.at_start", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+		end,
+		update = function(_, dt)
+			wait_timer = wait_timer - dt
+
+			if wait_timer <= 0 then
+				wait_timer = wait_time
+				self.state_machine:setState("grounded.to_target")
+			end
+		end,
+	})
 
 	self.state_machine:addState("airborne", {
 		enter = function()
@@ -199,19 +256,45 @@ function Pig:setupStates()
 		end,
 	})
 
+	self.state_machine:addState("airborne.to_target", {
+		enter = function()
+			self:setAirborneAnimation()
+			-- TODO: add condition to reset jump_attempt
+			self.jump_attempt = 1
+		end,
+		update = function(_, dt)
+			self:setAirborneAnimation()
+
+			local goal_x = self.x + self.speed * dt * self.direction
+			local goal_y = self.y + self.h + self.y_velocity * dt
+			local jumpFilter = function(item)
+				return item.id == "Collision"
+			end
+			local items, len = self.world:queryPoint(goal_x, goal_y, jumpFilter)
+
+			if self.y_velocity == 0 then
+				self.curr_animation = self.animations.ground
+				self.state_machine:setState(self.state_machine.prevState.name)
+			else
+				if len == 0 and self.jump_attempt <= self.max_jump_attempts then
+					self:move(goal_x, self.y)
+					self.jump_attempt = self.jump_attempt + 1
+				end
+			end
+		end,
+	})
+
+	-- TODO: draw shock dialogue
 	self.state_machine:addState("hit", {
 		enter = function()
 			self.curr_animation = self.animations.hit
 			self.hit_cooldown = self.hit_cooldown_time
 			Sfx:play("enemy.hit")
-			self:applyKnockback(self.knock_back_offset)
 		end,
 		update = function(_, dt)
 			if self.hit_cooldown > 0 then
 				self.hit_cooldown = self.hit_cooldown - dt
-			end
-
-			if self.hit_cooldown <= 0 then
+			else
 				self.state_machine:setState("grounded")
 				self.hit_cooldown = self.hit_cooldown_time
 			end
@@ -222,31 +305,40 @@ function Pig:setupStates()
 		enter = function()
 			self.curr_animation = self.animations.dead
 			Sfx:play("enemy.dead")
-			self.drop_cooldown = self.drop_cooldown_time
-			self.drop_count = 3
+			self.dialogue:hide("shock")
+			self.drop_timer = 0.2
+			self.drop_interval = 0.2
+			self.dead_timer = 0.2 -- make the body stay for while
+			self.current_drop_index = 1 -- Track which loot we're currently dropping
+			self.world:remove(self)
 		end,
 		update = function(_, dt)
-			if self.drop_count > 0 then
-				if self.drop_cooldown > 0 then
-					self.drop_cooldown = self.drop_cooldown - dt
+			-- wait for death animation to complete
+			self.curr_animation:update(dt)
+
+			if self.props.Loot and self.current_drop_index <= #self.props.Loot then
+				if self.drop_timer > 0 then
+					self.drop_timer = self.drop_timer - dt
 				else
-					local entity = {
-						id = "Coin",
+					local loot = self.props.Loot[self.current_drop_index]
+					local loot_entity = {
+						id = loot,
 						x = self.x + self.w / 2,
 						y = self.y,
 						world = self.world,
 					}
-					local new_coin = Entity.Coin.new(entity, self.world)
-					self:dropItem(new_coin, 25)
+					local new_loot = EntityFactory.create(loot_entity)
+					self:dropItem(new_loot, 100)
 
-					self.drop_cooldown = self.drop_cooldown_time
-					self.drop_count = self.drop_count - 1
+					self.current_drop_index = self.current_drop_index + 1
+					self.drop_timer = self.drop_interval -- Reset timer for next drop
 				end
-			else
-				if self.curr_animation and self.curr_animation.status == "paused" then
+			-- remove the entity after all the loots are dropped
+			elseif self.curr_animation.status == "paused" then
+				if self.dead_timer > 0 then
+					self.dead_timer = self.dead_timer - dt
+				else
 					self:removeFromWorld()
-					self.curr_animation = nil
-					return
 				end
 			end
 		end,
@@ -256,26 +348,56 @@ function Pig:setupStates()
 	self.state_machine:setState("grounded")
 end
 
--- TODO: improve patrol logic to check if target is reachable
-function Pig:isPathTo(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, self.enemy_filter)
-	if self.y == goal_y and len == 0 then
-		return true
+function Pig:update(dt)
+	if not self.is_active then
+		return
 	end
-	return false
+
+	-- Update target if player is spotted
+	if self.chase_cooldown > 0 then
+		self.chase_cooldown = self.chase_cooldown - dt
+		self.dialogue_timer = self.dialogue_timer - dt
+		if self.dialogue_timer <= 0 then
+			self.dialogue:hide("shock")
+		end
+	else
+		local player_last_known_point = self:isPlayerInSight(8, self.w * 8)
+		if player_last_known_point then
+			if self:isPathTo(player_last_known_point.x, player_last_known_point.y, dt) then
+				self:setTarget(player_last_known_point.x, player_last_known_point.y)
+				self.dialogue:show("shock")
+				Sfx:play("dialogue.shock")
+				self.dialogue_timer = self.dialogue_time
+				self.chase_cooldown = self.chase_cooldown_time
+				self.state_machine:setState("grounded.to_target")
+			end
+		end
+	end
+
+	if not self.state_machine:getState("dead") then
+		self:applyGravity(dt)
+	end
+
+	self.state_machine:update(dt)
+	self.curr_animation:update(dt)
+	self.dialogue:update(dt)
 end
 
 function Pig:draw()
-	-- Flip the sprite based on direction (enemy sprites face opposite direction from the player)
 	local scale_x = (self.direction == -1) and 1 or -1
-	local offset_x = (self.direction == -1) and 0 or self.w
+	local offset_x = (self.direction == -1) and 12 or 28
+	local offset_y = 10
 	local curr_image = self.image_map[self.curr_animation] or self.idle_image
 
 	love.graphics.push()
 
 	-- TODO: add animation offset across enemy
-	if self.curr_animation then
-		self.curr_animation:draw(curr_image, self.x + offset_x, self.y, 0, scale_x, 1, self.w / SCALE, 10)
+	if self.is_active then
+		self.curr_animation:draw(curr_image, self.x, self.y, 0, scale_x, 1, offset_x, offset_y)
+		-- TODO: improve dialogue drawing logic
+		if self.chase_cooldown > 0 then
+			self.dialogue:draw("shock", self.x - 8, self.y - self.h)
+		end
 	end
 
 	love.graphics.pop()

@@ -9,8 +9,8 @@ setmetatable(Door, Entity)
 local sprite_w = 46
 local sprite_h = 56
 
-function Door.new(entity, world)
-	local self = Entity.new(entity, world)
+function Door.new(entity)
+	local self = Entity.new(entity)
 	setmetatable(self, Door)
 
 	self.w = sprite_w
@@ -71,10 +71,12 @@ function Door:update(dt)
 end
 
 function Door:draw()
-	love.graphics.push()
+	local offset_x = 0
+	local offset_y = 0
 	local curr_image = self.image_map[self.curr_animation] or self.idle_image
+	love.graphics.push()
 
-	self.curr_animation:draw(curr_image, self.x, self.y, 0, 1, 1, self.x_offset, self.y_offset)
+	self.curr_animation:draw(curr_image, self.x, self.y, 0, 1, 1, offset_x, offset_y)
 
 	love.graphics.pop()
 end

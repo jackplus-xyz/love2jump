@@ -4,6 +4,31 @@ This document tracks significant changes, features, and fixes for each update.
 
 ## States Design
 
+### Game States
+
+```mermaid
+graph TD
+  A[Game Start] --> B[Title Screen]
+
+  B -- No Save File --> C[New Game or Quit]
+  B -- Save File Exists --> D[New Game or Load Game or Quit]
+
+  C --> E[New Game]
+  C --> F[Quit]
+  D --> E[New Game]
+  D --> G[Load Game]
+  D --> F[Quit]
+
+  E --> H[Landing]
+  H --> I[Gameplay]
+  G --> I[Gameplay]
+
+  I --> J{Is New Game?}
+  J -- New Game --> E
+  J -- Load Game --> G
+  J -- Save --> F
+```
+
 ### Player States
 
 ```mermaid
@@ -29,29 +54,64 @@ Airborne --> Grounded : Land
     }
 ```
 
-### Game States
+### Enemy States
 
 ```mermaid
-graph TD
-  A[Game Start] --> B[Title Screen]
+stateDiagram-v2
+    [*] --> Grounded
 
-  B -- No Save File --> C[New Game or Quit]
-  B -- Save File Exists --> D[New Game or Load Game or Quit]
+    %% Main state transitions
+    Grounded --> Hit: hit()
+    Grounded --> Chasing : isPlayerInSight()
+    Grounded --> Airborne: y_velocity != 0
+    Grounded --> Dead: Health <= 0
+    Hit --> Grounded: Health > 0
+    Hit --> Dead: Health <= 0
+    Chasing --> Attack: Distance < AttackRange
+    Airborne --> Dead: Health <= 0
+    Airborne --> Grounded: Landed
+    Attack --> Chasing : Distance > AttackRange
+    Attack --> Hit: Received Damage
 
-  C --> E[New Game]
-  C --> F[Quit]
-  D --> E[New Game]
-  D --> G[Load Game]
-  D --> F[Quit]
+    %% Grounded compound state
+    state Grounded {
+        [*] --> Idle
+        Idle --> ToTarget: is_patrol
+        ToTarget --> AtTarget: Reached Target Point
+        AtTarget --> ToStart: Wait Timer Expired
+        ToStart --> AtStart: Reached Start Point
+        AtStart --> ToTarget: Wait Timer Expired
+    }
 
-  E --> H[Landing]
-  H --> I[Gameplay]
-  G --> I[Gameplay]
+    %% Chasing compound state
+    state Chasing {
+        [*] --> ToPlayer
+        ToPlayer --> AtPlayer: In Range
+        AtPlayer --> ToPlayer: Player Moved
 
-  I --> J{Is New Game?}
-  J -- New Game --> E
-  J -- Load Game --> G
-  J -- Save --> F
+        note right of ToPlayer
+            Constantly updates position
+            to track player movement
+        end note
+    }
+
+    %% Attack compound state
+    state Attack {
+        [*] --> Grounded
+    }
+
+    %% Airborne compound state
+    state Airborne {
+        [*] --> Jumping
+        Jumping --> y_velocity > 0
+        Falling --> y_velocity < 0
+        Landing --> [*]: y_velocity == 0
+    }
+
+    %% Dead state (terminal)
+    state Dead {
+        [*] --> [*]: Entity Removed
+    }
 ```
 
 ## Checkpoints
@@ -142,18 +202,33 @@ graph TD
 #### Added
 
 - [x] Item drops from defeated enemies
-- [ ] Enemy attack behaviors
-- [ ] Dynamic patrol route adjustments for enemies
+- [x] Enemy chases player behaviors
+- [x] Enemy attack behaviors
+- [x] Enemy shows dialogue before actions
+- [x] Player dead state
+- [x] Gameover Screen
+- [x] Dynamic patrol route adjustments for enemies
+
+#### Changed
+
+- [x] Improved enemy patrol to account for unreachable destinations
+
+#### Fixed
+
+- [x] Resolve door collision issues
+- [x] Adjust hitbox logic for consistent enemy collision handling
+
+### 11/08/2024
+
+#### Added
+
 - [ ] Power-ups and experience points (EXP)
 - [ ] Settings menu for in-game options
 - [ ] Boss fight encounter
 
 #### Changed
 
-- [ ] Improved enemy patrol to account for unreachable destinations
+- [ ] Enemy can jump when it needs to
 - [ ] Enhanced tile rendering logic for better layout flexibility
 
 #### Fixed
-
-- [x] Resolve door collision issues
-- [x] Adjust hitbox logic for consistent enemy collision handling

@@ -8,6 +8,7 @@ local Keymaps = require("config.keymaps")
 
 -- Utilities
 local GameProgress = require("src.utils.game_progress")
+local world_helpers = require("src.utils.world_helpers")
 
 -- Source Modules
 local Ui = require("src.ui")
@@ -103,35 +104,37 @@ local function onEntity(entity)
 	end
 
 	if entity.id == "Player" then
-		player = Player.new(entity, world)
+		player = Player.new(entity)
 	elseif entity.props.Enemy then
-		local new_enemy = EnemyFactory.create(entity, world)
+		local new_enemy = EnemyFactory.create(entity)
 		new_enemy.spawnDrop = function(item)
-			item:addToWorld()
+			item.addToWorld = world_helpers.addToWorld
+			item.removeFromWorld = world_helpers.removeFromWorld
+			item:addToWorld(world)
 			table.insert(entities, item)
 		end
 		table.insert(entities, new_enemy)
 	elseif entity.id == "Door" then
-		local new_door = Entity.Door.new(entity, world)
+		local new_door = Entity.Door.new(entity)
 		table.insert(entities, new_door)
 	elseif entity.id == "Coin" then
-		local new_coin = Entity.Coin.new(entity, world)
+		local new_coin = Entity.Coin.new(entity)
 		table.insert(entities, new_coin)
 	end
 end
 
 -- Called just after all other callbacks when a new level is created
 local function onLevelCreated(level)
-	player:addToWorld(world)
+	player:addToWorld(world) -- update the player to new world
 	for _, entity in pairs(entities) do
 		-- Set player's new location at the door
 		if entity.id == "Door" and not entity.is_next then
 			entity:close()
 			player.x, player.y = entity.x - player.w / 2, entity.y - player.h
-			entity:addToWorld()
-		else
-			entity:addToWorld()
 		end
+		entity.addToWorld = world_helpers.addToWorld
+		entity.removeFromWorld = world_helpers.removeFromWorld
+		entity:addToWorld(world)
 	end
 
 	local window_w = love.graphics.getWidth()
@@ -145,7 +148,8 @@ local function onLevelCreated(level)
 
 	love.graphics.setBackgroundColor(level.backgroundColor)
 end
---------------------------------------------
+
+--------- Helper Functions  ----------
 
 local function saveGame(slot)
 	updateInactiveEntities()
@@ -278,10 +282,11 @@ function screen:Update(dt)
 
 	Ui.hud:update(dt)
 
-	-- TODO: add gameover screen
-	-- if player.health <= 0 then
-	--  return "gameover"
-	-- end
+	if player.state_machine:getState("dead") then
+		-- TODO: add fade in to gameover
+		self.screenManager:SwitchStates("gameover")
+		return
+	end
 
 	CameraManager.setTarget(player.x + player.w / 2, player.y + player.h / 2)
 	CameraManager.update(dt)
@@ -325,6 +330,8 @@ function screen:Draw()
 				love.graphics.rectangle("fill", x, y, w, h)
 				love.graphics.setColor(1, 0, 0)
 				love.graphics.rectangle("line", x, y, w, h)
+				love.graphics.setColor(0, 0, 0)
+				love.graphics.circle("fill", x, y, 2)
 				love.graphics.setColor(1, 1, 1)
 				love.graphics.circle("fill", item.x, item.y, 1)
 			end

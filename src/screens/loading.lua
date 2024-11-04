@@ -1,7 +1,6 @@
 local screen = {}
 
 local Ui = require("src.ui")
-local Sfx = require("src.sfx")
 
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
 	Ui.loading:init()

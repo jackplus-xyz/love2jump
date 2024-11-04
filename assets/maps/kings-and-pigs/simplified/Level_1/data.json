@@ -10,8 +10,8 @@
 	"customFields" : {},
 	"layers": [
 		"Bg_textures.png",
-		"Collision.png",
-		"Decorations.png"
+		"Decorations.png",
+		"Collision.png"
 	],
 	"entities": {
 		"Pig": [
@@ -30,7 +30,9 @@
 						"cy": 19
 					},
 					"max_health": 3,
-					"Enemy": "Pig"
+					"Enemy": "Pig",
+					"Loot": [],
+					"atk": 0
 				}
 			},
 			{
@@ -48,7 +50,9 @@
 						"cy": 11
 					},
 					"max_health": 3,
-					"Enemy": "Pig"
+					"Enemy": "Pig",
+					"Loot": [],
+					"atk": 0
 				}
 			}
 		],

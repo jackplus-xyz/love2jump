@@ -1,5 +1,4 @@
 local Fonts = require("src.assets.fonts")
-local keymaps = require("config.keymaps")
 
 local Loading = {}
 Loading.__index = Loading

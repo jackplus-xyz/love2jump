@@ -83,7 +83,6 @@ local soundEffects = {
 		end,
 	},
 
-	-- Your existing sounds...
 	-- Player
 	["player.attack"] = {
 		duration = 0.2,
@@ -97,6 +96,30 @@ local soundEffects = {
 		generate = function(t, duration)
 			local freq = 250 + 150 * (1 - t / duration)
 			return generateSquare(t, freq) * (1 - t / duration) * 0.8
+		end,
+	},
+	["player.dead"] = {
+		duration = 0.8,
+		generate = function(t, duration)
+			-- Downward pitch slide with vibrato
+			local freq = 400 * (1 - t / duration) + 50 * math.sin(t * 30)
+			-- Mix square and triangle waves for a dramatic effect
+			local sound = (generateSquare(t, freq) * 0.6 + generateTriangle(t, freq) * 0.4)
+			return sound * (1 - t / duration) * 0.8
+		end,
+	},
+	["player.jump"] = {
+		duration = 0.2,
+		generate = function(t, duration)
+			local freq = 200 + 400 * (t / duration)
+			return generateSine(t, freq) * (1 - t / duration) * 0.4
+		end,
+	},
+	["player.land"] = {
+		duration = 0.15,
+		generate = function(t, duration)
+			local freq = 300 - 200 * (t / duration)
+			return generateTriangle(t, freq) * (1 - t / duration) * 0.5
 		end,
 	},
 
@@ -124,8 +147,23 @@ local soundEffects = {
 			return generateSquare(t, freq) * (1 - t / duration)
 		end,
 	},
+	["coin.spawn"] = {
+		duration = 0.2,
+		generate = function(t, duration)
+			local freq = 1200 - 800 * (t / duration)
+			return generateSine(t, freq) * (1 - t / duration) * 0.4
+		end,
+	},
 
 	-- Enemy
+	["enemy.attack"] = {
+		duration = 0.3,
+		generate = function(t, duration)
+			local freq = 200 + 300 * (1 - t / duration)
+			-- Combine noise and square wave for an aggressive sound
+			return generateNoise() * generateSquare(t, freq) * (1 - t / duration) * 0.6
+		end,
+	},
 	["enemy.hit"] = {
 		duration = 0.15,
 		generate = function(t, duration)
@@ -134,10 +172,82 @@ local soundEffects = {
 		end,
 	},
 	["enemy.dead"] = {
+		duration = 0.6,
+		generate = function(t, duration)
+			local freq = 500 * (1 - t / duration) + 150 * math.sin(t * 20)
+			return generateNoise() * generateTriangle(t, freq) * (1 - t / duration) * 0.8
+		end,
+	},
+
+	-- Dialogue
+	["dialogue.attack"] = {
+		duration = 0.3,
+		generate = function(t, duration)
+			local freq = 600 + 400 * math.sin(t * 10)
+			return generateSquare(t, freq) * (1 - t / duration) * 0.5
+		end,
+	},
+	["dialogue.boom"] = {
+		duration = 0.5,
+		generate = function(t, duration)
+			local freq = 100 + 150 * math.sin(t * 40)
+			return generateNoise() * generateTriangle(t, freq) * (1 - t / duration) * 0.7
+		end,
+	},
+	["dialogue.dead"] = {
 		duration = 0.4,
 		generate = function(t, duration)
-			local freq = 400 + 100 * math.sin(t * 15)
-			return generateNoise() * generateTriangle(t, freq) * (1 - t / duration) * 0.6
+			local freq = 150 + 100 * (1 - t / duration)
+			return generateTriangle(t, freq) * (1 - t / duration) * 0.4
+		end,
+	},
+	["dialogue.hello"] = {
+		duration = 0.3,
+		generate = function(t, duration)
+			local freq = 400 + 100 * (t / duration)
+			return generateSine(t, freq) * (1 - t / duration) * 0.3
+		end,
+	},
+	["dialogue.hi"] = {
+		duration = 0.2,
+		generate = function(t, duration)
+			local freq = 500
+			return generateSine(t, freq) * (1 - t / duration) * 0.2
+		end,
+	},
+	["dialogue.interrogation"] = {
+		duration = 0.4,
+		generate = function(t, duration)
+			local freq = 300 + 100 * math.sin(t * 10)
+			return generateSquare(t, freq) * (1 - t / duration) * 0.4
+		end,
+	},
+	["dialogue.loser"] = {
+		duration = 0.35,
+		generate = function(t, duration)
+			local freq = 250 + 150 * (1 - t / duration)
+			return generateSquare(t, freq) * (1 - t / duration) * 0.5
+		end,
+	},
+	["dialogue.no"] = {
+		duration = 0.2,
+		generate = function(t, duration)
+			local freq = 400 - 100 * (t / duration)
+			return generateTriangle(t, freq) * (1 - t / duration) * 0.3
+		end,
+	},
+	["dialogue.shock"] = {
+		duration = 0.5,
+		generate = function(t, duration)
+			local freq = 600 + 200 * math.sin(t * 20)
+			return generateNoise() * generateSquare(t, freq) * (1 - t / duration) * 0.6
+		end,
+	},
+	["dialogue.wtf"] = {
+		duration = 0.4,
+		generate = function(t, duration)
+			local freq = 700 + 300 * math.sin(t * 15)
+			return generateNoise() * generateSine(t, freq) * (1 - t / duration) * 0.7
 		end,
 	},
 }

@@ -1,5 +1,6 @@
 local Anim8 = require("lib.anim8.anim8")
 local Keymaps = require("config.keymaps")
+local Dialogue = require("src.utils.dialogue")
 local StateMachine = require("src.utils.state_machine")
 local Sfx = require("src.sfx")
 
@@ -23,7 +24,7 @@ local hitboxFilter = function(item, other)
 	return "cross"
 end
 
-function Player.new(entity, world)
+function Player.new(entity)
 	local self = setmetatable({}, Player)
 
 	self.id = "Player"
@@ -42,8 +43,6 @@ function Player.new(entity, world)
 		self.atk = 1
 	end
 
-	self.world = world
-
 	self.is_player = true
 	self.is_next_level = nil
 	self.hitbox = {}
@@ -53,14 +52,22 @@ function Player.new(entity, world)
 	self.speed = 150
 	self.y_velocity = 0
 	self.jump_strength = -320
+	self.gravity = 1200
+	self.knock_back_offset = 5
+
+	-- Timers
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
-	self.gravity = 1200
+	self.attack_cooldown = 0
+	self.attack_cooldown_time = 0.1
+	self.hit_cooldown = 0
+	self.hit_cooldown_time = 0.4
 
 	self.image_map = {}
 	self.animations = {}
 	self.curr_animation = nil
 	self.state_machine = StateMachine.new()
+	self.dialogue = Dialogue.new()
 
 	self:init()
 
@@ -69,7 +76,9 @@ end
 
 function Player:addToWorld(world)
 	self.world = world or self.world
-	self.world:add(self, self.x - self.w / 2, self.y - self.h, self.w, self.h)
+	self.world:add(self, self.x, self.y, self.w, self.h, playerFilter)
+	local x, y = self.world:getRect(self)
+	self.x, self.y = x, y
 end
 
 function Player:loadAnimations()
@@ -141,16 +150,18 @@ function Player:setupStates()
 				self.jump_cooldown = self.jump_cooldown - dt
 			end
 
+			if self.attack_cooldown > 0 then
+				self.attack_cooldown = self.attack_cooldown - dt
+			end
+
 			if self.y_velocity ~= 0 then
 				self.state_machine:setState("airborne")
 			end
 		end,
 		keypressed = function(_, key)
 			if key == Keymaps.jump and self.jump_cooldown <= 0 then
-				self.y_velocity = self.jump_strength
-				self.jump_cooldown = self.jump_cooldown_time
-				self.state_machine:setState("airborne")
-			elseif key == Keymaps.attack then
+				self:jump()
+			elseif key == Keymaps.attack and self.attack_cooldown <= 0 then
 				self.state_machine:setState("grounded.attacking")
 			elseif key == Keymaps.up then
 				local _, _, cols, len = self.world:check(self, self.x, self.y, playerFilter)
@@ -189,6 +200,10 @@ function Player:setupStates()
 			self:setAirborneAnimation()
 			self:handleMovement(dt)
 
+			if self.attack_cooldown > 0 then
+				self.attack_cooldown = self.attack_cooldown - dt
+			end
+
 			if self.y_velocity == 0 then
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState("grounded")
@@ -196,7 +211,7 @@ function Player:setupStates()
 		end,
 		keypressed = function(_, key)
 			-- Handle airborne attack
-			if key == Keymaps.attack then
+			if key == Keymaps.attack and self.attack_cooldown <= 0 then
 				self.state_machine:setState("airborne.attacking")
 			end
 		end,
@@ -253,6 +268,40 @@ function Player:setupStates()
 		end,
 	})
 
+	self.state_machine:addState("hit", {
+		enter = function()
+			self.curr_animation = self.animations.hit
+			self.hit_cooldown = self.hit_cooldown_time
+			Sfx:play("player.hit")
+			self:applyKnockback(self.knock_back_offset)
+		end,
+		update = function(_, dt)
+			if self.hit_cooldown > 0 then
+				self.hit_cooldown = self.hit_cooldown - dt
+			end
+
+			if self.hit_cooldown <= 0 then
+				self.state_machine:setState("grounded")
+				self.hit_cooldown = self.hit_cooldown_time
+			end
+		end,
+	})
+
+	self.state_machine:addState("dead", {
+		enter = function()
+			self.curr_animation = self.animations.dead
+			Sfx:play("player.dead")
+		end,
+		update = function(_, dt)
+			if self.curr_animation then
+				self.curr_animation:update(dt)
+			end
+
+			if self.curr_animation.status == "paused" then
+				self.curr_animation = nil
+			end
+		end,
+	})
 	-- Set default state
 	self.state_machine:setState("grounded")
 end
@@ -301,7 +350,7 @@ function Player:addHitboxToWorld()
 		for i = 1, len do
 			local other = cols[i].other
 			if other.id == "Enemy" and self.hitbox.is_active then
-				other:hit(self.atk)
+				other:hit(self)
 			end
 		end
 		self.hitbox.is_active = false
@@ -316,6 +365,7 @@ function Player:addHitboxToWorld()
 		h = self.h + hitbox_h,
 		is_active = true,
 		update = update,
+		player = self,
 	}
 	self.world:add(self.hitbox, self.hitbox.x, self.hitbox.y, self.hitbox.w, self.hitbox.h, hitboxFilter)
 end
@@ -329,6 +379,7 @@ function Player:attack()
 	self.curr_animation = self.animations.attack
 	self.curr_animation:gotoFrame(1)
 	self.curr_animation:resume()
+	self.attack_cooldown = self.attack_cooldown_time
 	Sfx:play("player.attack")
 	self:addHitboxToWorld()
 end
@@ -347,6 +398,12 @@ function Player:move(goal_x, goal_y)
 	self.x, self.y = actual_x, actual_y
 end
 
+function Player:jump()
+	self.y_velocity = self.jump_strength
+	self.jump_cooldown = self.jump_cooldown_time
+	self.state_machine:setState("airborne")
+end
+
 function Player:applyGravity(dt)
 	-- Update jump cooldown
 	if self.jump_cooldown > 0 then
@@ -356,19 +413,63 @@ function Player:applyGravity(dt)
 	self.y_velocity = self.y_velocity + self.gravity * dt
 
 	local goal_y = self.y + self.y_velocity * dt
-	local _, actual_y, cols, len = self.world:check(self, self.x, goal_y, playerFilter)
+	local function gravityFilter(item, other)
+		if other.id == "Collision" or other.id == "Enemy" then
+			return "slide"
+		end
+	end
+	local _, actual_y, cols, len = self.world:check(self, self.x, goal_y, gravityFilter)
 
 	if len > 0 then
-		for i = 1, len do
-			local other = cols[i].other
-			if other.id == "Collision" then
-				self.y_velocity = 0
-				return
+		self.y_velocity = 0
+	end
+
+	self:move(self.x, actual_y)
+end
+
+function Player:applyKnockback(x_offset)
+	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemyFilter)
+
+	x_offset = x_offset or 0
+	local hitbox_direction = 0
+	for i = 1, len do
+		local other = cols[i].other
+		if other.id == "Hitbox" and other.enemy then
+			if other.enemy.x > self.x then
+				hitbox_direction = 1
+				break
+			else
+				hitbox_direction = -1
+				break
 			end
 		end
 	end
 
-	self:move(self.x, actual_y)
+	-- flip the hitbox_direction
+	local actual_x, actual_y, _, _ =
+		self.world:move(self, self.x + x_offset * hitbox_direction, self.y, self.enemyFilter)
+	self.x, self.y = actual_x, actual_y
+	self.direction = hitbox_direction
+end
+
+function Player:hit(atk)
+	self.health = self.health - atk
+	if self.health <= 0 then
+		self.state_machine:setState("dead")
+		self:applyKnockback(self.knock_back_offset)
+	else
+		self.state_machine:setState("hit")
+	end
+end
+
+function Player:update(dt)
+	self:applyGravity(dt)
+	self.state_machine:update(dt)
+	self.curr_animation:update(dt)
+end
+
+function Player:keypressed(key)
+	self.state_machine:handleEvent("keypressed", key)
 end
 
 function Player:getState()
@@ -390,32 +491,23 @@ function Player:setState(player_state)
 	end
 end
 
-function Player:update(dt)
-	self:applyGravity(dt)
-	self.state_machine:update(dt)
-	self.curr_animation:update(dt)
-end
-
-function Player:keypressed(key)
-	self.state_machine:handleEvent("keypressed", key)
-end
-
 function Player:draw()
 	local scale_x = (self.direction == -1) and -1 or 1 -- Flip the sprite based on direction
-	local offset_x = (self.direction == -1) and self.w or 0 -- Shift the sprite to the correct position when flipped
+	local offset_x = (self.direction == -1) and 41 or 22 -- Shift the sprite to the correct position when flipped
+	local offset_y = 18
 	local curr_image = self.image_map[self.curr_animation] or self.idle_image
 
 	love.graphics.push()
 
 	self.curr_animation:draw(
 		curr_image,
-		self.x + offset_x,
+		self.x,
 		self.y,
 		0,
 		scale_x, -- Flip horizontally when direction is left (-1)
 		1,
-		21,
-		18
+		offset_x,
+		offset_y
 	)
 
 	love.graphics.pop()
