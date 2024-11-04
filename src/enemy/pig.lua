@@ -32,7 +32,8 @@ function Pig.new(entity)
 	self.speed = 100
 	self.y_velocity = 0
 	self.gravity = 1000
-	self.jump_strength = -1300
+	self.jump_strength = -320
+	self.jump_attempt = 1
 	self.max_jump_attempts = 1
 	self.hitbox_w = 12
 	self.hitbox_h = 10
@@ -165,8 +166,26 @@ function Pig:setupStates()
 			if distance < GRID_SIZE then
 				self.state_machine:setState("grounded.at_target")
 			else
+				-- Check if there's obstacle to target
 				local goal_x = self.x + (dx / distance) * self.speed * dt
+				-- TODO: check if self.h is required
 				local goal_y = self.y + (dy / distance) * self.y_velocity * dt
+				local jumpFilter = function(item)
+					return item.id == "Collision"
+				end
+				local items, len = self.world:queryPoint(goal_x, goal_y, jumpFilter)
+
+				-- Encounter an obstacle, check if can jump over it
+				if len > 0 then
+					local max_jump_height = self.jump_strength * self.jump_strength / self.gravity / 2
+					local _, _, _, item_h = self.world:getRect(items[1])
+					if max_jump_height > item_h and self.jump_attempt <= self.max_jump_attempts then
+						self:jump()
+						self.state_machine:setState("airborne.to_target")
+					else
+						self.state_machine:setState("grounded.at_target")
+					end
+				end
 
 				self:move(goal_x, goal_y)
 			end
@@ -236,6 +255,34 @@ function Pig:setupStates()
 			if self.y_velocity == 0 then
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState(self.state_machine.prevState.name)
+			end
+		end,
+	})
+
+	self.state_machine:addState("airborne.to_target", {
+		enter = function()
+			self:setAirborneAnimation()
+			-- TODO: add condition to reset jump_attempt
+			self.jump_attempt = 1
+		end,
+		update = function(_, dt)
+			self:setAirborneAnimation()
+
+			local goal_x = self.x + self.speed * dt * self.direction
+			local goal_y = self.y + self.h + self.y_velocity * dt
+			local jumpFilter = function(item)
+				return item.id == "Collision"
+			end
+			local items, len = self.world:queryPoint(goal_x, goal_y, jumpFilter)
+
+			if self.y_velocity == 0 then
+				self.curr_animation = self.animations.ground
+				self.state_machine:setState(self.state_machine.prevState.name)
+			else
+				if len == 0 and self.jump_attempt <= self.max_jump_attempts then
+					self:move(goal_x, self.y)
+					self.jump_attempt = self.jump_attempt + 1
+				end
 			end
 		end,
 	})

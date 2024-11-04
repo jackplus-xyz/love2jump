@@ -158,9 +158,7 @@ function Player:setupStates()
 		end,
 		keypressed = function(_, key)
 			if key == Keymaps.jump and self.jump_cooldown <= 0 then
-				self.y_velocity = self.jump_strength
-				self.jump_cooldown = self.jump_cooldown_time
-				self.state_machine:setState("airborne")
+				self:jump()
 			elseif key == Keymaps.attack and self.attack_cooldown <= 0 then
 				self.state_machine:setState("grounded.attacking")
 			elseif key == Keymaps.up then
@@ -396,6 +394,12 @@ function Player:move(goal_x, goal_y)
 	end
 
 	self.x, self.y = actual_x, actual_y
+end
+
+function Player:jump()
+	self.y_velocity = self.jump_strength
+	self.jump_cooldown = self.jump_cooldown_time
+	self.state_machine:setState("airborne")
 end
 
 function Player:applyGravity(dt)

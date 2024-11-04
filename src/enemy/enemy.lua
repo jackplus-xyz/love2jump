@@ -140,7 +140,7 @@ function Enemy:isPlayerInSight(offset_y, range)
 end
 
 function Enemy:isPathTo(target_x, target_y, dt)
-	local max_jump_height = (self.jump_strength + self.gravity * dt) * dt
+	local max_jump_height = self.jump_strength * self.jump_strength / self.gravity / 2
 	local start_x = self.direction > 0 and self.x + self.w or self.x
 	local start_y = self.y + self.h
 
@@ -234,10 +234,15 @@ function Enemy:attack()
 	self:addHitboxToWorld()
 end
 
+function Enemy:jump()
+	self.y_velocity = self.jump_strength
+	self.jump_cooldown = self.jump_cooldown_time
+end
+
 function Enemy:update(dt)
+	self:applyGravity(dt)
 	self.state_machine:update(dt)
 	if self.curr_animation then
-		self:applyGravity(dt)
 		self.curr_animation:update(dt)
 	end
 end

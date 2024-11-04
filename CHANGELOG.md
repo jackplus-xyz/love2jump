@@ -204,19 +204,31 @@ stateDiagram-v2
 - [x] Item drops from defeated enemies
 - [x] Enemy chases player behaviors
 - [x] Enemy attack behaviors
+- [x] Enemy shows dialogue before actions
 - [x] Player dead state
 - [x] Gameover Screen
-- [ ] Dynamic patrol route adjustments for enemies
+- [x] Dynamic patrol route adjustments for enemies
+
+#### Changed
+
+- [x] Improved enemy patrol to account for unreachable destinations
+
+#### Fixed
+
+- [x] Resolve door collision issues
+- [x] Adjust hitbox logic for consistent enemy collision handling
+
+### 11/08/2024
+
+#### Added
+
 - [ ] Power-ups and experience points (EXP)
 - [ ] Settings menu for in-game options
 - [ ] Boss fight encounter
 
 #### Changed
 
-- [ ] Improved enemy patrol to account for unreachable destinations
+- [ ] Enemy can jump when it needs to
 - [ ] Enhanced tile rendering logic for better layout flexibility
 
 #### Fixed
-
-- [x] Resolve door collision issues
-- [x] Adjust hitbox logic for consistent enemy collision handling
