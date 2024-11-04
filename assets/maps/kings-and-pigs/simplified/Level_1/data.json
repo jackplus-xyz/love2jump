@@ -5,7 +5,7 @@
 	"y": -1,
 	"width": 736,
 	"height": 384,
-	"bgColor": "#000000",
+	"bgColor": "#3F3851",
 	"neighbourLevels": [],
 	"customFields" : {},
 	"layers": [
@@ -34,26 +34,6 @@
 					"Loot": [],
 					"atk": 0
 				}
-			},
-			{
-				"id": "Pig",
-				"iid": "83a58370-73f0-11ef-8aaa-8fb35b9ca40c",
-				"layer": "Entities",
-				"x": 344,
-				"y": 192,
-				"width": 16,
-				"height": 16,
-				"color": 4904771,
-				"customFields": {
-					"patrol": {
-						"cx": 16,
-						"cy": 11
-					},
-					"max_health": 3,
-					"Enemy": "Pig",
-					"Loot": [],
-					"atk": 0
-				}
 			}
 		],
 		"Door": [
@@ -61,13 +41,26 @@
 				"id": "Door",
 				"iid": "b4700550-73f0-11ef-86a8-3579b510015f",
 				"layer": "Entities",
-				"x": 120,
-				"y": 256,
+				"x": 408,
+				"y": 160,
 				"width": 16,
 				"height": 16,
 				"color": 15389866,
 				"customFields": {
 					"isNext": false
+				}
+			},
+			{
+				"id": "Door",
+				"iid": "57455fc0-73f0-11ef-a005-f166b9f138a8",
+				"layer": "Entities",
+				"x": 632,
+				"y": 320,
+				"width": 16,
+				"height": 16,
+				"color": 15389866,
+				"customFields": {
+					"isNext": true
 				}
 			}
 		],

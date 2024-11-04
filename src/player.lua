@@ -68,6 +68,7 @@ function Player.new(entity)
 	self.curr_animation = nil
 	self.state_machine = StateMachine.new()
 	self.dialogue = Dialogue.new()
+	self.playerFilter = playerFilter
 
 	self:init()
 
@@ -76,7 +77,7 @@ end
 
 function Player:addToWorld(world)
 	self.world = world or self.world
-	self.world:add(self, self.x, self.y, self.w, self.h, playerFilter)
+	self.world:add(self, self.x, self.y, self.w, self.h, self.playerFilter)
 	local x, y = self.world:getRect(self)
 	self.x, self.y = x, y
 end
@@ -164,7 +165,7 @@ function Player:setupStates()
 			elseif key == Keymaps.attack and self.attack_cooldown <= 0 then
 				self.state_machine:setState("grounded.attacking")
 			elseif key == Keymaps.up then
-				local _, _, cols, len = self.world:check(self, self.x, self.y, playerFilter)
+				local _, _, cols, len = self.world:check(self, self.x, self.y, self.playerFilter)
 				for i = 1, len do
 					local other = cols[i].other
 					if other.id == "Door" then
@@ -260,8 +261,6 @@ function Player:setupStates()
 			self.curr_animation:resume()
 		end,
 		update = function(_, dt)
-			self.world:update(self, self.x, self.y)
-
 			if self.curr_animation.status == "paused" then
 				self.curr_animation = self.animations.idle
 			end
@@ -385,7 +384,7 @@ function Player:attack()
 end
 
 function Player:move(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y, playerFilter)
+	local actual_x, actual_y, cols, len = self.world:move(self, goal_x, goal_y, self.playerFilter)
 
 	for i = 1, len do
 		local other = cols[i].other

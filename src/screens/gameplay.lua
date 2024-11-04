@@ -57,7 +57,7 @@ local function updateInactiveEntities()
 		end
 	end
 
-	if not inactive_entities[prev_level_index] then
+	if not inactive_entities[prev_level_index] and prev_level_index then
 		inactive_entities[prev_level_index] = {}
 	end
 
@@ -75,6 +75,7 @@ local function onLevelLoaded(level)
 	updateInactiveEntities()
 
 	world = Bump.newWorld(GRID_SIZE)
+	layers = {}
 	collisions = {}
 	entities = {}
 
@@ -126,12 +127,20 @@ end
 -- Called just after all other callbacks when a new level is created
 local function onLevelCreated(level)
 	player:addToWorld(world) -- update the player to new world
+
 	for _, entity in pairs(entities) do
 		-- Set player's new location at the door
-		if entity.id == "Door" and not entity.is_next then
-			entity:close()
-			player.x, player.y = entity.x - player.w / 2, entity.y - player.h
+		if entity.id == "Door" then
+			if entity.is_next ~= player.is_next_level then
+				entity:close()
+				-- local goal_x = entity.x + entity.w / 2 - player.w / 2
+				-- local goal_y = entity.y + entity.h - player.h
+				local goal_x = entity.x
+				local goal_y = entity.y
+				player.world:update(player, goal_x, goal_y)
+			end
 		end
+
 		entity.addToWorld = world_helpers.addToWorld
 		entity.removeFromWorld = world_helpers.removeFromWorld
 		entity:addToWorld(world)
@@ -146,7 +155,7 @@ local function onLevelCreated(level)
 		level.height + window_h / 2 / SCALE
 	)
 
-	love.graphics.setBackgroundColor(level.backgroundColor)
+	love.graphics.setBackgroundColor(LEVEL_BG_COLOR)
 end
 
 --------- Helper Functions  ----------
@@ -362,6 +371,12 @@ function screen:Draw()
 end
 
 function screen:KeyPressed(key)
+	if is_paused and key == Keymaps.escape then
+		is_paused = false
+		Bgm:play()
+		return
+	end
+
 	if is_confirm_quit then
 		if key == Keymaps.up or key == Keymaps.down then
 			Ui.menu:selectNextChoice()
