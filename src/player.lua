@@ -1,5 +1,6 @@
 local Anim8 = require("lib.anim8.anim8")
 local Keymaps = require("config.keymaps")
+local Dialogue = require("src.utils.dialogue")
 local StateMachine = require("src.utils.state_machine")
 local Sfx = require("src.sfx")
 
@@ -66,6 +67,7 @@ function Player.new(entity)
 	self.animations = {}
 	self.curr_animation = nil
 	self.state_machine = StateMachine.new()
+	self.dialogue = Dialogue.new()
 
 	self:init()
 

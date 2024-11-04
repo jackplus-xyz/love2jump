@@ -1,4 +1,5 @@
 local StateMachine = require("src.utils.state_machine")
+local Dialogue = require("src.utils.dialogue")
 local Sfx = require("src.sfx")
 
 local Enemy = {}
@@ -31,6 +32,7 @@ function Enemy.new(entity)
 	self.animations = {}
 	self.curr_animation = nil
 	self.state_machine = StateMachine.new()
+	self.dialogue = Dialogue.new()
 
 	self.enemyFilter = function(_, other)
 		return collision_types[other.id] or nil -- Return nil for undefined collision_types

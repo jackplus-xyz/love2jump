@@ -1,12 +1,10 @@
 local Anim8 = require("lib.anim8.anim8")
 
-local dialogue = {
-	images = {},
-	animations = {},
-	states = {}, -- Track animation states for each dialogue
-}
+local Dialogue = {}
+Dialogue.__index = Dialogue
 
-local image_maps = {
+-- Define image maps as a local constant
+local IMAGE_MAPS = {
 	{ name = "attack" },
 	{ name = "boom" },
 	{ name = "dead" },
@@ -19,10 +17,19 @@ local image_maps = {
 	{ name = "wtf" },
 }
 
-function dialogue:loadAnimations()
-	local sprite_h = 16
+-- Constructor function
+function Dialogue.new()
+	local self = setmetatable({}, Dialogue)
+	self.images = {}
+	self.animations = {}
+	self.states = {}
+	self:init()
+	return self
+end
 
-	for _, image in ipairs(image_maps) do
+function Dialogue:loadAnimations()
+	local sprite_h = 16
+	for _, image in ipairs(IMAGE_MAPS) do
 		-- Load images for each state
 		local image_in = love.graphics.newImage("assets/sprites/13-dialogue-boxes/" .. image.name .. "-in.png")
 		local image_out = love.graphics.newImage("assets/sprites/13-dialogue-boxes/" .. image.name .. "-out.png")
@@ -48,7 +55,7 @@ function dialogue:loadAnimations()
 	end
 end
 
-function dialogue:show(name)
+function Dialogue:show(name)
 	local state = self.states[name]
 	if state.current == "hidden" then
 		state.current = "showing"
@@ -58,7 +65,7 @@ function dialogue:show(name)
 	end
 end
 
-function dialogue:hide(name)
+function Dialogue:hide(name)
 	local state = self.states[name]
 	if state.current == "visible" then
 		state.current = "hiding"
@@ -68,11 +75,10 @@ function dialogue:hide(name)
 	end
 end
 
-function dialogue:update(dt)
+function Dialogue:update(dt)
 	for name, state in pairs(self.states) do
 		if state.animation then
 			state.animation:update(dt)
-
 			-- Handle state transitions
 			if state.current == "showing" and state.animation.status == "paused" then
 				state.current = "visible"
@@ -84,7 +90,11 @@ function dialogue:update(dt)
 	end
 end
 
-function dialogue:draw(name, x, y)
+function Dialogue:getCurrState(name)
+	return self.states[name].current
+end
+
+function Dialogue:draw(name, x, y)
 	local state = self.states[name]
 	if state.animation then
 		local image_suffix = state.current == "hiding" and "_out" or "_in"
@@ -92,4 +102,8 @@ function dialogue:draw(name, x, y)
 	end
 end
 
-return dialogue
+function Dialogue:init()
+	self:loadAnimations()
+end
+
+return Dialogue

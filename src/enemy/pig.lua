@@ -1,10 +1,7 @@
 local Anim8 = require("lib.anim8.anim8")
 local Sfx = require("src.sfx")
 local Enemy = require("src.enemy.enemy")
-local Dialogue = require("src.utils.dialogue")
 local EntityFactory = require("src.entity.entity_factory")
-
-Dialogue:loadAnimations()
 
 local Pig = {}
 Pig.__index = Pig
@@ -50,7 +47,7 @@ function Pig.new(entity)
 	self.chase_cooldown = 0
 	self.chase_cooldown_time = 10
 	self.dialogue_timer = 0
-	self.dialogue_time = 2
+	self.dialogue_time = 0.5
 
 	self:init()
 	return self
@@ -308,7 +305,7 @@ function Pig:setupStates()
 		enter = function()
 			self.curr_animation = self.animations.dead
 			Sfx:play("enemy.dead")
-			Dialogue:hide("shock")
+			self.dialogue:hide("shock")
 			self.drop_timer = 0.2
 			self.drop_interval = 0.2
 			self.dead_timer = 0.2 -- make the body stay for while
@@ -361,14 +358,14 @@ function Pig:update(dt)
 		self.chase_cooldown = self.chase_cooldown - dt
 		self.dialogue_timer = self.dialogue_timer - dt
 		if self.dialogue_timer <= 0 then
-			Dialogue:hide("shock")
+			self.dialogue:hide("shock")
 		end
 	else
 		local player_last_known_point = self:isPlayerInSight(8, self.w * 8)
 		if player_last_known_point then
 			if self:isPathTo(player_last_known_point.x, player_last_known_point.y, dt) then
 				self:setTarget(player_last_known_point.x, player_last_known_point.y)
-				Dialogue:show("shock")
+				self.dialogue:show("shock")
 				Sfx:play("dialogue.shock")
 				self.dialogue_timer = self.dialogue_time
 				self.chase_cooldown = self.chase_cooldown_time
@@ -383,7 +380,7 @@ function Pig:update(dt)
 
 	self.state_machine:update(dt)
 	self.curr_animation:update(dt)
-	Dialogue:update(dt)
+	self.dialogue:update(dt)
 end
 
 function Pig:draw()
@@ -399,7 +396,7 @@ function Pig:draw()
 		self.curr_animation:draw(curr_image, self.x, self.y, 0, scale_x, 1, offset_x, offset_y)
 		-- TODO: improve dialogue drawing logic
 		if self.chase_cooldown > 0 then
-			Dialogue:draw("shock", self.x - 8, self.y - self.h)
+			self.dialogue:draw("shock", self.x - 8, self.y - self.h)
 		end
 	end
 
