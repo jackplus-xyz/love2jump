@@ -1,42 +1,59 @@
 local Anim8 = require("lib.anim8.anim8")
 local Sfx = require("src.sfx")
 local Enemy = require("src.enemy.enemy")
-local Entity = require("src.entity")
+local EntityFactory = require("src.entity.entity_factory")
 
-local King_Pig = {}
-King_Pig.__index = King_Pig
-setmetatable(King_Pig, Enemy)
+local KingPig = {}
+KingPig.__index = KingPig
+setmetatable(KingPig, Enemy)
 
-function King_Pig.new(entity)
+function KingPig.new(entity)
 	local self = Enemy.new(entity)
-	setmetatable(self, King_Pig)
+	setmetatable(self, KingPig)
 
 	self.w = 15
 	self.h = 20
+	self.start_x, self.start_y = self.x, self.y
 
+	if entity.props then
+		self.props = entity.props
+	end
+
+	self.direction = -1
+	self.knock_back_offset = 2
 	self.speed = 100
-	self.knock_back_offset = 5
-	self.direction = 0
 	self.y_velocity = 0
-	self.jump_strength = -1300
+	self.gravity = 1000
+	self.jump_strength = -320
+	self.jump_attempt = 1
+	self.max_jump_attempts = 1
+	self.hitbox_w = 12
+	self.hitbox_h = 10
+
+	-- Timers
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
+	self.attack_cooldown = 0
+	self.attack_cooldown_time = 2
 	self.hit_cooldown = 0
-	self.hit_cooldown_time = 0.2
-	self.gravity = 1000
+	self.hit_cooldown_time = 0.4
 	self.drop_cooldown = 0
 	self.drop_cooldown_time = 0.1
+	self.chase_cooldown = 0
+	self.chase_cooldown_time = 10
+	self.dialogue_timer = 0
+	self.dialogue_time = 0.5
 
 	self:init()
 	return self
 end
 
-function King_Pig:init()
+function KingPig:init()
 	self:loadAnimations()
 	self:setupStates()
 end
 
-function King_Pig:loadAnimations()
+function KingPig:loadAnimations()
 	local sprite_w = 38
 	local sprite_h = 28
 
@@ -71,22 +88,22 @@ function King_Pig:loadAnimations()
 	self.animations.run = Anim8.newAnimation(run_grid("1-6", 1), 0.1)
 
 	self.image_map = {
-		[self.animations.idle] = self.idle_image,
-		[self.animations.run] = self.run_image,
-		[self.animations.jump] = self.jump_image,
+		[self.animations.attack] = self.attack_image,
+		[self.animations.dead] = self.dead_image,
 		[self.animations.fall] = self.fall_image,
 		[self.animations.ground] = self.ground_image,
 		[self.animations.hit] = self.hit_image,
-		[self.animations.dead] = self.dead_image,
+		[self.animations.idle] = self.idle_image,
+		[self.animations.jump] = self.jump_image,
+		[self.animations.run] = self.run_image,
 	}
 
 	-- Set the initial animation to idle
 	self.curr_animation = self.animations.idle
 end
 
-function King_Pig:setupStates()
-	local start_x, start_y = self.x, self.y
-
+-- TODO: add stages and moves
+function KingPig:setupStates()
 	self.state_machine:addState("grounded", {
 		enter = function()
 			self.curr_animation = self.animations.idle
@@ -95,94 +112,48 @@ function King_Pig:setupStates()
 			if self.y_velocity ~= 0 then
 				self.state_machine:setState("airborne")
 			end
+		end,
+	})
 
-			if self.patrol then
-				self.state_machine:setState("grounded.to_target")
+	self.state_machine:addState("grounded.idle", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+		end,
+		update = function(_, dt)
+			local function playerFilter(item)
+				return item.id == "Player"
+			end
+			local range = 20
+			local items, len = self.world:queryRect(
+				self.x + self.direction * self.w * range,
+				self.y,
+				self.w * range,
+				self.h * range,
+				playerFilter
+			)
+
+			if len > 0 then
+				self.state_machine:setState("shocked")
 			end
 		end,
 	})
 
-	if self.patrol then
-		local wait_time = 2
-		local wait_timer = wait_time
-		local target_x, target_y =
-			self.patrol.cx * GRID_SIZE / SCALE + GRID_SIZE / SCALE / SCALE,
-			self.patrol.cy * GRID_SIZE / SCALE + GRID_SIZE / SCALE
+	self.state_machine:addState("shocked", {
+		enter = function()
+			Sfx:play("dialogue.shock")
+			self.dialogue:show("shock")
+			self.shock_timer = 2
+		end,
+		update = function(_, dt)
+			if self.shock_timer >= 0 then
+				self.shock_timer = self.shock_timer - dt
+				return
+			end
 
-		self.state_machine:addState("grounded.to_target", {
-			enter = function()
-				self.curr_animation = self.animations.run
-			end,
-			update = function(_, dt)
-				if self.y_velocity ~= 0 then
-					self.state_machine:setState("airborne")
-				end
-
-				local dx = target_x - self.x
-				local dy = target_y - self.y
-				local distance = math.sqrt(dx * dx + dy * dy)
-
-				if distance < GRID_SIZE then
-					self.state_machine:setState("grounded.at_target")
-				else
-					local goal_x = self.x + (dx / distance) * self.speed * dt
-					local goal_y = self.y + (dy / distance) * self.speed * dt
-					self:move(goal_x, goal_y)
-				end
-			end,
-		})
-
-		self.state_machine:addState("grounded.at_target", {
-			enter = function()
-				self.curr_animation = self.animations.idle
-			end,
-			update = function(_, dt)
-				wait_timer = wait_timer - dt
-
-				if wait_timer <= 0 then
-					wait_timer = wait_time
-					self.state_machine:setState("grounded.to_start")
-				end
-			end,
-		})
-
-		self.state_machine:addState("grounded.to_start", {
-			enter = function()
-				self.curr_animation = self.animations.run
-			end,
-			update = function(_, dt)
-				if self.y_velocity ~= 0 then
-					self.state_machine:setState("airborne")
-				end
-
-				local dx = start_x - self.x
-				local dy = start_y - self.y
-				local distance = math.sqrt(dx * dx + dy * dy)
-
-				if distance < GRID_SIZE then
-					self.state_machine:setState("grounded.at_start")
-				else
-					local move_x = (dx / distance) * self.speed * dt
-					local move_y = (dy / distance) * self.speed * dt
-					self:move(self.x + move_x, self.y + move_y)
-				end
-			end,
-		})
-
-		self.state_machine:addState("grounded.at_start", {
-			enter = function()
-				self.curr_animation = self.animations.idle
-			end,
-			update = function(_, dt)
-				wait_timer = wait_timer - dt
-
-				if wait_timer <= 0 then
-					wait_timer = wait_time
-					self.state_machine:setState("grounded.to_target")
-				end
-			end,
-		})
-	end
+			self.dialogue:hide("shock")
+			self.state_machine:setState("stage_1.at_start")
+		end,
+	})
 
 	self.state_machine:addState("airborne", {
 		enter = function()
@@ -203,14 +174,11 @@ function King_Pig:setupStates()
 			self.curr_animation = self.animations.hit
 			self.hit_cooldown = self.hit_cooldown_time
 			Sfx:play("enemy.hit")
-			self:applyKnockback(self.knock_back_offset)
 		end,
 		update = function(_, dt)
 			if self.hit_cooldown > 0 then
 				self.hit_cooldown = self.hit_cooldown - dt
-			end
-
-			if self.hit_cooldown <= 0 then
+			else
 				self.state_machine:setState("grounded")
 				self.hit_cooldown = self.hit_cooldown_time
 			end
@@ -221,50 +189,64 @@ function King_Pig:setupStates()
 		enter = function()
 			self.curr_animation = self.animations.dead
 			Sfx:play("enemy.dead")
-			self.drop_cooldown = self.drop_cooldown_time
-			self.drop_count = 3
+			self.dialogue:hide("shock")
+			self.drop_timer = 0.2
+			self.drop_interval = 0.2
+			self.dead_timer = 0.2 -- make the body stay for while
+			self.current_drop_index = 1 -- Track which loot we're currently dropping
+			self.world:remove(self)
 		end,
 		update = function(_, dt)
-			if self.drop_count > 0 then
-				if self.drop_cooldown > 0 then
-					self.drop_cooldown = self.drop_cooldown - dt
+			-- wait for death animation to complete
+			self.curr_animation:update(dt)
+
+			if self.props.Loot and self.current_drop_index <= #self.props.Loot then
+				if self.drop_timer > 0 then
+					self.drop_timer = self.drop_timer - dt
 				else
-					local entity = {
-						id = "Coin",
+					local loot = self.props.Loot[self.current_drop_index]
+					local loot_entity = {
+						id = loot,
 						x = self.x + self.w / 2,
 						y = self.y,
 						world = self.world,
 					}
-					local new_coin = Entity.Coin.new(entity)
-					self:dropItem(new_coin, 25)
+					local new_loot = EntityFactory.create(loot_entity)
+					self:dropItem(new_loot, 100)
 
-					self.drop_cooldown = self.drop_cooldown_time
-					self.drop_count = self.drop_count - 1
+					self.current_drop_index = self.current_drop_index + 1
+					self.drop_timer = self.drop_interval -- Reset timer for next drop
 				end
-			else
-				if self.curr_animation and self.curr_animation.status == "paused" then
+			-- remove the entity after all the loots are dropped
+			elseif self.curr_animation.status == "paused" then
+				if self.dead_timer > 0 then
+					self.dead_timer = self.dead_timer - dt
+				else
 					self:removeFromWorld()
-					self.curr_animation = nil
-					return
 				end
 			end
 		end,
 	})
 
 	-- Set default state
-	self.state_machine:setState("grounded")
+	self.state_machine:setState("grounded.idle")
 end
 
--- TODO: improve patrol logic to check if target is reachable
-function King_Pig:isPathTo(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, self.enemyFilter)
-	if self.y == goal_y and len == 0 then
-		return true
+function KingPig:update(dt)
+	if not self.is_active then
+		return
 	end
-	return false
+
+	if not self.state_machine:getState("dead") then
+		self:applyGravity(dt)
+	end
+
+	self.state_machine:update(dt)
+	self.curr_animation:update(dt)
+	self.dialogue:update(dt)
 end
 
-function King_Pig:draw()
+function KingPig:draw()
 	local scale_x = (self.direction == -1) and 1 or -1
 	local offset_x = (self.direction == -1) and 12 or 28
 	local offset_y = 8
@@ -272,11 +254,12 @@ function King_Pig:draw()
 
 	love.graphics.push()
 
-	if self.curr_animation then
+	if self.is_active then
 		self.curr_animation:draw(curr_image, self.x, self.y, 0, scale_x, 1, offset_x, offset_y)
+		self.dialogue:draw("shock", self.x - 8, self.y - self.h)
 	end
 
 	love.graphics.pop()
 end
 
-return King_Pig
+return KingPig

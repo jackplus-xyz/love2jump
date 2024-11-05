@@ -46,8 +46,20 @@
 				"height": 16,
 				"color": 16690740,
 				"customFields": {
-					"max_health": 50,
-					"Enemy": "KingPig"
+					"max_health": 10,
+					"Enemy": "KingPig",
+					"Loot": [
+						"Coin",
+						"Coin",
+						"Coin",
+						"Coin",
+						"Coin",
+						"Coin",
+						"Coin",
+						"Coin",
+						"Coin",
+						"Coin"
+					]
 				}
 			}
 		]

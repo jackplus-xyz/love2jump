@@ -1,3 +1,4 @@
+-- TODO: add boss fight bgm
 local bgm = {}
 
 -- Sound parameters

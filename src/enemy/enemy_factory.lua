@@ -1,6 +1,6 @@
 local enemy_classes = {
 	Pig = require("src.enemy.pig"),
-	King_Pig = require("src.enemy.king_pig"),
+	KingPig = require("src.enemy.king_pig"),
 }
 
 local enemy_factory = {}

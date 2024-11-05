@@ -114,6 +114,50 @@ stateDiagram-v2
     }
 ```
 
+### Boss(King-Pig) States
+
+```mermaid
+stateDiagram-v2
+    [*] --> Grounded.Idle
+    Grounded.Idle --> Shocked: Player enters level
+    Shocked --> Stage1
+
+    state "Stage 1 (Health: 100-75%)" as Stage1 {
+        [*] --> Stage1.AtStart
+        Stage1.AtStart --> Stage1.SummonMinions: Summon 3 pigs
+        Stage1.SummonMinions --> Airborne.ToTarget: All pigs defeated
+        Airborne.ToTarget --> Stage1.AtTarget: Jump down to attack player
+        Stage1.AtTarget --> Stage1.Attack: Chase and attack for 10 secs
+        Stage1.Attack --> Airborne.ToStart: Jump back to platform
+        Airborne.ToStart --> Stage1.AtStart
+    }
+
+    Stage1 --> Stage2: Health drops to 75%
+
+    state "Stage 2 (Health: 75-25%)" as Stage2 {
+        [*] --> Stage2.AtStart
+        Stage2.AtStart --> Stage2.SummonMinions: Summon 3 pigs with bombs
+        Stage2.SummonMinions --> Airborne.ToTarget: All pigs defeated
+        Airborne.ToTarget --> Stage2.AtTarget: Jump down to attack player
+        Stage2.AtTarget --> Stage2.Attack: Chase and attack for 10 secs
+        Stage2.Attack --> Airborne.ToStart: Jump back to platform
+        Airborne.ToStart --> Stage2.AtStart
+    }
+
+    Stage2 --> Stage3: Health drops to 25%
+
+    state "Stage 3 (Health: 25-0%)" as Stage3 {
+        [*] --> Stage3.Rest
+        Stage3.Rest --> Stage3.SummonMinions: Summon 2 pigs with bombs
+        Stage3.SummonMinions --> Stage3.ToTarget: All pigs defeated
+        Stage3.ToTarget --> Stage3.AtTarget: Jump down to attack player
+        Stage3.AtTarget --> Stage3.Attack: Chase and attack
+        Stage3.Attack --> Stage3.Rest: Rest for 3 secs
+    }
+
+    Stage3 --> [*]: Health reaches 0%
+```
+
 ## Checkpoints
 
 ### 09/20/2024
@@ -201,27 +245,28 @@ stateDiagram-v2
 
 #### Added
 
-- [x] Item drops from defeated enemies
-- [x] Enemy chases player behaviors
-- [x] Enemy attack behaviors
-- [x] Enemy shows dialogue before actions
-- [x] Player dead state
-- [x] Gameover Screen
-- [x] Dynamic patrol route adjustments for enemies
+- Item drops from defeated enemies
+- Enemy chases player behaviors
+- Enemy attack behaviors
+- Enemy shows dialogue before actions
+- Player dead state
+- Gameover Screen
+- Dynamic patrol route adjustments for enemies
 
 #### Changed
 
-- [x] Improved enemy patrol to account for unreachable destinations
+- Improved enemy patrol to account for unreachable destinations
 
 #### Fixed
 
-- [x] Resolve door collision issues
-- [x] Adjust hitbox logic for consistent enemy collision handling
+- Resolve door collision issues
+- Adjust hitbox logic for consistent enemy collision handling
 
 ### 11/08/2024
 
 #### Added
 
+- [x] Invisible door for better level flow control
 - [ ] Power-ups and experience points (EXP)
 - [ ] Settings menu for in-game options
 - [ ] Boss fight encounter
