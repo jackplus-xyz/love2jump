@@ -96,7 +96,7 @@ local function onLayer(layer)
 			world:add(collision, collision.x, collision.y, collision.w, collision.h)
 		end
 	end
-	table.insert(layers, layer) -- Addlayer to the table we use to draw
+	table.insert(layers, layer) -- Add layer to the table we use to draw
 end
 
 local function onEntity(entity)
@@ -129,21 +129,17 @@ local function onLevelCreated(level)
 	player:addToWorld(world) -- update the player to new world
 
 	for _, entity in pairs(entities) do
-		-- Set player's new location at the door
-		if entity.id == "Door" then
-			if entity.is_next ~= player.is_next_level then
-				entity:close()
-				-- local goal_x = entity.x + entity.w / 2 - player.w / 2
-				-- local goal_y = entity.y + entity.h - player.h
-				local goal_x = entity.x
-				local goal_y = entity.y
-				player.world:update(player, goal_x, goal_y)
-			end
-		end
-
 		entity.addToWorld = world_helpers.addToWorld
 		entity.removeFromWorld = world_helpers.removeFromWorld
 		entity:addToWorld(world)
+
+		-- Set player's new location at the door
+		if player.next_door and player.next_door.entityIid == entity.iid then
+			entity:close()
+			local goal_x = entity.x + entity.w / 2 - player.w / 2
+			local goal_y = entity.y + entity.h - player.h
+			player.x, player.y = goal_x, goal_y
+		end
 	end
 
 	local window_w = love.graphics.getWidth()
@@ -155,7 +151,7 @@ local function onLevelCreated(level)
 		level.height + window_h / 2 / SCALE
 	)
 
-	love.graphics.setBackgroundColor(LEVEL_BG_COLOR)
+	love.graphics.setBackgroundColor(level.backgroundColor)
 end
 
 --------- Helper Functions  ----------
@@ -215,6 +211,7 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	Ldtk.onLevelLoaded = onLevelLoaded
 	Ldtk.onLevelCreated = onLevelCreated
 
+	-- TODO: add tutorial
 	Ldtk:goTo(default_level_index)
 	if is_load_save then
 		loadGame()
@@ -242,11 +239,8 @@ function screen:openDoor(dt)
 		return
 	else
 		prev_level_index = Ldtk:getCurrent()
-		if player.is_next_level then
-			Ldtk:next()
-		else
-			Ldtk:previous()
-		end
+		local next_level_index = Ldtk.getIndexByIid(player.next_door.levelIid)
+		Ldtk:goTo(next_level_index)
 		player.state_machine:setState("door.close")
 	end
 end
@@ -282,7 +276,9 @@ function screen:Update(dt)
 	player:update(dt)
 
 	for _, entity in ipairs(entities) do
-		entity:update(dt)
+		if not entity.is_invisible then
+			entity:update(dt)
+		end
 	end
 
 	for _, collision in ipairs(collisions) do
@@ -317,7 +313,9 @@ function screen:Draw()
 	end
 
 	for _, entity in ipairs(entities) do
-		entity:draw()
+		if not entity.is_invisible then
+			entity:draw()
+		end
 	end
 
 	player:draw()

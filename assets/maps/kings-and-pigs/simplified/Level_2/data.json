@@ -1,10 +1,10 @@
 {
 	"identifier": "Level_2",
-	"uniqueIdentifer": "af392640-73f0-11ef-9fa8-8f787a0b3a19",
+	"uniqueIdentifer": "b8aad920-4ce0-11ef-abbd-6dcda695e919",
 	"x": -1,
 	"y": -1,
-	"width": 480,
-	"height": 320,
+	"width": 736,
+	"height": 384,
 	"bgColor": "#3F3851",
 	"neighbourLevels": [],
 	"customFields" : {},
@@ -14,19 +14,80 @@
 		"Collision.png"
 	],
 	"entities": {
+		"Pig": [
+			{
+				"id": "Pig",
+				"iid": "7493c8c0-4ce0-11ef-b36d-3db5018ef21c",
+				"layer": "Entities",
+				"x": 536,
+				"y": 320,
+				"width": 16,
+				"height": 16,
+				"color": 4904771,
+				"customFields": {
+					"patrol": {
+						"cx": 20,
+						"cy": 19
+					},
+					"max_health": 3,
+					"Enemy": "Pig",
+					"Loot": [],
+					"atk": 0,
+					"is_visible": true
+				}
+			}
+		],
 		"Door": [
 			{
 				"id": "Door",
-				"iid": "5d4cf400-73f0-11ef-a005-cb4bba577d64",
+				"iid": "b4700550-73f0-11ef-86a8-3579b510015f",
 				"layer": "Entities",
-				"x": 88,
-				"y": 256,
+				"x": 408,
+				"y": 160,
 				"width": 16,
 				"height": 16,
 				"color": 15389866,
 				"customFields": {
-					"isNext": false
+					"next_door": {
+						"entityIid": "68b15dc0-9b00-11ef-95b1-2105d2a3bf9e",
+						"layerIid": "f524cc60-4ce0-11ef-b36d-fb203e774c7d",
+						"levelIid": "b4d85180-4ce0-11ef-bef9-855b2d68e758",
+						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
+					},
+					"is_invisible": false
 				}
+			},
+			{
+				"id": "Door",
+				"iid": "57455fc0-73f0-11ef-a005-f166b9f138a8",
+				"layer": "Entities",
+				"x": 632,
+				"y": 320,
+				"width": 16,
+				"height": 16,
+				"color": 15389866,
+				"customFields": {
+					"next_door": {
+						"entityIid": "5d4cf400-73f0-11ef-a005-cb4bba577d64",
+						"layerIid": "af392641-73f0-11ef-9fa8-c962df80e47d",
+						"levelIid": "af392640-73f0-11ef-9fa8-8f787a0b3a19",
+						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
+					},
+					"is_invisible": false
+				}
+			}
+		],
+		"Coin": [
+			{
+				"id": "Coin",
+				"iid": "58faf030-73f0-11ef-8aaa-63e2bc41a360",
+				"layer": "Entities",
+				"x": 168,
+				"y": 256,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
 			}
 		]
 	}

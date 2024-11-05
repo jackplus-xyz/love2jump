@@ -1,10 +1,10 @@
 {
 	"identifier": "Level_1",
-	"uniqueIdentifer": "b8aad920-4ce0-11ef-abbd-6dcda695e919",
+	"uniqueIdentifer": "b4d85180-4ce0-11ef-bef9-855b2d68e758",
 	"x": -1,
 	"y": -1,
-	"width": 736,
-	"height": 384,
+	"width": 1952,
+	"height": 400,
 	"bgColor": "#3F3851",
 	"neighbourLevels": [],
 	"customFields" : {},
@@ -14,67 +14,169 @@
 		"Collision.png"
 	],
 	"entities": {
-		"Pig": [
-			{
-				"id": "Pig",
-				"iid": "7493c8c0-4ce0-11ef-b36d-3db5018ef21c",
-				"layer": "Entities",
-				"x": 536,
-				"y": 320,
-				"width": 16,
-				"height": 16,
-				"color": 4904771,
-				"customFields": {
-					"patrol": {
-						"cx": 20,
-						"cy": 19
-					},
-					"max_health": 3,
-					"Enemy": "Pig",
-					"Loot": [],
-					"atk": 0
-				}
-			}
-		],
 		"Door": [
 			{
 				"id": "Door",
-				"iid": "b4700550-73f0-11ef-86a8-3579b510015f",
+				"iid": "8014f4b0-73f0-11ef-86a8-51eed0f4b0be",
 				"layer": "Entities",
-				"x": 408,
+				"x": 88,
+				"y": 208,
+				"width": 16,
+				"height": 16,
+				"color": 15389866,
+				"customFields": {
+					"next_door": {
+						"entityIid": "989fcaa0-9b00-11ef-8b05-8788344af658",
+						"layerIid": "104728b1-9b00-11ef-8b05-8749c6bbcb8d",
+						"levelIid": "104728b0-9b00-11ef-8b05-b9844f904db3",
+						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
+					},
+					"is_invisible": true
+				}
+			},
+			{
+				"id": "Door",
+				"iid": "68b15dc0-9b00-11ef-95b1-2105d2a3bf9e",
+				"layer": "Entities",
+				"x": 1848,
 				"y": 160,
 				"width": 16,
 				"height": 16,
 				"color": 15389866,
 				"customFields": {
-					"isNext": false
-				}
-			},
-			{
-				"id": "Door",
-				"iid": "57455fc0-73f0-11ef-a005-f166b9f138a8",
-				"layer": "Entities",
-				"x": 632,
-				"y": 320,
-				"width": 16,
-				"height": 16,
-				"color": 15389866,
-				"customFields": {
-					"isNext": true
+					"next_door": {
+						"entityIid": "b4700550-73f0-11ef-86a8-3579b510015f",
+						"layerIid": "f524f370-4ce0-11ef-b36d-0d0bd4011885",
+						"levelIid": "b8aad920-4ce0-11ef-abbd-6dcda695e919",
+						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
+					},
+					"is_invisible": false
 				}
 			}
 		],
 		"Coin": [
 			{
 				"id": "Coin",
-				"iid": "58faf030-73f0-11ef-8aaa-63e2bc41a360",
+				"iid": "f02ae400-73f0-11ef-86a8-07a581be19b2",
 				"layer": "Entities",
 				"x": 168,
-				"y": 256,
+				"y": 288,
 				"width": 16,
 				"height": 16,
 				"color": 14984818,
 				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "fe56ff60-9b00-11ef-95b1-c3db4df6037b",
+				"layer": "Entities",
+				"x": 552,
+				"y": 224,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "23d047e0-9b00-11ef-966c-d31b9fbc070d",
+				"layer": "Entities",
+				"x": 536,
+				"y": 224,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "26f97450-9b00-11ef-966c-691d004fbeda",
+				"layer": "Entities",
+				"x": 520,
+				"y": 224,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			}
+		],
+		"Pig": [
+			{
+				"id": "Pig",
+				"iid": "0260b050-73f0-11ef-8f65-ab824bb2882e",
+				"layer": "Entities",
+				"x": 664,
+				"y": 352,
+				"width": 16,
+				"height": 16,
+				"color": 4904771,
+				"customFields": {
+					"patrol": {
+						"cx": 48,
+						"cy": 21
+					},
+					"max_health": 3,
+					"Enemy": "Pig",
+					"Loot": [
+						"Coin",
+						"Coin",
+						"Coin",
+						"Coin",
+						"Coin"
+					],
+					"atk": 0,
+					"is_visible": true
+				}
+			},
+			{
+				"id": "Pig",
+				"iid": "50e977a0-73f0-11ef-8aaa-0788a8d4218e",
+				"layer": "Entities",
+				"x": 1016,
+				"y": 352,
+				"width": 16,
+				"height": 16,
+				"color": 4904771,
+				"customFields": {
+					"patrol": {
+						"cx": 52,
+						"cy": 21
+					},
+					"max_health": 3,
+					"Enemy": "Pig",
+					"Loot": [
+						"Coin",
+						"Coin",
+						"Coin"
+					],
+					"atk": 0,
+					"is_visible": true
+				}
+			},
+			{
+				"id": "Pig",
+				"iid": "e29c9880-73f0-11ef-a005-ed37459e42b3",
+				"layer": "Entities",
+				"x": 440,
+				"y": 288,
+				"width": 16,
+				"height": 16,
+				"color": 4904771,
+				"customFields": {
+					"patrol": {
+						"cx": 16,
+						"cy": 17
+					},
+					"max_health": 3,
+					"Enemy": "Pig",
+					"Loot": [
+						"Coin",
+						"Coin",
+						"Coin"
+					],
+					"atk": 1,
+					"is_visible": true
+				}
 			}
 		]
 	}

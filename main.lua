@@ -1,11 +1,6 @@
 -- Constants
 GRID_SIZE = 32
 SCALE = 2
-LEVEL_BG_COLOR = {
-	0.24705882352941,
-	0.21960784313725,
-	0.31764705882353,
-}
 
 -- Global Variables
 IsDebug = false

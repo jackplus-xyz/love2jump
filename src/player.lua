@@ -44,7 +44,6 @@ function Player.new(entity)
 	end
 
 	self.is_player = true
-	self.is_next_level = nil
 	self.hitbox = {}
 
 	self.w = 18
@@ -170,7 +169,7 @@ function Player:setupStates()
 					local other = cols[i].other
 					if other.id == "Door" then
 						self.state_machine:setState("door.open")
-						self.is_next_level = other:open()
+						self.next_door = other:open()
 					end
 				end
 			end
@@ -259,6 +258,7 @@ function Player:setupStates()
 			self.curr_animation = self.animations.door_close
 			self.curr_animation:gotoFrame(1)
 			self.curr_animation:resume()
+			self.world:update(self, self.x, self.y)
 		end,
 		update = function(_, dt)
 			if self.curr_animation.status == "paused" then
@@ -479,6 +479,7 @@ function Player:getState()
 		health = self.health,
 		coins = self.coins,
 		atk = self.atk,
+		next_door = self.next_door,
 	}
 end
 
