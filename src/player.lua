@@ -164,12 +164,15 @@ function Player:setupStates()
 			elseif key == Keymaps.attack and self.attack_cooldown <= 0 then
 				self.state_machine:setState("grounded.attacking")
 			elseif key == Keymaps.up then
-				local _, _, cols, len = self.world:check(self, self.x, self.y, self.playerFilter)
-				for i = 1, len do
-					local other = cols[i].other
-					if other.id == "Door" then
+				local function doorFilter(item)
+					return item.id == "Door"
+				end
+				local items, len = self.world:queryRect(self.x, self.y, self.x + self.w, self.y + self.h, doorFilter)
+				if len > 0 then
+					local item = items[1]
+					if item.is_visible then
 						self.state_machine:setState("door.open")
-						self.next_door = other:open()
+						self.next_door = item:open()
 					end
 				end
 			end

@@ -31,7 +31,7 @@
 						"levelIid": "b8aad920-4ce0-11ef-abbd-6dcda695e919",
 						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
 					},
-					"is_invisible": false
+					"is_visible": true
 				}
 			}
 		]

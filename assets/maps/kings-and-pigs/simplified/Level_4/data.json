@@ -1,0 +1,55 @@
+{
+	"identifier": "Level_4",
+	"uniqueIdentifer": "f6f09a40-9b00-11ef-966c-0d6a52f08851",
+	"x": -1,
+	"y": -1,
+	"width": 464,
+	"height": 352,
+	"bgColor": "#3F3851",
+	"neighbourLevels": [],
+	"customFields" : {},
+	"layers": [
+		"Bg_textures.png",
+		"Decorations.png",
+		"Collision.png"
+	],
+	"entities": {
+		"Door": [
+			{
+				"id": "Door",
+				"iid": "9dac3500-9b00-11ef-966c-8b2b13560d7f",
+				"layer": "Entities",
+				"x": 104,
+				"y": 288,
+				"width": 16,
+				"height": 16,
+				"color": 15389866,
+				"customFields": {
+					"next_door": {
+						"entityIid": "a7d5ad90-9b00-11ef-966c-f3b28113f8ba",
+						"layerIid": "104728b1-9b00-11ef-8b05-8749c6bbcb8d",
+						"levelIid": "104728b0-9b00-11ef-8b05-b9844f904db3",
+						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
+					},
+					"is_visible": false
+				}
+			}
+		],
+		"KingPig": [
+			{
+				"id": "KingPig",
+				"iid": "e34830d0-9b00-11ef-966c-db01a2425cc0",
+				"layer": "Entities",
+				"x": 424,
+				"y": 224,
+				"width": 16,
+				"height": 16,
+				"color": 16690740,
+				"customFields": {
+					"max_health": 50,
+					"Enemy": "KingPig"
+				}
+			}
+		]
+	}
+}

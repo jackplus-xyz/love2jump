@@ -19,7 +19,7 @@ function Door.new(entity)
 	self.y_offset = self.h
 	self.timer = 3
 
-	self.is_invisible = entity.props.is_invisible
+	self.is_visible = entity.props.is_visible
 	self.next_door = entity.props.next_door
 
 	self:init()
@@ -56,7 +56,6 @@ end
 function Door:open()
 	self.curr_animation = self.animations.opening
 	Sfx:play("door.open")
-
 	return self.next_door
 end
 

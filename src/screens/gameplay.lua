@@ -276,7 +276,7 @@ function screen:Update(dt)
 	player:update(dt)
 
 	for _, entity in ipairs(entities) do
-		if not entity.is_invisible then
+		if entity.id ~= "Door" or entity.is_visible then
 			entity:update(dt)
 		end
 	end
@@ -313,7 +313,7 @@ function screen:Draw()
 	end
 
 	for _, entity in ipairs(entities) do
-		if not entity.is_invisible then
+		if entity.id ~= "Door" or entity.is_visible then
 			entity:draw()
 		end
 	end

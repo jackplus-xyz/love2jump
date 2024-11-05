@@ -14,19 +14,6 @@
 		"Collision.png"
 	],
 	"entities": {
-		"Player": [
-			{
-				"id": "Player",
-				"iid": "8ef54610-9b00-11ef-8b05-77a8dbd2f424",
-				"layer": "Entities",
-				"x": 104,
-				"y": 128,
-				"width": 16,
-				"height": 16,
-				"color": 12470831,
-				"customFields" : {}
-			}
-		],
 		"Door": [
 			{
 				"id": "Door",
@@ -44,7 +31,26 @@
 						"levelIid": "b4d85180-4ce0-11ef-bef9-855b2d68e758",
 						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
 					},
-					"is_invisible": false
+					"is_visible": true
+				}
+			},
+			{
+				"id": "Door",
+				"iid": "a7d5ad90-9b00-11ef-966c-f3b28113f8ba",
+				"layer": "Entities",
+				"x": 152,
+				"y": 192,
+				"width": 16,
+				"height": 16,
+				"color": 15389866,
+				"customFields": {
+					"next_door": {
+						"entityIid": "9dac3500-9b00-11ef-966c-8b2b13560d7f",
+						"layerIid": "f6f09a41-9b00-11ef-966c-932d6582939e",
+						"levelIid": "f6f09a40-9b00-11ef-966c-0d6a52f08851",
+						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
+					},
+					"is_visible": true
 				}
 			}
 		],
@@ -69,6 +75,19 @@
 					"atk": 1,
 					"is_visible": true
 				}
+			}
+		],
+		"Player": [
+			{
+				"id": "Player",
+				"iid": "8cb78a10-9b00-11ef-966c-3f08f544f581",
+				"layer": "Entities",
+				"x": 104,
+				"y": 144,
+				"width": 16,
+				"height": 16,
+				"color": 12470831,
+				"customFields" : {}
 			}
 		]
 	}

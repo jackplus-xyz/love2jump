@@ -54,7 +54,7 @@
 						"levelIid": "b4d85180-4ce0-11ef-bef9-855b2d68e758",
 						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
 					},
-					"is_invisible": false
+					"is_visible": true
 				}
 			},
 			{
@@ -73,7 +73,7 @@
 						"levelIid": "af392640-73f0-11ef-9fa8-8f787a0b3a19",
 						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
 					},
-					"is_invisible": false
+					"is_visible": true
 				}
 			}
 		],
