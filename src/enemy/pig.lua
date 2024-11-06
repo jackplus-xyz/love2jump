@@ -289,7 +289,7 @@ function Pig:setupStates()
 		enter = function()
 			self.curr_animation = self.animations.hit
 			self.hit_cooldown = self.hit_cooldown_time
-			Sfx:play("enemy.hit")
+			Sfx:play("pig.hit")
 		end,
 		update = function(_, dt)
 			if self.hit_cooldown > 0 then
@@ -304,7 +304,7 @@ function Pig:setupStates()
 	self.state_machine:addState("dead", {
 		enter = function()
 			self.curr_animation = self.animations.dead
-			Sfx:play("enemy.dead")
+			Sfx:play("pig.dead")
 			self.dialogue:hide("shock")
 			self.drop_timer = 0.2
 			self.drop_interval = 0.2

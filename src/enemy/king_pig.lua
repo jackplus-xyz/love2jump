@@ -141,7 +141,7 @@ function KingPig:setupStates()
 
 	self.state_machine:addState("shocked", {
 		enter = function()
-			Sfx:play("dialogue.shock")
+			Sfx:play("king_pig.shock")
 			self.dialogue:show("shock")
 			self.shock_timer = 1
 		end,
@@ -176,7 +176,7 @@ function KingPig:setupStates()
 
 	self.state_machine:addState("stage_1.summon", {
 		enter = function()
-			Sfx:play("boss.summon")
+			Sfx:play("king_pig.summoning")
 			self.summon_count = 0
 			self.max_summon_count = 3
 			self.summoned = {}
@@ -212,6 +212,7 @@ function KingPig:setupStates()
 					new_enemy.removeFromSummoned = function()
 						self.summoned[summoned_index] = nil
 					end
+					Sfx:play("pig.summoned")
 					self.summon_count = self.summon_count + 1
 				end
 			else
@@ -311,7 +312,7 @@ function KingPig:setupStates()
 		enter = function()
 			self.curr_animation = self.animations.hit
 			self.hit_cooldown = self.hit_cooldown_time
-			Sfx:play("enemy.hit")
+			Sfx:play("pig.hit")
 		end,
 		update = function(_, dt)
 			if self.hit_cooldown > 0 then
@@ -326,7 +327,7 @@ function KingPig:setupStates()
 	self.state_machine:addState("dead", {
 		enter = function()
 			self.curr_animation = self.animations.dead
-			Sfx:play("enemy.dead")
+			Sfx:play("pig.dead")
 			self.dialogue:hide("shock")
 			self.drop_timer = 0.2
 			self.drop_interval = 0.2
