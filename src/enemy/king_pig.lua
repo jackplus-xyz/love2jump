@@ -380,7 +380,7 @@ function KingPig:summon(entity)
 	new_enemy.addToWorld = WorldHelpers.addToWorld
 	new_enemy.removeFromWorld = WorldHelpers.removeFromWorld
 	new_enemy:addToWorld(self.world)
-	new_enemy:setTarget(0, 0)
+	new_enemy:setTarget(self.target.x, self.target.y)
 	new_enemy.state_machine:setState("grounded.to_target")
 	self.addEntityToGame(new_enemy)
 
