@@ -18,14 +18,14 @@ end
 ---Adds a new state to the state machine.
 ---@param name string The name of the state
 ---@param state table The state object containing enter, exit, and update functions
----@param parentState string|nil The name of the parent state, if any
-function StateMachine:addState(name, state, parentState)
+---@param summonerState string|nil The name of the summoner state, if any
+function StateMachine:addState(name, state, summonerState)
 	state.name = name
 	state.children = {}
-	state.parent = self.states[parentState]
+	state.summoner = self.states[summonerState]
 	self.states[name] = state
-	if parentState then
-		table.insert(self.states[parentState].children, state)
+	if summonerState then
+		table.insert(self.states[summonerState].children, state)
 	end
 end
 
@@ -39,11 +39,11 @@ function StateMachine:setState(stateName, ...)
 	local oldState = self.currState
 
 	-- Exit all current states up to the common ancestor
-	while oldState and oldState ~= newState.parent do
+	while oldState and oldState ~= newState.summoner do
 		if oldState.exit then
 			oldState:exit()
 		end
-		oldState = oldState.parent
+		oldState = oldState.summoner
 	end
 
 	-- Enter all new states from the common ancestor
@@ -51,7 +51,7 @@ function StateMachine:setState(stateName, ...)
 	local state = newState
 	while state and state ~= oldState do
 		table.insert(statesToEnter, 1, state)
-		state = state.parent
+		state = state.summoner
 	end
 
 	for _, s in ipairs(statesToEnter) do
@@ -64,7 +64,7 @@ function StateMachine:setState(stateName, ...)
 	self.currState = newState
 end
 
----Updates the current state and all its parent states.
+---Updates the current state and all its summoner states.
 ---@param dt number Delta time since the last update
 function StateMachine:update(dt)
 	local state = self.currState
@@ -72,7 +72,7 @@ function StateMachine:update(dt)
 		if state.update then
 			state:update(dt)
 		end
-		state = state.parent
+		state = state.summoner
 	end
 end
 
@@ -89,14 +89,14 @@ function StateMachine:handleEvent(eventName, ...)
 				return true
 			end
 		end
-		state = state.parent
+		state = state.summoner
 	end
 	return false
 end
 
 ---Gets the current state or checks if the current state matches a given state name.
 ---@param stateName string|nil The name of the state to check (optional)
----@return string|boolean If stateName is nil, returns the name of the current state. If stateName is provided, returns true if it matches the current state (or any parent state), false otherwise.
+---@return string|boolean If stateName is nil, returns the name of the current state. If stateName is provided, returns true if it matches the current state (or any summoner state), false otherwise.
 function StateMachine:getState(stateName)
 	if not stateName then
 		return self.currState.name
@@ -107,7 +107,7 @@ function StateMachine:getState(stateName)
 		if state.name == stateName then
 			return true
 		end
-		state = state.parent
+		state = state.summoner
 	end
 	return false
 end

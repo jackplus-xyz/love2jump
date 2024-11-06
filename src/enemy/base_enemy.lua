@@ -18,7 +18,7 @@ function Enemy.new(entity)
 
 	self.iid = entity.iid
 	self.id = "Enemy"
-	self.type = entity.props.Enemy
+	self.type = entity.props.Enemy or nil
 	self.x = entity.x
 	self.y = entity.y
 	self.max_health = entity.props.max_health

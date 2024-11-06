@@ -1,14 +1,16 @@
 local Anim8 = require("lib.anim8.anim8")
 local Sfx = require("src.sfx")
-local Enemy = require("src.enemy.enemy")
+local BaseEnemy = require("src.enemy.base_enemy")
+local EnemyFactory = require("src.enemy.enemy_factory")
 local EntityFactory = require("src.entity.entity_factory")
+local WorldHelpers = require("src.utils.world_helpers")
 
 local KingPig = {}
 KingPig.__index = KingPig
-setmetatable(KingPig, Enemy)
+setmetatable(KingPig, BaseEnemy)
 
 function KingPig.new(entity)
-	local self = Enemy.new(entity)
+	local self = BaseEnemy.new(entity)
 	setmetatable(self, KingPig)
 
 	self.w = 15
@@ -109,9 +111,7 @@ function KingPig:setupStates()
 			self.curr_animation = self.animations.idle
 		end,
 		update = function(_, dt)
-			if self.y_velocity ~= 0 then
-				self.state_machine:setState("airborne")
-			end
+			self:checkAirborne()
 		end,
 	})
 
@@ -133,6 +133,7 @@ function KingPig:setupStates()
 			)
 
 			if len > 0 then
+				self.target = items[1]
 				self.state_machine:setState("shocked")
 			end
 		end,
@@ -142,7 +143,7 @@ function KingPig:setupStates()
 		enter = function()
 			Sfx:play("dialogue.shock")
 			self.dialogue:show("shock")
-			self.shock_timer = 2
+			self.shock_timer = 1
 		end,
 		update = function(_, dt)
 			if self.shock_timer >= 0 then
@@ -152,6 +153,143 @@ function KingPig:setupStates()
 
 			self.dialogue:hide("shock")
 			self.state_machine:setState("stage_1.at_start")
+		end,
+	})
+
+	self.state_machine:addState("stage_1.at_start", {
+		enter = function()
+			self.move_timer = 2
+		end,
+		update = function(_, dt)
+			if self.health <= self.max_health * 0.75 then
+				self.state_machine:setState("stage_2.at_start")
+			end
+
+			if self.move_timer >= 0 then
+				self.move_timer = self.move_timer - dt
+				return
+			end
+
+			self.state_machine:setState("stage_1.summon")
+		end,
+	})
+
+	self.state_machine:addState("stage_1.summon", {
+		enter = function()
+			Sfx:play("boss.summon")
+			self.summon_count = 0
+			self.max_summon_count = 3
+			self.summoned = {}
+			self.summon_cooldown_time = 1
+			self.summon_cooldown = 0
+		end,
+		update = function(_, dt)
+			if self.summon_cooldown >= 0 then
+				self.summon_cooldown = self.summon_cooldown - dt
+				return
+			end
+
+			self.summon_cooldown = self.summon_cooldown_time
+
+			if self.summon_count < self.max_summon_count then
+				local entity = {
+					iid = nil,
+					id = "Enemy",
+					x = self.x + self.direction * GRID_SIZE * 2 * (self.max_summon_count - self.summon_count + 1),
+					y = self.y,
+					props = {
+						Enemy = "Pig",
+						max_health = 3,
+						atk = 1,
+					},
+				}
+
+				local new_enemy = self:summon(entity)
+				if new_enemy then
+					local summoned_index = self.summon_count + 1
+					new_enemy.summoned_index = summoned_index
+					self.summoned[summoned_index] = new_enemy
+					new_enemy.removeFromSummoned = function()
+						self.summoned[summoned_index] = nil
+					end
+					self.summon_count = self.summon_count + 1
+				end
+			else
+				if #self.summoned == 0 then
+					self.state_machine:setState("stage_1.to_target")
+				end
+			end
+		end,
+	})
+
+	self.state_machine:addState("stage_1.to_target", {
+		enter = function()
+			self.curr_animation = self.animations.run
+		end,
+		update = function(_, dt)
+			local dx = self.target_x - self.x
+			local dy = self.target_y - self.y
+			local distance = math.sqrt(dx * dx + dy * dy)
+
+			if distance < GRID_SIZE then
+				self.state_machine:setState("grounded.at_target")
+			else
+				-- Check if there's obstacle to target
+				local goal_x = self.x + (dx / distance) * self.speed * dt
+				-- TODO: check if self.h is required
+				local goal_y = self.y + (dy / distance) * self.y_velocity * dt
+				local jumpFilter = function(item)
+					return item.id == "Collision"
+				end
+				local items, len = self.world:queryPoint(goal_x, goal_y, jumpFilter)
+
+				-- Encounter an obstacle, check if can jump over it
+				if len > 0 then
+					local max_jump_height = self.jump_strength * self.jump_strength / self.gravity / 2
+					local _, _, _, item_h = self.world:getRect(items[1])
+					if max_jump_height > item_h and self.jump_attempt <= self.max_jump_attempts then
+						self:jump()
+						self.state_machine:setState("airborne.to_target")
+					else
+						self.state_machine:setState("grounded.at_target")
+					end
+				end
+
+				self:move(goal_x, goal_y)
+			end
+		end,
+	})
+
+	self.state_machine:addState("stage_1.at_target", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+		end,
+		update = function(_, dt)
+			if self:isPlayerInAttackRange() then
+				self.state_machine:setState("stage_1.attacking")
+			end
+		end,
+	})
+
+	self.state_machine:addState("grounded.attacking", {
+		enter = function()
+			self:attack()
+			self.attack_cooldown = self.attack_cooldown_time
+		end,
+		update = function(_, dt)
+			self.attack_cooldown = self.attack_cooldown - dt
+
+			if self.hitbox.is_active then
+				self.hitbox:update()
+			end
+
+			if self.curr_animation.status == "paused" then
+				self.curr_animation = self.animations.idle
+			end
+
+			if self.attack_cooldown <= 0 then
+				self.state_machine:setState("stage_1.to_start")
+			end
 		end,
 	})
 
@@ -230,6 +368,22 @@ function KingPig:setupStates()
 
 	-- Set default state
 	self.state_machine:setState("grounded.idle")
+end
+
+function KingPig:summon(entity)
+	local new_enemy = EnemyFactory.create(entity)
+	if not new_enemy then
+		return
+	end
+
+	new_enemy.addToWorld = WorldHelpers.addToWorld
+	new_enemy.removeFromWorld = WorldHelpers.removeFromWorld
+	new_enemy:addToWorld(self.world)
+	new_enemy:setTarget(0, 0)
+	new_enemy.state_machine:setState("grounded.to_target")
+	self.addEntityToGame(new_enemy)
+
+	return new_enemy
 end
 
 function KingPig:update(dt)

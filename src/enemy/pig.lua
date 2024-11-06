@@ -1,14 +1,14 @@
 local Anim8 = require("lib.anim8.anim8")
 local Sfx = require("src.sfx")
-local Enemy = require("src.enemy.enemy")
+local BaseEnemy = require("src.enemy.base_enemy")
 local EntityFactory = require("src.entity.entity_factory")
 
 local Pig = {}
 Pig.__index = Pig
-setmetatable(Pig, Enemy)
+setmetatable(Pig, BaseEnemy)
 
 function Pig.new(entity)
-	local self = Enemy.new(entity)
+	local self = BaseEnemy.new(entity)
 	setmetatable(self, Pig)
 
 	if entity.props then
@@ -311,6 +311,9 @@ function Pig:setupStates()
 			self.dead_timer = 0.2 -- make the body stay for while
 			self.current_drop_index = 1 -- Track which loot we're currently dropping
 			self.world:remove(self)
+			if self.removeFromSummoned then
+				self.removeFromSummoned(self.summoned_index)
+			end
 		end,
 		update = function(_, dt)
 			-- wait for death animation to complete
