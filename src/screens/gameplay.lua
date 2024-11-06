@@ -157,12 +157,6 @@ local function onEntity(entity)
 		player = Player.new(entity)
 	elseif entity.props.Enemy then
 		local new_enemy = EnemyFactory.create(entity)
-		new_enemy.spawnDrop = function(item)
-			item.addToWorld = WorldHelpers.addToWorld
-			item.removeFromWorld = WorldHelpers.removeFromWorld
-			item:addToWorld(world)
-			table.insert(entities, item)
-		end
 		new_enemy.addEntityToGame = addEntityToGame
 		table.insert(entities, new_enemy)
 	elseif entity.id == "Door" then

@@ -1,6 +1,7 @@
 local StateMachine = require("src.utils.state_machine")
 local Dialogue = require("src.utils.dialogue")
 local Sfx = require("src.sfx")
+local WorldHelpers = require("src.utils.world_helpers")
 
 local Enemy = {}
 Enemy.__index = Enemy
@@ -112,7 +113,11 @@ function Enemy:dropItem(item, x_velocity, randomness)
 	randomness = randomness or 1
 	x_velocity = x_velocity or 0
 	x_velocity = math.random(-randomness, randomness) * x_velocity
-	self.spawnDrop(item)
+
+	item.addToWorld = WorldHelpers.addToWorld
+	item.removeFromWorld = WorldHelpers.removeFromWorld
+	item:addToWorld(self.world)
+	self.addEntityToGame(item)
 	item:spawn(x_velocity)
 end
 

@@ -331,7 +331,7 @@ function Pig:setupStates()
 						world = self.world,
 					}
 					local new_loot = EntityFactory.create(loot_entity)
-					self:dropItem(new_loot, 100)
+					self:dropItem(new_loot, self.speed)
 
 					self.current_drop_index = self.current_drop_index + 1
 					self.drop_timer = self.drop_interval -- Reset timer for next drop
