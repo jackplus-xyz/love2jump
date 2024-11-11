@@ -11,6 +11,7 @@ Player.__index = Player
 -- types: "touch" | "cross" | "slide" | "bounce" | nil
 local collision_types = {
 	Coin = "cross",
+	Bomb = "slide",
 	Door = "cross",
 	Enemy = "slide",
 	Collision = "slide",

@@ -165,6 +165,9 @@ local function onEntity(entity)
 	elseif entity.id == "Coin" then
 		local new_coin = Entity.Coin.new(entity)
 		table.insert(entities, new_coin)
+	elseif entity.id == "Bomb" then
+		local new_bomb = Entity.Bomb.new(entity)
+		table.insert(entities, new_bomb)
 	end
 end
 

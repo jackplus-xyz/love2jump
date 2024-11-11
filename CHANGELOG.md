@@ -266,14 +266,28 @@ stateDiagram-v2
 
 #### Added
 
-- [x] Invisible door for better level flow control
-- [ ] Power-ups and experience points (EXP)
-- [ ] Settings menu for in-game options
-- [ ] Boss fight encounter
+- Invisible door for better level flow control
+- Boss fight encounter
+- Boss moves: summon minions
+- Bomb
 
 #### Changed
 
-- [ ] Enemy can jump when it needs to
-- [ ] Enhanced tile rendering logic for better layout flexibility
+- Enemy can jump when it needs to
+
+### 11/15/2024
+
+#### Added
+
+Invisible door for better level flow control
+Boss fight encounter
+Boss moves: summon minions
+
+- [ ] Power-ups and experience points (EXP)
+- [ ] Settings menu for in-game options
+
+#### Changed
+
+- [ ] Enhanced tileset rules
 
 #### Fixed

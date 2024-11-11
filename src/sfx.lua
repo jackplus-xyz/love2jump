@@ -154,6 +154,24 @@ local soundEffects = {
 			return generateSine(t, freq) * (1 - t / duration) * 0.4
 		end,
 	},
+	-- Bomb
+	["bomb.on"] = {
+		duration = 0.6,
+		generate = function(t, duration)
+			local freq = 300 + 200 * math.sin(t * 8)
+			local pulse = 0.5 + 0.5 * math.sin(t * 15) -- Creates a pulsing sound as the bomb is armed
+			return (generateTriangle(t, freq) + generateNoise() * 0.2) * pulse * (1 - t / duration) * 0.7
+		end,
+	},
+	["bomb.explode"] = {
+		duration = 0.8,
+		generate = function(t, duration)
+			local baseFreq = 100 + 500 * (1 - t / duration)
+			local rumble = generateNoise() * (1 - t / duration) * 0.6
+			local blast = generateSquare(t, baseFreq) * math.max(0, 1 - t / 0.3) -- Sharp initial blast
+			return (blast + rumble) * 0.8
+		end,
+	},
 
 	-- Enemy
 	-- Pig
