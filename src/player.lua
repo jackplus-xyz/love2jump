@@ -223,9 +223,6 @@ function Player:setupStates()
 
 	self.state_machine:addState("airborne.attacking", {
 		enter = function()
-			self.curr_animation = self.animations.attack
-			self.curr_animation:gotoFrame(1)
-			self.curr_animation:resume()
 			self:attack()
 			Sfx:play("player.attack")
 		end,

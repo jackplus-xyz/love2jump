@@ -235,8 +235,9 @@ function Enemy:removeHitbox()
 end
 
 function Enemy:attack()
-	Sfx:play("pig.attack")
 	self.curr_animation = self.animations.attack
+	self.curr_animation:gotoFrame(1)
+	self.curr_animation:resume()
 	self:addHitboxToWorld()
 end
 

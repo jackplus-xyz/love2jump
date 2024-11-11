@@ -126,6 +126,7 @@ function Pig:setupStates()
 
 	self.state_machine:addState("grounded.attacking", {
 		enter = function()
+			Sfx:play("pig.attack")
 			self:attack()
 			self.attack_cooldown = self.attack_cooldown_time
 		end,

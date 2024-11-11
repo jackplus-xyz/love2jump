@@ -124,7 +124,7 @@
 						"Coin",
 						"Coin"
 					],
-					"atk": 0,
+					"atk": 1,
 					"is_visible": true
 				}
 			},
@@ -149,7 +149,7 @@
 						"Coin",
 						"Coin"
 					],
-					"atk": 0,
+					"atk": 1,
 					"is_visible": true
 				}
 			},

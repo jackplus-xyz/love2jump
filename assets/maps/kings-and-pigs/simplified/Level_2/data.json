@@ -32,7 +32,7 @@
 					"max_health": 3,
 					"Enemy": "Pig",
 					"Loot": [],
-					"atk": 0,
+					"atk": 1,
 					"is_visible": true
 				}
 			}

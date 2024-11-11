@@ -33,6 +33,8 @@ function KingPig.new(entity)
 	self.hitbox_h = 10
 
 	-- Timers
+	self.chase_timer = 0
+	self.chase_time = 3
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
 	self.attack_cooldown = 0
@@ -222,7 +224,7 @@ function KingPig:setupStates()
 			else
 				-- Chase and attack player after all summmonings died
 				if #self.summoned == 0 then
-					self.chase_timer = 10
+					self.chase_timer = self.chase_time
 					self.state_machine:setState("stage_1.set_target")
 				end
 			end
@@ -231,7 +233,7 @@ function KingPig:setupStates()
 
 	self.state_machine:addState("stage_1.set_target", {
 		enter = function()
-			self:setTarget(self.target.x, self.target.y)
+			self:setTarget(self.target.x, self.target.y + self.target.h - self.h)
 		end,
 		update = function(_, dt)
 			if self.chase_timer >= 0 then
@@ -263,14 +265,18 @@ function KingPig:setupStates()
 		update = function(_, dt)
 			self.chase_timer = self.chase_timer - dt
 
-			if self:isPlayerInAttackRange() then
-				self.attackCallback = function()
-					self.state_machine:setState("stage_1.set_target")
-				end
-				self.state_machine:setState("grounded.attacking")
-			else
+			local function attackCallback()
 				self.state_machine:setState("stage_1.set_target")
 			end
+
+			local function hitCallback()
+				self.state_machine:setState("stage_1.set_target")
+			end
+
+			self.attackCallback = attackCallback
+			self.hitCallback = hitCallback
+
+			self.state_machine:setState("grounded.attacking")
 		end,
 	})
 
@@ -290,7 +296,9 @@ function KingPig:setupStates()
 				self.curr_animation = self.animations.idle
 			end
 
-			self:attackCallback()
+			if self.attack_cooldown <= 0 then
+				self:attackCallback()
+			end
 		end,
 	})
 
@@ -313,14 +321,14 @@ function KingPig:setupStates()
 		enter = function()
 			self.curr_animation = self.animations.hit
 			self.hit_cooldown = self.hit_cooldown_time
-			Sfx:play("pig.hit")
+			Sfx:play("king_pig.hit")
 		end,
 		update = function(_, dt)
 			if self.hit_cooldown > 0 then
 				self.hit_cooldown = self.hit_cooldown - dt
 			else
-				self.state_machine:setState("grounded")
 				self.hit_cooldown = self.hit_cooldown_time
+				self:hitCallback()
 			end
 		end,
 	})
@@ -378,7 +386,6 @@ function KingPig:chaseTarget(dt, atTarget)
 	local distance = math.sqrt(dx * dx + dy * dy)
 	atTarget = atTarget or function() end
 
-	print(distance)
 	if distance < GRID_SIZE then
 		atTarget()
 	else
