@@ -189,9 +189,8 @@ function Enemy:isPlayerInAttackRange()
 end
 
 function Enemy:setTarget(target_x, target_y)
-	self.target_x = target_x or self.target_x
-	self.target_y = target_y or self.target_y
 	target_x = target_x or self.target_x
+	target_y = target_y or self.target_y
 	self.target_x, self.target_y = target_x, target_y
 end
 

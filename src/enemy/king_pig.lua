@@ -151,6 +151,7 @@ function KingPig:setupStates()
 				return
 			end
 
+			-- FIXME: hide the dialogue
 			self.dialogue:hide("shock")
 			self.state_machine:setState("stage_1.at_start")
 		end,
@@ -177,7 +178,7 @@ function KingPig:setupStates()
 	self.state_machine:addState("stage_1.summon", {
 		enter = function()
 			Sfx:play("king_pig.summoning")
-			self.summon_count = 0
+			self.summon_count = 1
 			self.max_summon_count = 3
 			self.summoned = {}
 			self.summon_cooldown_time = 1
@@ -191,7 +192,7 @@ function KingPig:setupStates()
 
 			self.summon_cooldown = self.summon_cooldown_time
 
-			if self.summon_count < self.max_summon_count then
+			if self.summon_count <= self.max_summon_count then
 				local entity = {
 					iid = nil,
 					id = "Enemy",
@@ -206,19 +207,37 @@ function KingPig:setupStates()
 
 				local new_enemy = self:summon(entity)
 				if new_enemy then
-					local summoned_index = self.summon_count + 1
-					new_enemy.summoned_index = summoned_index
-					self.summoned[summoned_index] = new_enemy
+					table.insert(self.summoned, new_enemy)
 					new_enemy.removeFromSummoned = function()
-						self.summoned[summoned_index] = nil
+						for i, enemy in ipairs(self.summoned) do
+							if enemy == new_enemy then
+								table.remove(self.summoned, i)
+								break
+							end
+						end
 					end
 					Sfx:play("pig.summoned")
 					self.summon_count = self.summon_count + 1
 				end
 			else
+				-- Chase and attack player after all summmonings died
 				if #self.summoned == 0 then
-					self.state_machine:setState("stage_1.to_target")
+					self.chase_timer = 10
+					self.state_machine:setState("stage_1.set_target")
 				end
+			end
+		end,
+	})
+
+	self.state_machine:addState("stage_1.set_target", {
+		enter = function()
+			self:setTarget(self.target.x, self.target.y)
+		end,
+		update = function(_, dt)
+			if self.chase_timer >= 0 then
+				self.state_machine:setState("stage_1.to_target")
+			else
+				self.state_machine:setState("stage_1.to_start")
 			end
 		end,
 	})
@@ -226,38 +245,14 @@ function KingPig:setupStates()
 	self.state_machine:addState("stage_1.to_target", {
 		enter = function()
 			self.curr_animation = self.animations.run
+			self:setTarget(self.target.x, self.target.y)
 		end,
 		update = function(_, dt)
-			local dx = self.target_x - self.x
-			local dy = self.target_y - self.y
-			local distance = math.sqrt(dx * dx + dy * dy)
+			self.chase_timer = self.chase_timer - dt
 
-			if distance < GRID_SIZE then
-				self.state_machine:setState("grounded.at_target")
-			else
-				-- Check if there's obstacle to target
-				local goal_x = self.x + (dx / distance) * self.speed * dt
-				-- TODO: check if self.h is required
-				local goal_y = self.y + (dy / distance) * self.y_velocity * dt
-				local jumpFilter = function(item)
-					return item.id == "Collision"
-				end
-				local items, len = self.world:queryPoint(goal_x, goal_y, jumpFilter)
-
-				-- Encounter an obstacle, check if can jump over it
-				if len > 0 then
-					local max_jump_height = self.jump_strength * self.jump_strength / self.gravity / 2
-					local _, _, _, item_h = self.world:getRect(items[1])
-					if max_jump_height > item_h and self.jump_attempt <= self.max_jump_attempts then
-						self:jump()
-						self.state_machine:setState("airborne.to_target")
-					else
-						self.state_machine:setState("grounded.at_target")
-					end
-				end
-
-				self:move(goal_x, goal_y)
-			end
+			self:chaseTarget(dt, function()
+				self.state_machine:setState("stage_1.at_target")
+			end)
 		end,
 	})
 
@@ -266,8 +261,15 @@ function KingPig:setupStates()
 			self.curr_animation = self.animations.idle
 		end,
 		update = function(_, dt)
+			self.chase_timer = self.chase_timer - dt
+
 			if self:isPlayerInAttackRange() then
-				self.state_machine:setState("stage_1.attacking")
+				self.attackCallback = function()
+					self.state_machine:setState("stage_1.set_target")
+				end
+				self.state_machine:setState("grounded.attacking")
+			else
+				self.state_machine:setState("stage_1.set_target")
 			end
 		end,
 	})
@@ -288,9 +290,7 @@ function KingPig:setupStates()
 				self.curr_animation = self.animations.idle
 			end
 
-			if self.attack_cooldown <= 0 then
-				self.state_machine:setState("stage_1.to_start")
-			end
+			self:attackCallback()
 		end,
 	})
 
@@ -308,6 +308,7 @@ function KingPig:setupStates()
 		end,
 	})
 
+	-- TODO: add healthbar?
 	self.state_machine:addState("hit", {
 		enter = function()
 			self.curr_animation = self.animations.hit
@@ -371,6 +372,22 @@ function KingPig:setupStates()
 	self.state_machine:setState("grounded.idle")
 end
 
+function KingPig:chaseTarget(dt, atTarget)
+	local dx = self.target_x - self.x
+	local dy = self.target_y - self.y
+	local distance = math.sqrt(dx * dx + dy * dy)
+	atTarget = atTarget or function() end
+
+	print(distance)
+	if distance < GRID_SIZE then
+		atTarget()
+	else
+		local goal_x = self.x + (dx / distance) * self.speed * dt
+		local goal_y = self.y + (dy / distance) * self.y_velocity * dt
+		self:move(goal_x, goal_y)
+	end
+end
+
 function KingPig:summon(entity)
 	local new_enemy = EnemyFactory.create(entity)
 	if not new_enemy then
@@ -388,6 +405,9 @@ function KingPig:summon(entity)
 end
 
 function KingPig:update(dt)
+	print("----------")
+	print(self.state_machine:getState())
+
 	if not self.is_active then
 		return
 	end

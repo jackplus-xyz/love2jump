@@ -89,6 +89,19 @@
 				"color": 12470831,
 				"customFields" : {}
 			}
+		],
+		"Bomb": [
+			{
+				"id": "Bomb",
+				"iid": "c378d090-9b00-11ef-83d9-73df478c8490",
+				"layer": "Entities",
+				"x": 216,
+				"y": 192,
+				"width": 16,
+				"height": 16,
+				"color": 14120515,
+				"customFields" : {}
+			}
 		]
 	}
 }

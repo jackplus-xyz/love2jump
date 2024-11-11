@@ -142,6 +142,7 @@ local function onLayer(layer)
 				w = GRID_SIZE,
 				h = GRID_SIZE,
 			}
+			-- FIXME: first level x_offset of GRID_SIZE / 2
 			world:add(collision, collision.x, collision.y, collision.w, collision.h)
 		end
 	end
