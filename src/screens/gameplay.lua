@@ -262,7 +262,6 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	CameraManager.setScale(SCALE)
 	CameraManager.setDeadzone(-GRID_SIZE, -GRID_SIZE, GRID_SIZE, GRID_SIZE)
 	CameraManager.setLerp(0.01)
-	CameraManager.setCoords(player.x + player.w / SCALE, player.y - player.h * SCALE)
 
 	-- TODO: add fade in to bgm
 	Bgm:play()
@@ -299,7 +298,7 @@ function screen:Update(dt)
 		return
 	end
 
-	CameraManager.setTarget(player.x + player.w / 2, player.y + player.h / 2)
+	CameraManager.setTarget(player.x + player.w / SCALE, player.y - player.h * SCALE)
 	CameraManager.update(dt)
 
 	if IsDebug then
