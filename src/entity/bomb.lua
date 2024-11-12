@@ -79,7 +79,7 @@ function Bomb:explode()
 	local items, len = self.world:queryRect(self.x, self.y, self.x + self.w, self.y + self.h, bombFilter)
 	if len > 0 then
 		for _, item in ipairs(items) do
-			item:hit(self.atk)
+			item:hit(self)
 		end
 	end
 

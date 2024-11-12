@@ -54,9 +54,9 @@ function Enemy:applyKnockback(x_offset, hitbox_direction)
 	self.direction = hitbox_direction
 end
 
-function Enemy:hit(player)
-	self.health = self.health - player.atk
-	local hitbox_direction = player.x > self.x and 1 or -1
+function Enemy:hit(other)
+	self.health = self.health - other.atk
+	local hitbox_direction = other.x > self.x and 1 or -1
 	self:applyKnockback(self.knock_back_offset, hitbox_direction)
 	if self.health <= 0 then
 		self.state_machine:setState("dead")

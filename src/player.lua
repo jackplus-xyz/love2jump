@@ -452,8 +452,8 @@ function Player:applyKnockback(x_offset)
 	self.direction = hitbox_direction
 end
 
-function Player:hit(atk)
-	self.health = self.health - atk
+function Player:hit(other)
+	self.health = self.health - other.atk
 	if self.health <= 0 then
 		self.state_machine:setState("dead")
 		self:applyKnockback(self.knock_back_offset)
