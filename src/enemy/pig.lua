@@ -164,20 +164,12 @@ function Pig:setupStates()
 			if distance < GRID_SIZE then
 				self.state_machine:setState("grounded.at_target")
 			else
-				-- Check if there's obstacle to target
-				local goal_x = self.x + (dx / distance) * self.speed * dt
-				-- TODO: check if self.h is required
-				local goal_y = self.y + (dy / distance) * self.y_velocity * dt
-				local jumpFilter = function(item)
-					return item.id == "Collision"
-				end
-				local items, len = self.world:queryPoint(goal_x, goal_y, jumpFilter)
+				local goal, item = self:isObstacle(dt, dx, dy, distance)
 
 				-- Encounter an obstacle, check if can jump over it
-				if len > 0 then
+				if goal then
 					local max_jump_height = self.jump_strength * self.jump_strength / self.gravity / 2
-					local _, _, _, item_h = self.world:getRect(items[1])
-					if max_jump_height > item_h and self.jump_attempt <= self.max_jump_attempts then
+					if max_jump_height > goal.item_h and self.jump_attempt <= self.max_jump_attempts then
 						self:jump()
 						self.state_machine:setState("airborne.to_target")
 					else
@@ -185,7 +177,7 @@ function Pig:setupStates()
 					end
 				end
 
-				self:move(goal_x, goal_y)
+				self:move(goal.x, goal.y)
 			end
 		end,
 	})
@@ -357,31 +349,29 @@ function Pig:update(dt)
 		return
 	end
 
-	-- Update target if player is spotted
-	if self.chase_cooldown > 0 then
-		self.chase_cooldown = self.chase_cooldown - dt
-		self.dialogue_timer = self.dialogue_timer - dt
-		if self.dialogue_timer <= 0 then
-			self.dialogue:hide("shock")
-		end
-	else
-		local player_last_known_point = self:isPlayerInSight(8, self.w * 8)
-		if player_last_known_point then
-			if self:isPathTo(player_last_known_point.x, player_last_known_point.y, dt) then
-				self:setTarget(player_last_known_point.x, player_last_known_point.y)
-				self.dialogue:show("shock")
-				Sfx:play("dialogue.shock")
-				self.dialogue_timer = self.dialogue_time
-				self.chase_cooldown = self.chase_cooldown_time
-				self.state_machine:setState("grounded.to_target")
+	if not self.state_machine:getState("dead") then
+		-- Update target if player is spotted
+		if self.chase_cooldown > 0 then
+			self.chase_cooldown = self.chase_cooldown - dt
+			self.dialogue_timer = self.dialogue_timer - dt
+			if self.dialogue_timer <= 0 then
+				self.dialogue:hide("shock")
+			end
+		else
+			local player_last_known_point = self:isPlayerInSight(8, self.w * 8)
+			if player_last_known_point then
+				if self:isPathTo(player_last_known_point.x, player_last_known_point.y, dt) then
+					self:setTarget(player_last_known_point.x, player_last_known_point.y)
+					self.dialogue:show("shock")
+					Sfx:play("dialogue.shock")
+					self.dialogue_timer = self.dialogue_time
+					self.chase_cooldown = self.chase_cooldown_time
+					self.state_machine:setState("grounded.to_target")
+				end
 			end
 		end
-	end
-
-	if not self.state_machine:getState("dead") then
 		self:applyGravity(dt)
 	end
-
 	self.state_machine:update(dt)
 	self.curr_animation:update(dt)
 	self.dialogue:update(dt)

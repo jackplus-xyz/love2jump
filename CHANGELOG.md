@@ -279,9 +279,10 @@ stateDiagram-v2
 
 #### Added
 
-Invisible door for better level flow control
-Boss fight encounter
-Boss moves: summon minions
+- Invisible door for better level flow control
+- Boss fight encounter
+- Boss moves: summon minions
+- Boss Stage 1 cycle
 
 - [ ] Power-ups and experience points (EXP)
 - [ ] Settings menu for in-game options

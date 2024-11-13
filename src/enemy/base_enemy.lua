@@ -1,7 +1,26 @@
 local StateMachine = require("src.utils.state_machine")
 local Dialogue = require("src.utils.dialogue")
-local Sfx = require("src.sfx")
 local WorldHelpers = require("src.utils.world_helpers")
+
+local COLLISION_TYPES = {
+	Coin = "cross",
+	Door = "cross",
+	Enemy = "slide",
+	Player = "slide",
+	Collision = "slide",
+}
+
+local ENTITY_TYPES = {
+	Player = "Player",
+	Enemy = "Enemy",
+	Collision = "Collision",
+	Hitbox = "Hitbox",
+}
+
+local DIRECTION = {
+	LEFT = -1,
+	RIGHT = 1,
+}
 
 local Enemy = {}
 Enemy.__index = Enemy
@@ -25,7 +44,7 @@ function Enemy.new(entity)
 	self.max_health = entity.props.max_health
 	self.health = self.max_health
 	self.atk = entity.props.atk
-	self.direction = math.random(-1, 1) <= 0 and 1 or -1
+	self.direction = math.random(-1, 1) <= 0 and DIRECTION.RIGHT or DIRECTION.LEFT
 
 	self.is_active = true
 
@@ -109,6 +128,10 @@ function Enemy:setAirborneAnimation()
 	self.curr_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
 end
 
+--- Drop an item with optional velocity and randomness.
+---@param item table: The item to drop.
+---@param x_velocity number: The x velocity of the item (optional).
+---@param randomness number: The randomness factor (optional).
 function Enemy:dropItem(item, x_velocity, randomness)
 	randomness = randomness or 1
 	x_velocity = x_velocity or 0
@@ -146,6 +169,11 @@ function Enemy:isPlayerInSight(offset_y, range)
 	end
 end
 
+--- Check if there is a path to the target coordinates.
+---@param target_x number: The target x coordinate.
+---@param target_y number: The target y coordinate.
+---@param dt number: Delta time.
+---@return boolean: True if there is a path, otherwise false.
 function Enemy:isPathTo(target_x, target_y, dt)
 	local max_jump_height = self.jump_strength * self.jump_strength / self.gravity / 2
 	local start_x = self.direction > 0 and self.x + self.w or self.x
@@ -177,13 +205,9 @@ function Enemy:isPlayerInAttackRange()
 		return item.id == "Player"
 	end
 
-	local items, len = self.world:querySegment(
-		self.direction > 0 and self.x + self.w or self.x - self.hitbox_w,
-		self.y,
-		self.hitbox_w,
-		self.hitbox_h,
-		playerFilter
-	)
+	local hitbox_x = (self.direction == DIRECTION.LEFT) and self.x - self.hitbox_w or self.x + self.w
+
+	local items, len = self.world:querySegment(hitbox_x, self.y, self.hitbox_w, self.hitbox_h, playerFilter)
 
 	return len > 0
 end
@@ -207,8 +231,8 @@ function Enemy:addHitboxToWorld(hitboxFilter)
 		local _, _, cols, len = self.world:check(self.hitbox, self.hitbox.x, self.hitbox.y, hitboxFilter)
 		for i = 1, len do
 			local other = cols[i].other
-			if other.id == "Player" and self.hitbox.is_active then
-				other:hit(self.atk)
+			if other.id == ENTITY_TYPES.Player and self.hitbox.is_active then
+				other:hit(self)
 				self.hitbox.is_active = false
 				break
 			end
@@ -244,6 +268,53 @@ end
 function Enemy:jump()
 	self.y_velocity = self.jump_strength
 	self.jump_cooldown = self.jump_cooldown_time
+end
+
+-- Check if the target can be reached by one jump
+-- Check if the target can be reached by one jump
+function Enemy:canJumpToTarget(target_x, target_y)
+	target_x = target_x or self.target_x
+	target_y = target_y or self.target_y
+
+	local dx = target_x - self.x
+
+	-- Calculate the time to reach the target horizontally
+	local t = math.abs(dx) / self.speed
+
+	if t > math.abs(2 * self.jump_strength / self.gravity) then
+		return false
+	end
+
+	-- Calculate the vertical distance to the target
+	local dy = target_y - self.y
+
+	local max_jump_height = (self.jump_strength * self.jump_strength) / (2 * self.gravity)
+
+	return math.abs(dy) <= max_jump_height
+end
+
+--- Check if there is an obstacle in the path.
+---@param dt number: Delta time.
+---@param dx number: The x distance to check.
+---@param dy number: The y distance to check.
+---@param distance number: The total distance to check.
+---@return table|nil: The obstacle coordinates and height if found, otherwise nil.
+function Enemy:isObstacle(dt, dx, dy, distance)
+	local goal_x = self.x + (dx / distance) * self.speed * dt
+	-- TODO: check if self.h is required
+	local goal_y = self.y + (dy / distance) * self.y_velocity * dt
+	local jumpFilter = function(item)
+		return item.id == "Collision"
+	end
+	local items, len = self.world:queryPoint(goal_x + dx > 0 and self.w or 0, goal_y, jumpFilter)
+
+	if len == 0 then
+		return nil
+	end
+
+	local _, _, _, item_h = self.world:getRect(items[1])
+
+	return { x = goal_x, y = goal_y, item_h = item_h }
 end
 
 function Enemy:update(dt)

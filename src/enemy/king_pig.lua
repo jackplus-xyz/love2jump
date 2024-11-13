@@ -26,13 +26,15 @@ function KingPig.new(entity)
 	self.speed = 100
 	self.y_velocity = 0
 	self.gravity = 1000
-	self.jump_strength = -320
+	self.jump_strength = -500
 	self.jump_attempt = 1
 	self.max_jump_attempts = 1
 	self.hitbox_w = 12
 	self.hitbox_h = 10
 
 	-- Timers
+	self.move_timer = 0
+	self.move_time = 3
 	self.chase_timer = 0
 	self.chase_time = 3
 	self.jump_cooldown = 0
@@ -161,7 +163,9 @@ function KingPig:setupStates()
 
 	self.state_machine:addState("stage_1.at_start", {
 		enter = function()
-			self.move_timer = 2
+			self.curr_animation = self.animations.idle
+			self.direction = -1
+			self.move_timer = self.move_time
 		end,
 		update = function(_, dt)
 			if self.health <= self.max_health * 0.75 then
@@ -233,9 +237,25 @@ function KingPig:setupStates()
 
 	self.state_machine:addState("stage_1.set_target", {
 		enter = function()
-			self:setTarget(self.target.x, self.target.y + self.target.h - self.h)
+			self:setTarget(
+				self.target.x,
+				-- Use the player y if the player is lower then self
+				self.target.y + self.target.h >= self.y + self.h and self.target.y + self.target.h - self.h
+					or self.y
+			)
 		end,
 		update = function(_, dt)
+			local function attackCallback()
+				self.state_machine:setState("stage_1.set_target")
+			end
+
+			local function hitCallback()
+				self.state_machine:setState("stage_1.set_target")
+			end
+
+			self.attackCallback = attackCallback
+			self.hitCallback = hitCallback
+
 			if self.chase_timer >= 0 then
 				self.state_machine:setState("stage_1.to_target")
 			else
@@ -265,18 +285,32 @@ function KingPig:setupStates()
 		update = function(_, dt)
 			self.chase_timer = self.chase_timer - dt
 
-			local function attackCallback()
-				self.state_machine:setState("stage_1.set_target")
-			end
-
-			local function hitCallback()
-				self.state_machine:setState("stage_1.set_target")
-			end
-
-			self.attackCallback = attackCallback
-			self.hitCallback = hitCallback
-
 			self.state_machine:setState("grounded.attacking")
+		end,
+	})
+
+	self.state_machine:addState("stage_1.to_start", {
+		enter = function()
+			self.curr_animation = self.animations.run
+		end,
+		update = function(_, dt)
+			local dx = self.start_x - self.x
+			local dy = self.start_y - self.y
+			local distance = math.sqrt(dx * dx + dy * dy)
+
+			if distance < GRID_SIZE then
+				self.curr_animation = self.animations.ground
+				self.state_machine:setState("stage_1.at_start")
+			else
+				self.direction = dx > 0 and 1 or -1
+				if self:canJumpToTarget() then
+					self:jump()
+					self.state_machine:setState("airborne.to_start")
+				else
+					local goal_x = self.x + self.speed * self.direction * dt
+					self:move(goal_x, self.y)
+				end
+			end
 		end,
 	})
 
@@ -312,6 +346,32 @@ function KingPig:setupStates()
 			if self.y_velocity == 0 then
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState(self.state_machine.prevState.name)
+			end
+		end,
+	})
+
+	self.state_machine:addState("airborne.to_start", {
+		enter = function()
+			self:setAirborneAnimation()
+		end,
+		update = function(_, dt)
+			self:setAirborneAnimation()
+
+			local dx = self.start_x - self.x
+			local dy = self.start_y - self.y
+			local distance = math.sqrt(dx * dx + dy * dy)
+
+			if self.y_velocity == 0 then
+				self.curr_animation = self.animations.ground
+				if distance < GRID_SIZE then
+					self.curr_animation = self.animations.ground
+					self.state_machine:setState("stage_1.at_start")
+				else
+					self.state_machine:setState(self.state_machine.prevState.name)
+				end
+			else
+				local goal_x = self.x + self.speed * self.direction * dt
+				self:move(goal_x, self.y)
 			end
 		end,
 	})
