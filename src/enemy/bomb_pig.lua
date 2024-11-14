@@ -93,13 +93,18 @@ function BombPig:loadBombAnimations()
 end
 
 function BombPig:setupStates()
-	self.state_machine:addState("grounded.bomb", {
+	self.state_machine:addState("grounded.idle.bomb", {
 		enter = function()
 			self.curr_animation = self.animations.idle_bomb
 		end,
 		update = function(_, dt)
-			if self:isPlayerInSight() then
-				self.state_machine:setState("grounded.shocked.bomb")
+			-- Update target if player is spotted
+			local player_last_known_point = self:isPlayerInSight(8, self.w * 8)
+			if player_last_known_point then
+				if self:isPathTo(player_last_known_point.x, player_last_known_point.y, dt) then
+					self:setTarget(player_last_known_point.x, player_last_known_point.y)
+					self.state_machine:setState("grounded.shocked.bomb")
+				end
 			end
 		end,
 	})
@@ -109,51 +114,13 @@ function BombPig:setupStates()
 			-- TODO: add shock Dialogue
 			self.curr_animation = self.animations.idle_bomb
 			self.shock_timer = 1
+			self.dialogue:show("shock")
+			Sfx:play("dialogue.shock")
+			self.dialogue_timer = self.dialogue_time
 		end,
 		update = function(_, dt)
 			self.shock_timer = self.shock_timer - dt
 			if self.shock_timer <= 0 then
-				self.state_machine:setState("grounded.to_target.bomb")
-			end
-		end,
-	})
-
-	self.state_machine:addState("grounded.to_target.bomb", {
-		enter = function()
-			self.curr_animation = self.animations.run_bomb
-		end,
-		update = function(_, dt)
-			if self:isAtTarget(self.target_x, self.target_y) then
-				self.state_machine:setState("grounded.at_target.bomb")
-			else
-				-- FIXME: fix logic to check and move to target
-				--
-				-- local goal, item = self:isObstacle(dt, dx, dy, distance)
-
-				-- Encounter an obstacle, check if can jump over it
-				-- if goal then
-				-- 	local max_jump_height = self.jump_strength * self.jump_strength / self.gravity / 2
-				-- 	if max_jump_height > goal.item_h and self.jump_attempt <= self.max_jump_attempts then
-				-- 		self:jump()
-				-- 		self.state_machine:setState("airborne.to_target")
-				-- 	else
-				-- 		self.state_machine:setState("grounded.at_target")
-				-- 	end
-				-- end
-				--
-				-- self:move(goal.x, goal.y)
-			end
-		end,
-	})
-
-	self.state_machine:addState("grounded.at_target.bomb", {
-		enter = function()
-			self.curr_animation = self.animations.idle_bomb
-			self.pause_timer = self.pause_time
-		end,
-		update = function(_, dt)
-			self.pause_timer = self.pause_timer - dt
-			if self.at_target_timer <= 0 then
 				self.state_machine:setState("grounded.throwing.bomb")
 			end
 		end,
@@ -161,7 +128,7 @@ function BombPig:setupStates()
 
 	self.state_machine:addState("grounded.throwing.bomb", {
 		enter = function()
-			self.curr_animation = self.animations.idle_bomb
+			self.curr_animation = self.animations.throwing_bomb
 			self.pause_timer = self.pause_time
 		end,
 		update = function(_, dt)
@@ -174,7 +141,23 @@ function BombPig:setupStates()
 		end,
 	})
 
-	self.state_machine:setState("grounded.bomb")
+	self.state_machine:addState("hit", {
+		enter = function()
+			self.curr_animation = self.animations.hit
+			self.hit_cooldown = self.hit_cooldown_time
+			Sfx:play("pig.hit")
+		end,
+		update = function(_, dt)
+			if self.hit_cooldown > 0 then
+				self.hit_cooldown = self.hit_cooldown - dt
+			else
+				self.state_machine:setState(self.state_machine.prevState.name)
+				self.hit_cooldown = self.hit_cooldown_time
+			end
+		end,
+	})
+
+	self.state_machine:setState("grounded.idle.bomb")
 end
 
 function BombPig:update(dt)
@@ -183,26 +166,6 @@ function BombPig:update(dt)
 	end
 
 	if not self.state_machine:getState("dead") then
-		-- Update target if player is spotted
-		if self.chase_cooldown > 0 then
-			self.chase_cooldown = self.chase_cooldown - dt
-			self.dialogue_timer = self.dialogue_timer - dt
-			if self.dialogue_timer <= 0 then
-				self.dialogue:hide("shock")
-			end
-		else
-			local player_last_known_point = self:isPlayerInSight(8, self.w * 8)
-			if player_last_known_point then
-				if self:isPathTo(player_last_known_point.x, player_last_known_point.y, dt) then
-					self:setTarget(player_last_known_point.x, player_last_known_point.y)
-					self.dialogue:show("shock")
-					Sfx:play("dialogue.shock")
-					self.dialogue_timer = self.dialogue_time
-					self.chase_cooldown = self.chase_cooldown_time
-					self.state_machine:setState("grounded.to_target")
-				end
-			end
-		end
 		self:applyGravity(dt)
 	end
 	self.state_machine:update(dt)
@@ -223,9 +186,7 @@ function BombPig:draw()
 	if self.is_active then
 		self.curr_animation:draw(curr_image, self.x, self.y, 0, scale_x, 1, offset_x, offset_y)
 		-- TODO: improve dialogue drawing logic
-		if self.chase_cooldown > 0 then
-			self.dialogue:draw("shock", self.x - 8, self.y - self.h)
-		end
+		self.dialogue:draw("shock", self.x - 8, self.y - self.h)
 	end
 
 	love.graphics.pop()

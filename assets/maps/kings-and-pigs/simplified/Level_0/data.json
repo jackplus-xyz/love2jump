@@ -75,24 +75,6 @@
 					"atk": 1,
 					"is_visible": true
 				}
-			},
-			{
-				"id": "Pig",
-				"iid": "33c00280-9b00-11ef-924d-bd73588c786c",
-				"layer": "Entities",
-				"x": 136,
-				"y": 160,
-				"width": 16,
-				"height": 16,
-				"color": 4904771,
-				"customFields": {
-					"patrol": null,
-					"max_health": 3,
-					"Enemy": "Pig",
-					"Loot": [],
-					"atk": 1,
-					"is_visible": true
-				}
 			}
 		],
 		"Player": [
@@ -108,17 +90,26 @@
 				"customFields" : {}
 			}
 		],
-		"Bomb": [
+		"BombPig": [
 			{
-				"id": "Bomb",
-				"iid": "c378d090-9b00-11ef-83d9-73df478c8490",
+				"id": "BombPig",
+				"iid": "54535670-9b00-11ef-8a0f-0fc0be2ecdde",
 				"layer": "Entities",
-				"x": 424,
-				"y": 192,
+				"x": 152,
+				"y": 160,
 				"width": 16,
 				"height": 16,
-				"color": 14120515,
-				"customFields" : {}
+				"color": 4904771,
+				"customFields": {
+					"patrol": null,
+					"max_health": 3,
+					"Enemy": "BombPig",
+					"Loot": [
+						"Coin"
+					],
+					"atk": 1,
+					"is_visible": true
+				}
 			}
 		]
 	}
