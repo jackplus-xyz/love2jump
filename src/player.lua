@@ -140,7 +140,7 @@ function Player:loadAnimations()
 end
 
 function Player:setupStates()
-	self.state_machine:addState("grounded", {
+	self.state_machine:addState("grounded.idle", {
 		enter = function()
 			self.curr_animation = self.animations.idle
 		end,
@@ -191,7 +191,7 @@ function Player:setupStates()
 
 			if self.curr_animation.status == "paused" then
 				self:removeHitbox()
-				self.state_machine:setState("grounded")
+				self.state_machine:setState("grounded.idle")
 			end
 		end,
 	})
@@ -210,7 +210,7 @@ function Player:setupStates()
 
 			if self.y_velocity == 0 then
 				self.curr_animation = self.animations.ground
-				self.state_machine:setState("grounded")
+				self.state_machine:setState("grounded.idle")
 			end
 		end,
 		keypressed = function(_, key)
@@ -237,7 +237,7 @@ function Player:setupStates()
 				self:removeHitbox()
 				self:setAirborneAnimation()
 				if self.y_velocity == 0 then
-					self.state_machine:setState("grounded")
+					self.state_machine:setState("grounded.idle")
 				else
 					self.state_machine:setState("airborne")
 				end
@@ -281,7 +281,7 @@ function Player:setupStates()
 			end
 
 			if self.hit_cooldown <= 0 then
-				self.state_machine:setState("grounded")
+				self.state_machine:setState("grounded.idle")
 				self.hit_cooldown = self.hit_cooldown_time
 			end
 		end,
@@ -303,7 +303,7 @@ function Player:setupStates()
 		end,
 	})
 	-- Set default state
-	self.state_machine:setState("grounded")
+	self.state_machine:setState("grounded.idle")
 end
 
 function Player:init()
@@ -328,10 +328,10 @@ function Player:handleMovement(dt)
 	if direction ~= 0 then
 		dx = self.speed * dt * direction
 		self.direction = direction
-		if self.state_machine:getState("grounded") then
+		if self.state_machine:getState("grounded.idle") then
 			self.curr_animation = self.animations.run
 		end
-	elseif self.state_machine:getState("grounded") then
+	elseif self.state_machine:getState("grounded.idle") then
 		self.curr_animation = self.animations.idle
 	end
 

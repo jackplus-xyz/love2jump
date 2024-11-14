@@ -110,7 +110,7 @@ end
 
 -- TODO: add stages and moves
 function KingPig:setupStates()
-	self.state_machine:addState("grounded", {
+	self.state_machine:addState("grounded.idle", {
 		enter = function()
 			self.curr_animation = self.animations.idle
 		end,
@@ -294,15 +294,11 @@ function KingPig:setupStates()
 			self.curr_animation = self.animations.run
 		end,
 		update = function(_, dt)
-			local dx = self.start_x - self.x
-			local dy = self.start_y - self.y
-			local distance = math.sqrt(dx * dx + dy * dy)
-
-			if distance < GRID_SIZE then
+			if self:isAtTarget(self.start_x, self.start_y) then
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState("stage_1.at_start")
 			else
-				self.direction = dx > 0 and 1 or -1
+				self.direction = self.start_x > self.x and 1 or -1
 				if self:canJumpToTarget() then
 					self:jump()
 					self.state_machine:setState("airborne.to_start")
@@ -357,13 +353,9 @@ function KingPig:setupStates()
 		update = function(_, dt)
 			self:setAirborneAnimation()
 
-			local dx = self.start_x - self.x
-			local dy = self.start_y - self.y
-			local distance = math.sqrt(dx * dx + dy * dy)
-
 			if self.y_velocity == 0 then
 				self.curr_animation = self.animations.ground
-				if distance < GRID_SIZE then
+				if self:isAtTarget(self.start_x, self.start_y) then
 					self.curr_animation = self.animations.ground
 					self.state_machine:setState("stage_1.at_start")
 				else
@@ -441,17 +433,14 @@ function KingPig:setupStates()
 end
 
 function KingPig:chaseTarget(dt, atTarget)
-	local dx = self.target_x - self.x
-	local dy = self.target_y - self.y
-	local distance = math.sqrt(dx * dx + dy * dy)
 	atTarget = atTarget or function() end
 
-	if distance < GRID_SIZE then
+	if self:isAtTarget(self.target_x, self.target_y) then
 		atTarget()
 	else
-		local goal_x = self.x + (dx / distance) * self.speed * dt
-		local goal_y = self.y + (dy / distance) * self.y_velocity * dt
-		self:move(goal_x, goal_y)
+		self.direction = self.target_x > self.x and 1 or -1
+		local goal_x = self.x + self.speed * dt
+		self:move(goal_x, self.y)
 	end
 end
 
@@ -461,6 +450,7 @@ function KingPig:summon(entity)
 		return
 	end
 
+	-- TODO: add summon vfx at summoning location
 	new_enemy.addToWorld = WorldHelpers.addToWorld
 	new_enemy.removeFromWorld = WorldHelpers.removeFromWorld
 	new_enemy:addToWorld(self.world)
@@ -472,9 +462,6 @@ function KingPig:summon(entity)
 end
 
 function KingPig:update(dt)
-	print("----------")
-	print(self.state_machine:getState())
-
 	if not self.is_active then
 		return
 	end

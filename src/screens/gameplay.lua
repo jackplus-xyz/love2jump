@@ -221,7 +221,7 @@ function screen:closeDoor(dt)
 		Ui.fade_out:update(dt)
 	else
 		is_entering = false
-		player.state_machine:setState("grounded")
+		player.state_machine:setState("grounded.idle")
 		Ui.fade_in:reset()
 		Ui.fade_out:reset()
 	end

@@ -112,7 +112,7 @@ function Pig:loadAnimations()
 end
 
 function Pig:setupStates()
-	self.state_machine:addState("grounded", {
+	self.state_machine:addState("grounded.idle", {
 		enter = function()
 			self.curr_animation = self.animations.idle
 		end,
@@ -143,7 +143,7 @@ function Pig:setupStates()
 			end
 
 			if self.attack_cooldown <= 0 then
-				self.state_machine:setState("grounded")
+				self.state_machine:setState("grounded.idle")
 			end
 		end,
 	})
@@ -275,7 +275,7 @@ function Pig:setupStates()
 			if self.hit_cooldown > 0 then
 				self.hit_cooldown = self.hit_cooldown - dt
 			else
-				self.state_machine:setState("grounded")
+				self.state_machine:setState("grounded.idle")
 				self.hit_cooldown = self.hit_cooldown_time
 			end
 		end,
@@ -328,7 +328,7 @@ function Pig:setupStates()
 	})
 
 	-- Set default state
-	self.state_machine:setState("grounded")
+	self.state_machine:setState("grounded.idle")
 end
 
 function Pig:update(dt)

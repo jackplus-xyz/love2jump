@@ -56,6 +56,8 @@ Airborne --> Grounded : Land
 
 ### Enemy States
 
+#### Pig
+
 ```mermaid
 stateDiagram-v2
     [*] --> Grounded
@@ -114,7 +116,17 @@ stateDiagram-v2
     }
 ```
 
-### Boss(King-Pig) States
+#### Bomb-Pig States
+
+```mermaid
+stateDiagram-v2
+    [*] --> Bomb.Idle
+    Bomb.Idle --> Bomb.Shocked: isPlayerInSight()
+    Bomb.Shocked --> Bomb.Throwing: shock_timer <= 0
+    Bomb.Throwing --> Grounded.Idle
+```
+
+#### Boss(King-Pig) States
 
 ```mermaid
 stateDiagram-v2
@@ -283,12 +295,17 @@ stateDiagram-v2
 - Boss fight encounter
 - Boss moves: summon minions
 - Boss Stage 1 cycle
-
+- Bomb-Pig
+- [ ] Boss Stage 1 cycle
 - [ ] Power-ups and experience points (EXP)
 - [ ] Settings menu for in-game options
 
 #### Changed
 
+- Use `canJumpToTarget()` to check if the entity can jump to a desired point
+- Improve enemy's chasing logic
 - [ ] Enhanced tileset rules
 
 #### Fixed
+
+- Enemy states may be updated and changed after death

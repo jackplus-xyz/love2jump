@@ -5,6 +5,9 @@ local enemies = {
 	Pig = function()
 		return require("src.enemy.pig")
 	end,
+	BombPig = function()
+		return require("src.enemy.bomb_pig")
+	end,
 	KingPig = function()
 		return require("src.enemy.king_pig")
 	end,
