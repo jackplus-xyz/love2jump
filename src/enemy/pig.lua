@@ -36,6 +36,10 @@ function Pig.new(entity)
 	self.hitbox_h = 10
 
 	-- Timers
+	self.pause_time = 2
+	self.pause_timer = self.pause_time
+	self.chase_attempt_time = 2
+	self.chase_attempt_timer = self.chase_attempt_time
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
 	self.attack_cooldown = 0
@@ -114,10 +118,7 @@ function Pig:setupStates()
 		end,
 		update = function(_, dt)
 			if self.target_x and self.target_y then
-				local dx = self.target_x - self.x
-				local dy = self.target_y - self.y
-				local distance = math.sqrt(dx * dx + dy * dy)
-				if distance > GRID_SIZE then
+				if not self:isAtTarget(self.target_x, self.target_y) then
 					self.state_machine:setState("grounded.to_target")
 				end
 			end
@@ -147,9 +148,6 @@ function Pig:setupStates()
 		end,
 	})
 
-	local wait_time = 2
-	local wait_timer = wait_time
-
 	self.state_machine:addState("grounded.to_target", {
 		enter = function()
 			self.curr_animation = self.animations.run
@@ -157,27 +155,23 @@ function Pig:setupStates()
 		update = function(_, dt)
 			self:checkAirborne()
 
-			local dx = self.target_x - self.x
-			local dy = self.target_y - self.y
-			local distance = math.sqrt(dx * dx + dy * dy)
-
-			if distance < GRID_SIZE then
+			if self:isAtTarget(self.target_x, self.target_y) then
 				self.state_machine:setState("grounded.at_target")
 			else
-				local goal, item = self:isObstacle(dt, dx, dy, distance)
-
-				-- Encounter an obstacle, check if can jump over it
-				if goal then
-					local max_jump_height = self.jump_strength * self.jump_strength / self.gravity / 2
-					if max_jump_height > goal.item_h and self.jump_attempt <= self.max_jump_attempts then
-						self:jump()
-						self.state_machine:setState("airborne.to_target")
-					else
+				if self:canJumpToTarget() and self.jump_attempt <= self.max_jump_attempts then
+					self:jump()
+					self.jump_attempt = self.jump_attempt + 1
+					self.state_machine:setState("airborne.to_target")
+				else
+					-- Fallback to `grounded.at_target` after a certain time(can't reach the point)
+					self.chase_attempt_timer = self.chase_attempt_timer - dt
+					if self.chase_attempt_timer <= 0 then
 						self.state_machine:setState("grounded.at_target")
 					end
+					local direction = self.target_x > self.x and 1 or -1
+					local goal_x = self.x + self.speed * dt * direction
+					self:move(goal_x, self.y)
 				end
-
-				self:move(goal.x, goal.y)
 			end
 		end,
 	})
@@ -187,14 +181,14 @@ function Pig:setupStates()
 			self.curr_animation = self.animations.idle
 		end,
 		update = function(_, dt)
-			wait_timer = wait_timer - dt
+			self.pause_timer = self.pause_timer - dt
 
 			if self:isPlayerInAttackRange() then
 				self.state_machine:setState("grounded.attacking")
 			end
 
-			if wait_timer <= 0 then
-				wait_timer = wait_time
+			if self.pause_timer <= 0 then
+				self.pause_timer = self.pause_time
 				self.state_machine:setState("grounded.to_start")
 			end
 		end,
@@ -207,16 +201,12 @@ function Pig:setupStates()
 		update = function(_, dt)
 			self:checkAirborne()
 
-			local dx = self.start_x - self.x
-			local dy = self.start_y - self.y
-			local distance = math.sqrt(dx * dx + dy * dy)
-
-			if distance < GRID_SIZE then
+			if self:isAtTarget(self.start_x, self.start_y) then
 				self.state_machine:setState("grounded.at_start")
 			else
-				local move_x = (dx / distance) * self.speed * dt
-				local move_y = (dy / distance) * self.speed * dt
-				self:move(self.x + move_x, self.y + move_y)
+				local direction = self.start_x > self.x and 1 or -1
+				local goal_x = self.x + self.speed * dt * direction
+				self:move(goal_x, self.y)
 			end
 		end,
 	})
@@ -224,12 +214,13 @@ function Pig:setupStates()
 	self.state_machine:addState("grounded.at_start", {
 		enter = function()
 			self.curr_animation = self.animations.idle
+			self.jump_attempt = 1
 		end,
 		update = function(_, dt)
-			wait_timer = wait_timer - dt
+			self.pause_timer = self.pause_timer - dt
 
-			if wait_timer <= 0 then
-				wait_timer = wait_time
+			if self.pause_timer <= 0 then
+				self.pause_timer = self.pause_time
 				self.state_machine:setState("grounded.to_target")
 			end
 		end,
@@ -253,7 +244,6 @@ function Pig:setupStates()
 		enter = function()
 			self:setAirborneAnimation()
 			-- TODO: add condition to reset jump_attempt
-			self.jump_attempt = 1
 		end,
 		update = function(_, dt)
 			self:setAirborneAnimation()
@@ -269,10 +259,7 @@ function Pig:setupStates()
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState(self.state_machine.prevState.name)
 			else
-				if len == 0 and self.jump_attempt <= self.max_jump_attempts then
-					self:move(goal_x, self.y)
-					self.jump_attempt = self.jump_attempt + 1
-				end
+				self:move(goal_x, self.y)
 			end
 		end,
 	})
@@ -353,6 +340,7 @@ function Pig:update(dt)
 		-- Update target if player is spotted
 		if self.chase_cooldown > 0 then
 			self.chase_cooldown = self.chase_cooldown - dt
+			-- TODO: improve dialogue show/hide logic
 			self.dialogue_timer = self.dialogue_timer - dt
 			if self.dialogue_timer <= 0 then
 				self.dialogue:hide("shock")

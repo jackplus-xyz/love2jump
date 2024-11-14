@@ -326,7 +326,7 @@ function Enemy:isAtTarget(target_x, target_y)
 	local dy = target_y - self.y
 	local distance = math.sqrt(dx * dx + dy * dy)
 
-	return distance > GRID_SIZE
+	return distance <= GRID_SIZE
 end
 
 function Enemy:update(dt)
