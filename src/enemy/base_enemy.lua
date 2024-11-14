@@ -317,6 +317,18 @@ function Enemy:isObstacle(dt, dx, dy, distance)
 	return { x = goal_x, y = goal_y, item_h = item_h }
 end
 
+-- Check if the distance between self and target is smaller or equal to the GRID_SIZE
+---@param target_x number: The target x coordinate.
+---@param target_y number: The target y coordinate.
+---@return boolean: True if the distance is smaller or equal to GRID_SIZE, otherwise false.
+function Enemy:isAtTarget(target_x, target_y)
+	local dx = target_x - self.x
+	local dy = target_y - self.y
+	local distance = math.sqrt(dx * dx + dy * dy)
+
+	return distance > GRID_SIZE
+end
+
 function Enemy:update(dt)
 	self:applyGravity(dt)
 	self.state_machine:update(dt)
