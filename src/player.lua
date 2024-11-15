@@ -50,7 +50,7 @@ function Player.new(entity)
 	self.w = 18
 	self.h = 26
 	self.speed = 150
-	self.y_velocity = 0
+	self.velocity_y = 0
 	self.jump_strength = -320
 	self.gravity = 1200
 	self.knock_back_offset = 5
@@ -155,7 +155,7 @@ function Player:setupStates()
 				self.attack_cooldown = self.attack_cooldown - dt
 			end
 
-			if self.y_velocity ~= 0 then
+			if self.velocity_y ~= 0 then
 				self.state_machine:setState("airborne")
 			end
 		end,
@@ -208,7 +208,7 @@ function Player:setupStates()
 				self.attack_cooldown = self.attack_cooldown - dt
 			end
 
-			if self.y_velocity == 0 then
+			if self.velocity_y == 0 then
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState("grounded.idle")
 			end
@@ -236,7 +236,7 @@ function Player:setupStates()
 			if self.curr_animation.status == "paused" then
 				self:removeHitbox()
 				self:setAirborneAnimation()
-				if self.y_velocity == 0 then
+				if self.velocity_y == 0 then
 					self.state_machine:setState("grounded.idle")
 				else
 					self.state_machine:setState("airborne")
@@ -312,7 +312,7 @@ function Player:init()
 end
 
 function Player:setAirborneAnimation()
-	self.curr_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
+	self.curr_animation = (self.velocity_y < 0) and self.animations.jump or self.animations.fall
 end
 
 function Player:handleMovement(dt)
@@ -399,7 +399,7 @@ function Player:move(goal_x, goal_y)
 end
 
 function Player:jump()
-	self.y_velocity = self.jump_strength
+	self.velocity_y = self.jump_strength
 	self.jump_cooldown = self.jump_cooldown_time
 	self.state_machine:setState("airborne")
 end
@@ -410,9 +410,9 @@ function Player:applyGravity(dt)
 		self.jump_cooldown = self.jump_cooldown - dt
 	end
 
-	self.y_velocity = self.y_velocity + self.gravity * dt
+	self.velocity_y = self.velocity_y + self.gravity * dt
 
-	local goal_y = self.y + self.y_velocity * dt
+	local goal_y = self.y + self.velocity_y * dt
 	local function gravityFilter(item, other)
 		if other.id == "Collision" or other.id == "Enemy" then
 			return "slide"
@@ -421,16 +421,16 @@ function Player:applyGravity(dt)
 	local _, actual_y, cols, len = self.world:check(self, self.x, goal_y, gravityFilter)
 
 	if len > 0 then
-		self.y_velocity = 0
+		self.velocity_y = 0
 	end
 
 	self:move(self.x, actual_y)
 end
 
-function Player:applyKnockback(x_offset)
+function Player:applyKnockback(offset_x)
 	local _, _, cols, len = self.world:check(self, self.x, self.y, self.enemyFilter)
 
-	x_offset = x_offset or 0
+	offset_x = offset_x or 0
 	local hitbox_direction = 0
 	for i = 1, len do
 		local other = cols[i].other
@@ -447,7 +447,7 @@ function Player:applyKnockback(x_offset)
 
 	-- flip the hitbox_direction
 	local actual_x, actual_y, _, _ =
-		self.world:move(self, self.x + x_offset * hitbox_direction, self.y, self.enemyFilter)
+		self.world:move(self, self.x + offset_x * hitbox_direction, self.y, self.enemyFilter)
 	self.x, self.y = actual_x, actual_y
 	self.direction = hitbox_direction
 end

@@ -27,7 +27,7 @@ function Pig.new(entity)
 
 	self.knock_back_offset = 15
 	self.speed = 100
-	self.y_velocity = 0
+	self.velocity_y = 0
 	self.gravity = 1000
 	self.jump_strength = -320
 	self.jump_attempt = 1
@@ -233,7 +233,7 @@ function Pig:setupStates()
 		update = function(_, dt)
 			self:setAirborneAnimation()
 
-			if self.y_velocity == 0 then
+			if self.velocity_y == 0 then
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState(self.state_machine.prevState.name)
 			end
@@ -249,13 +249,13 @@ function Pig:setupStates()
 			self:setAirborneAnimation()
 
 			local goal_x = self.x + self.speed * dt * self.direction
-			local goal_y = self.y + self.h + self.y_velocity * dt
+			local goal_y = self.y + self.h + self.velocity_y * dt
 			local jumpFilter = function(item)
 				return item.id == "Collision"
 			end
 			local items, len = self.world:queryPoint(goal_x, goal_y, jumpFilter)
 
-			if self.y_velocity == 0 then
+			if self.velocity_y == 0 then
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState(self.state_machine.prevState.name)
 			else

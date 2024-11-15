@@ -24,7 +24,7 @@ function KingPig.new(entity)
 	self.direction = -1
 	self.knock_back_offset = 2
 	self.speed = 100
-	self.y_velocity = 0
+	self.velocity_y = 0
 	self.gravity = 1000
 	self.jump_strength = -500
 	self.jump_attempt = 1
@@ -339,7 +339,7 @@ function KingPig:setupStates()
 		update = function(_, dt)
 			self:setAirborneAnimation()
 
-			if self.y_velocity == 0 then
+			if self.velocity_y == 0 then
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState(self.state_machine.prevState.name)
 			end
@@ -353,7 +353,7 @@ function KingPig:setupStates()
 		update = function(_, dt)
 			self:setAirborneAnimation()
 
-			if self.y_velocity == 0 then
+			if self.velocity_y == 0 then
 				self.curr_animation = self.animations.ground
 				if self:isAtTarget(self.start_x, self.start_y) then
 					self.curr_animation = self.animations.ground

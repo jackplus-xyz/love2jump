@@ -6,12 +6,8 @@ local Bomb = {}
 Bomb.__index = Bomb
 setmetatable(Bomb, Entity)
 
-local coinFilter = function(item, other)
-	if other.id == "Collision" then
-		return "slide"
-	else
-		return "cross"
-	end
+local bombFilter = function(item, other)
+	return "slide"
 end
 
 local sprite_w = 52
@@ -23,13 +19,12 @@ function Bomb.new(entity)
 
 	self.w = 13
 	self.h = 14
-	self.x_offset = self.w / 2
-	self.y_offset = self.h
-	self.x_velocity = 0
-	self.y_velocity = 0
+	self.offset_x = self.w / 2
+	self.offset_y = self.h
+	self.velocity_x = entity.velocity_x or 0
+	self.velocity_y = entity.velocity_y or 0
 	self.atk = entity.props.atk or 0
 	self.jump_strength = -250
-	self.friction = 100
 	self.gravity = 800
 
 	self.is_on = false
@@ -94,30 +89,30 @@ function Bomb:on()
 end
 
 function Bomb:applyGravity(dt)
-	self.y_velocity = self.y_velocity + self.gravity * dt
+	self.velocity_y = self.velocity_y + self.gravity * dt
 
-	local goal_x = self.x + self.x_velocity * dt
-	local goal_y = self.y + self.y_velocity * dt
-	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, coinFilter)
+	local goal_x = self.x + self.velocity_x * dt
+	local goal_y = self.y + self.velocity_y * dt
+	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, bombFilter)
 
 	if len > 0 then
 		for i = 1, len do
 			local other = cols[i].other
 			if other.id == "Collision" then
 				if cols[i].normal.y < 0 then
-					self.x_velocity = 0
-					self.y_velocity = 0
+					self.velocity_x = 0
+					self.velocity_y = 0
 				end
 			end
 		end
 	end
 
-	self:move(actual_x, actual_y, coinFilter)
+	self:move(actual_x, actual_y, bombFilter)
 end
 
-function Bomb:spawn(x_velocity)
-	self.x_velocity = x_velocity or 0
-	self.y_velocity = self.jump_strength
+function Bomb:spawn(velocity_x)
+	self.velocity_x = velocity_x or 0
+	self.velocity_y = self.jump_strength
 	Sfx:play("bomb.spawn")
 end
 

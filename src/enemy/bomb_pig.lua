@@ -2,6 +2,7 @@ local Anim8 = require("lib.anim8.anim8")
 local Sfx = require("src.sfx")
 local Pig = require("src.enemy.pig")
 local EntityFactory = require("src.entity.entity_factory")
+local WorldHelpers = require("src.utils.world_helpers")
 
 local BombPig = {}
 BombPig.__index = BombPig
@@ -28,7 +29,7 @@ function BombPig.new(entity)
 
 	self.knock_back_offset = 15
 	self.speed = 100
-	self.y_velocity = 0
+	self.velocity_y = 0
 	self.gravity = 1000
 	self.jump_strength = -320
 	self.jump_attempt = 1
@@ -84,12 +85,10 @@ function BombPig:loadBombAnimations()
 	self.animations.picking_bomb = Anim8.newAnimation(picking_bomb_grid("1-4", 1), 0.1, "pauseAtEnd")
 	self.animations.throwing_bomb = Anim8.newAnimation(throwing_bomb_grid("1-5", 1), 0.1, "pauseAtEnd")
 
-	self.image_map = {
-		[self.animations.idle_bomb] = self.idle_bomb_image,
-		[self.animations.run_bomb] = self.run_bomb_image,
-		[self.animations.picking_bomb] = self.picking_bomb_image,
-		[self.animations.throwing_bomb] = self.throwing_bomb_image,
-	}
+	self.image_map[self.animations.idle_bomb] = self.idle_bomb_image
+	self.image_map[self.animations.run_bomb] = self.run_bomb_image
+	self.image_map[self.animations.picking_bomb] = self.picking_bomb_image
+	self.image_map[self.animations.throwing_bomb] = self.throwing_bomb_image
 end
 
 function BombPig:setupStates()
@@ -130,8 +129,11 @@ function BombPig:setupStates()
 		enter = function()
 			self.curr_animation = self.animations.throwing_bomb
 			self.pause_timer = self.pause_time
+			-- TODO: call `throwBomb()` at the correct frame
+			self:throwBomb()
 		end,
 		update = function(_, dt)
+			print(self.curr_animation.position)
 			if self.curr_animation.status == "paused" then
 				self.pause_timer = self.pause_timer - dt
 				if self.pause_timer <= 0 then
@@ -158,6 +160,33 @@ function BombPig:setupStates()
 	})
 
 	self.state_machine:setState("grounded.idle.bomb")
+end
+
+function BombPig:throwBomb()
+	-- TODO: match the bomb at correct cord_y
+	local bomb_entity = {
+		id = "Bomb",
+		x = self.x + self.w / 2,
+		y = self.y,
+		velocity_x = 200 * self.direction,
+		velocity_y = -200,
+		world = self.world,
+		props = {
+			atk = 3,
+		},
+	}
+	local new_bomb = EntityFactory.create(bomb_entity)
+	if not new_bomb then
+		return
+	end
+
+	-- TODO: add sfx throwing bomb
+	new_bomb.addToWorld = WorldHelpers.addToWorld
+	new_bomb.removeFromWorld = WorldHelpers.removeFromWorld
+	new_bomb:addToWorld(self.world)
+	self.addEntityToGame(new_bomb)
+
+	return new_bomb
 end
 
 function BombPig:update(dt)

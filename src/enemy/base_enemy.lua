@@ -64,11 +64,11 @@ function Enemy.new(entity)
 	return self
 end
 
-function Enemy:applyKnockback(x_offset, hitbox_direction)
-	x_offset = x_offset or 0
+function Enemy:applyKnockback(offset_x, hitbox_direction)
+	offset_x = offset_x or 0
 	-- flip the hitbox_direction
 	local actual_x, actual_y, _, _ =
-		self.world:move(self, self.x + x_offset * -hitbox_direction, self.y, self.enemyFilter)
+		self.world:move(self, self.x + offset_x * -hitbox_direction, self.y, self.enemyFilter)
 	self.x, self.y = actual_x, actual_y
 	self.direction = hitbox_direction
 end
@@ -101,9 +101,9 @@ function Enemy:applyGravity(dt)
 		self.jump_cooldown = self.jump_cooldown - dt
 	end
 
-	self.y_velocity = self.y_velocity + self.gravity * dt
+	self.velocity_y = self.velocity_y + self.gravity * dt
 
-	local goal_y = self.y + self.y_velocity * dt
+	local goal_y = self.y + self.velocity_y * dt
 	local function gravityFilter(item, other)
 		if other.id == "Collision" or other.id == "Enemy" or other.id == "Player" then
 			return "slide"
@@ -112,36 +112,36 @@ function Enemy:applyGravity(dt)
 	local _, actual_y, cols, len = self.world:check(self, self.x, goal_y, gravityFilter)
 
 	if len > 0 then
-		self.y_velocity = 0
+		self.velocity_y = 0
 	end
 
 	self:move(self.x, actual_y)
 end
 
 function Enemy:checkAirborne()
-	if self.y_velocity ~= 0 then
+	if self.velocity_y ~= 0 then
 		self.state_machine:setState("airborne")
 	end
 end
 
 function Enemy:setAirborneAnimation()
-	self.curr_animation = (self.y_velocity < 0) and self.animations.jump or self.animations.fall
+	self.curr_animation = (self.velocity_y < 0) and self.animations.jump or self.animations.fall
 end
 
 --- Drop an item with optional velocity and randomness.
 ---@param item table: The item to drop.
----@param x_velocity number: The x velocity of the item (optional).
+---@param velocity_x number: The x velocity of the item (optional).
 ---@param randomness number: The randomness factor (optional).
-function Enemy:dropItem(item, x_velocity, randomness)
+function Enemy:dropItem(item, velocity_x, randomness)
 	randomness = randomness or 1
-	x_velocity = x_velocity or 0
-	x_velocity = math.random(-randomness, randomness) * x_velocity
+	velocity_x = velocity_x or 0
+	velocity_x = math.random(-randomness, randomness) * velocity_x
 
 	item.addToWorld = WorldHelpers.addToWorld
 	item.removeFromWorld = WorldHelpers.removeFromWorld
 	item:addToWorld(self.world)
 	self.addEntityToGame(item)
-	item:spawn(x_velocity)
+	item:spawn(velocity_x)
 end
 
 --- Check if the player is in sight.
@@ -266,7 +266,7 @@ function Enemy:attack()
 end
 
 function Enemy:jump()
-	self.y_velocity = self.jump_strength
+	self.velocity_y = self.jump_strength
 	self.jump_cooldown = self.jump_cooldown_time
 end
 
@@ -302,7 +302,7 @@ end
 function Enemy:isObstacle(dt, dx, dy, distance)
 	local goal_x = self.x + (dx / distance) * self.speed * dt
 	-- TODO: check if self.h is required
-	local goal_y = self.y + (dy / distance) * self.y_velocity * dt
+	local goal_y = self.y + (dy / distance) * self.velocity_y * dt
 	local jumpFilter = function(item)
 		return item.id == "Collision"
 	end

@@ -18,7 +18,7 @@ function debug:updateInfoTable()
 
 	self.info_table = {
 		{ "Player State", self.player.state_machine.currState.name },
-		{ "y_velocity", string.format("%.2f", self.player.y_velocity) },
+		{ "velocity_y", string.format("%.2f", self.player.velocity_y) },
 		{
 			"Position",
 			"(" .. string.format("%.2f", self.player.x) .. ", " .. string.format("%.2f", self.player.y) .. ")",
@@ -51,9 +51,9 @@ end
 
 function debug:draw(y_start)
 	y_start = y_start or 0
-	local y_offset = 16
+	local offset_y = 16
 	local x_start = 16
-	local x_offset = 4
+	local offset_x = 4
 
 	-- Calculate the maximum width of the text entries
 	local max_h = 0
@@ -64,16 +64,16 @@ function debug:draw(y_start)
 			max_h = text_h
 		end
 	end
-	max_h = max_h + x_start + x_offset * 2
+	max_h = max_h + x_start + offset_x * 2
 
 	love.graphics.push()
 	love.graphics.setColor(0, 0, 0, 0.7)
-	love.graphics.rectangle("fill", GRID_SIZE / 2, GRID_SIZE / 2 + y_start, max_h, y_offset * (#self.info_table + 1))
+	love.graphics.rectangle("fill", GRID_SIZE / 2, GRID_SIZE / 2 + y_start, max_h, offset_y * (#self.info_table + 1))
 
 	love.graphics.setColor(1, 1, 1, 1)
 	love.graphics.setFont(fonts.debug)
 	for i, info in ipairs(self.info_table) do
-		love.graphics.print(info[1] .. ": " .. tostring(info[2]), x_start + x_offset, y_start + y_offset * i)
+		love.graphics.print(info[1] .. ": " .. tostring(info[2]), x_start + offset_x, y_start + offset_y * i)
 	end
 
 	love.graphics.pop()

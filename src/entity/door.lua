@@ -15,8 +15,8 @@ function Door.new(entity)
 
 	self.w = sprite_w
 	self.h = sprite_h
-	self.x_offset = self.w / SCALE
-	self.y_offset = self.h
+	self.offset_x = self.w / SCALE
+	self.offset_y = self.h
 	self.timer = 3
 
 	self.is_visible = entity.props.is_visible
