@@ -91,6 +91,7 @@ function BombPig:loadBombAnimations()
 	self.image_map[self.animations.throwing_bomb] = self.throwing_bomb_image
 end
 
+-- TODO: add picking bomb?
 function BombPig:setupStates()
 	self.state_machine:addState("grounded.idle.bomb", {
 		enter = function()
@@ -143,7 +144,7 @@ function BombPig:setupStates()
 		end,
 	})
 
-	self.state_machine:addState("hit", {
+	self.state_machine:addState("hit.bomb", {
 		enter = function()
 			self.curr_animation = self.animations.hit
 			self.hit_cooldown = self.hit_cooldown_time
@@ -153,13 +154,25 @@ function BombPig:setupStates()
 			if self.hit_cooldown > 0 then
 				self.hit_cooldown = self.hit_cooldown - dt
 			else
-				self.state_machine:setState(self.state_machine.prevState.name)
+				self.state_machine:setState("grounded.idle.bomb")
 				self.hit_cooldown = self.hit_cooldown_time
 			end
 		end,
 	})
 
 	self.state_machine:setState("grounded.idle.bomb")
+end
+
+function BombPig:hit(other)
+	self.health = self.health - other.atk
+	local hitbox_direction = other.x > self.x and 1 or -1
+	self:applyKnockback(self.knock_back_offset, hitbox_direction)
+	if self.health <= 0 then
+		self.state_machine:setState("dead")
+	else
+		local is_with_bomb = self.state_machine:getState():find("bomb") ~= nil
+		self.state_machine:setState(is_with_bomb and "hit.bomb" or "hit")
+	end
 end
 
 function BombPig:throwBomb()
