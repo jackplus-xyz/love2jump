@@ -234,7 +234,7 @@ function KingPig:setupStates()
 				-- Chase and attack player after all summmonings died
 				if #self.summoned == 0 then
 					self.chase_timer = self.chase_time
-					self.state_machine:setState("stage_1.set_target")
+					self.stageCallbacks:setTarget()
 				end
 			end
 		end,
@@ -246,15 +246,14 @@ function KingPig:setupStates()
 		end,
 		update = function(_, dt)
 			if self.chase_timer >= 0 then
-				self.state_machine:setState("stage_1.to_target")
+				self.state_machine:setState("grounded.to_target")
 			else
-				print("Updating Stage")
 				self:updateStage()
 			end
 		end,
 	})
 
-	self.state_machine:addState("stage_1.to_target", {
+	self.state_machine:addState("grounded.to_target", {
 		enter = function()
 			self.curr_animation = self.animations.run
 		end,
@@ -262,12 +261,12 @@ function KingPig:setupStates()
 			self.chase_timer = self.chase_timer - dt
 
 			self:chaseTarget(dt, function()
-				self.state_machine:setState("stage_1.at_target")
+				self.state_machine:setState("grounded.at_target")
 			end)
 		end,
 	})
 
-	self.state_machine:addState("stage_1.at_target", {
+	self.state_machine:addState("grounded.at_target", {
 		enter = function()
 			self.curr_animation = self.animations.idle
 		end,
@@ -347,46 +346,9 @@ function KingPig:setupStates()
 				-- Chase and attack player after all summmonings died
 				if #self.summoned == 0 then
 					self.chase_timer = self.chase_time
-					self.state_machine:setState("stage_2.set_target")
+					self.stageCallbacks:setTarget()
 				end
 			end
-		end,
-	})
-
-	self.state_machine:addState("stage_2.set_target", {
-		enter = function()
-			self:setTarget(self.target.x, self:getTargetY())
-		end,
-		update = function(_, dt)
-			if self.chase_timer >= 0 then
-				self.state_machine:setState("stage_2.to_target")
-			else
-				self:updateStage()
-			end
-		end,
-	})
-
-	self.state_machine:addState("stage_2.to_target", {
-		enter = function()
-			self.curr_animation = self.animations.run
-		end,
-		update = function(_, dt)
-			self.chase_timer = self.chase_timer - dt
-
-			self:chaseTarget(dt, function()
-				self.state_machine:setState("stage_2.at_target")
-			end)
-		end,
-	})
-
-	self.state_machine:addState("stage_2.at_target", {
-		enter = function()
-			self.curr_animation = self.animations.idle
-		end,
-		update = function(_, dt)
-			self.chase_timer = self.chase_timer - dt
-
-			self.state_machine:setState("grounded.attacking")
 		end,
 	})
 
@@ -438,46 +400,9 @@ function KingPig:setupStates()
 				-- Chase and attack player after all summmonings died
 				if #self.summoned == 0 then
 					self.chase_timer = self.chase_time
-					self.state_machine:setState("stage_3.set_target")
+					self.stageCallbacks:setTarget()
 				end
 			end
-		end,
-	})
-
-	self.state_machine:addState("stage_3.set_target", {
-		enter = function()
-			self:setTarget(self.target.x, self:getTargetY())
-		end,
-		update = function(_, dt)
-			if self.chase_timer >= 0 then
-				self.state_machine:setState("stage_3.to_target")
-			else
-				self:updateStage()
-			end
-		end,
-	})
-
-	self.state_machine:addState("stage_3.to_target", {
-		enter = function()
-			self.curr_animation = self.animations.run
-		end,
-		update = function(_, dt)
-			self.chase_timer = self.chase_timer - dt
-
-			self:chaseTarget(dt, function()
-				self.state_machine:setState("stage_3.at_target")
-			end)
-		end,
-	})
-
-	self.state_machine:addState("stage_3.at_target", {
-		enter = function()
-			self.curr_animation = self.animations.idle
-		end,
-		update = function(_, dt)
-			self.chase_timer = self.chase_timer - dt
-
-			self.state_machine:setState("grounded.attacking")
 		end,
 	})
 
