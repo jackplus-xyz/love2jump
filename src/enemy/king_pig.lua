@@ -108,7 +108,6 @@ function KingPig:loadAnimations()
 	self.curr_animation = self.animations.idle
 end
 
--- TODO: add stages and moves
 function KingPig:setupStates()
 	self.state_machine:addState("grounded.idle", {
 		enter = function()
@@ -250,6 +249,7 @@ function KingPig:setupStates()
 			if self.chase_timer >= 0 then
 				self.state_machine:setState("stage_1.to_target")
 			else
+				print("Updating Stage")
 				self:updateStage()
 			end
 		end,
@@ -279,14 +279,14 @@ function KingPig:setupStates()
 		end,
 	})
 
-	self.state_machine:addState("stage_1.to_start", {
+	self.state_machine:addState("grounded.to_start", {
 		enter = function()
 			self.curr_animation = self.animations.run
 		end,
 		update = function(_, dt)
 			if self:isAtTarget(self.start_x, self.start_y) then
 				self.curr_animation = self.animations.ground
-				self.state_machine:setState("stage_1.at_start")
+				self:atStartCallback()
 			else
 				self.direction = self.start_x > self.x and 1 or -1
 				if self:canJumpToTarget() then
@@ -318,7 +318,6 @@ function KingPig:setupStates()
 
 	self.state_machine:addState("stage_2.summon", {
 		enter = function()
-			-- FIXME: summoned pig can't throw bomb correctly
 			Sfx:play("king_pig.summoning")
 			self.summon_count = 1
 			self.max_summon_count = 3
@@ -419,27 +418,6 @@ function KingPig:setupStates()
 		end,
 	})
 
-	self.state_machine:addState("stage_2.to_start", {
-		enter = function()
-			self.curr_animation = self.animations.run
-		end,
-		update = function(_, dt)
-			if self:isAtTarget(self.start_x, self.start_y) then
-				self.curr_animation = self.animations.ground
-				self.state_machine:setState("stage_2.at_start")
-			else
-				self.direction = self.start_x > self.x and 1 or -1
-				if self:canJumpToTarget() then
-					self:jump()
-					self.state_machine:setState("airborne.to_start")
-				else
-					local goal_x = self.x + self.speed * self.direction * dt
-					self:move(goal_x, self.y)
-				end
-			end
-		end,
-	})
-
 	self.state_machine:addState("grounded.attacking", {
 		enter = function()
 			self:attack()
@@ -487,7 +465,7 @@ function KingPig:setupStates()
 				self.curr_animation = self.animations.ground
 				if self:isAtTarget(self.start_x, self.start_y) then
 					self.curr_animation = self.animations.ground
-					self.state_machine:setState("stage_1.at_start")
+					self:atStartCallback()
 				else
 					self.state_machine:setState(self.state_machine.prevState.name)
 				end
@@ -598,13 +576,19 @@ function KingPig:chaseTarget(dt, atTarget)
 end
 
 function KingPig:updateStage()
+	local stage = 1
 	if self.health <= self.max_health * 0.25 then
-		self.state_machine:setState("stage_3.to_start")
+		stage = 3
 	elseif self.health <= self.max_health * 0.75 then
-		self.state_machine:setState("stage_2.to_start")
+		stage = 2
 	else
-		self.state_machine:setState("stage_1.to_start")
+		stage = 1
 	end
+
+	self.atStartCallback = function()
+		self.state_machine:setState("stage_" .. stage .. ".at_start")
+	end
+	self.state_machine:setState("grounded.to_start")
 end
 
 function KingPig:summon(entity)
@@ -618,18 +602,20 @@ function KingPig:summon(entity)
 	new_enemy.removeFromWorld = WorldHelpers.removeFromWorld
 	new_enemy:addToWorld(self.world)
 	new_enemy:setTarget(self.target.x, self.target.y)
-	-- new_enemy.state_machine:setState("grounded.to_target")
 	self.addEntityToGame(new_enemy)
+	new_enemy.addEntityToGame = self.addEntityToGame
 
 	return new_enemy
 end
 
 function KingPig:debug()
 	print("-----------------------------------------------")
-	print("x, y", self.x, self.y)
-	print("start_x, start_y", self.start_x, self.start_y)
-	print("target_x, target_y", self.target_x, self.target_y)
+	-- print("x, y", self.x, self.y)
+	-- print("start_x, start_y", self.start_x, self.start_y)
+	-- print("target_x, target_y", self.target_x, self.target_y)
 	print("state", self.state_machine:getState())
+	print("chase_timer", self.chase_timer)
+	print("")
 end
 
 function KingPig:update(dt)

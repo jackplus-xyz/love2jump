@@ -296,7 +296,7 @@ stateDiagram-v2
 - Boss moves: summon minions
 - Boss Stage 1 cycle
 - Bomb-Pig
-- [ ] Boss Stage 1 cycle
+- Boss Stage 2 cycle
 - [ ] Power-ups and experience points (EXP)
 - [ ] Settings menu for in-game options
 
@@ -309,3 +309,4 @@ stateDiagram-v2
 #### Fixed
 
 - Enemy states may be updated and changed after death
+- Summoned bomb pig can't throw bomb

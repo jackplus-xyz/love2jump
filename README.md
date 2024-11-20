@@ -25,6 +25,7 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
 5. Testing: Create unitests to ensure the game can be built and run successfully without crashing
 6. Deployment: deploy the game on Steam/macOS/Web
 7. Publication: publish it as a free game on Steam
+8. ship by 1/31
 
 ## Technologies and Tools
 
