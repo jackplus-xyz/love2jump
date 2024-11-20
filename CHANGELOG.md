@@ -297,16 +297,30 @@ stateDiagram-v2
 - Boss Stage 1 cycle
 - Bomb-Pig
 - Boss Stage 2 cycle
-- [ ] Power-ups and experience points (EXP)
-- [ ] Settings menu for in-game options
 
 #### Changed
 
 - Use `canJumpToTarget()` to check if the entity can jump to a desired point
 - Improve enemy's chasing logic
-- [ ] Enhanced tileset rules
 
 #### Fixed
 
 - Enemy states may be updated and changed after death
 - Summoned bomb pig can't throw bomb
+
+### 11/21/2024
+
+#### Added
+
+- Boss Stage 3 cycle
+- Sfx: Boss stage switch
+- Sfx: Bomb Throw
+- [ ] Power-ups and experience points (EXP)
+- [ ] Settings menu for in-game options
+
+#### Changed
+
+- Improve Boss stage management
+- Improve Boss jump logic
+
+#### Fixed

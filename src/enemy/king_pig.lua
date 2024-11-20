@@ -591,18 +591,7 @@ function KingPig:summon(entity)
 	return new_enemy
 end
 
-function KingPig:debug()
-	print("-----------------------------------------------")
-	-- print("x, y", self.x, self.y)
-	-- print("start_x, start_y", self.start_x, self.start_y)
-	-- print("target_x, target_y", self.target_x, self.target_y)
-	print("state", self.state_machine:getState())
-	print("chase_cooldown", self.chase_cooldown)
-	print("")
-end
-
 function KingPig:update(dt)
-	self:debug()
 	if not self.is_active then
 		return
 	end
