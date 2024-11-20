@@ -35,8 +35,6 @@ function KingPig.new(entity)
 	-- Timers
 	self.move_timer = 0
 	self.move_time = 3
-	self.chase_timer = 0
-	self.chase_time = 3
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
 	self.attack_cooldown = 0
@@ -46,15 +44,12 @@ function KingPig.new(entity)
 	self.drop_cooldown = 0
 	self.drop_cooldown_time = 0.1
 	self.chase_cooldown = 0
-	self.chase_cooldown_time = 10
+	self.chase_cooldown_time = 2
 	self.dialogue_timer = 0
 	self.dialogue_time = 0.5
 
 	self.stage = 1
 	self.stageCallbacks = {
-		setTarget = function()
-			self.state_machine:setState("stage_" .. self.stage .. ".set_target")
-		end,
 		summon = function()
 			self.state_machine:setState("stage_" .. self.stage .. ".summon")
 		end,
@@ -233,66 +228,8 @@ function KingPig:setupStates()
 			else
 				-- Chase and attack player after all summmonings died
 				if #self.summoned == 0 then
-					self.chase_timer = self.chase_time
-					self.stageCallbacks:setTarget()
-				end
-			end
-		end,
-	})
-
-	self.state_machine:addState("stage_1.set_target", {
-		enter = function()
-			self:setTarget(self.target.x, self:getTargetY())
-		end,
-		update = function(_, dt)
-			if self.chase_timer >= 0 then
-				self.state_machine:setState("grounded.to_target")
-			else
-				self:updateStage()
-			end
-		end,
-	})
-
-	self.state_machine:addState("grounded.to_target", {
-		enter = function()
-			self.curr_animation = self.animations.run
-		end,
-		update = function(_, dt)
-			self.chase_timer = self.chase_timer - dt
-
-			self:chaseTarget(dt, function()
-				self.state_machine:setState("grounded.at_target")
-			end)
-		end,
-	})
-
-	self.state_machine:addState("grounded.at_target", {
-		enter = function()
-			self.curr_animation = self.animations.idle
-		end,
-		update = function(_, dt)
-			self.chase_timer = self.chase_timer - dt
-
-			self.state_machine:setState("grounded.attacking")
-		end,
-	})
-
-	self.state_machine:addState("grounded.to_start", {
-		enter = function()
-			self.curr_animation = self.animations.run
-		end,
-		update = function(_, dt)
-			if self:isAtTarget(self.start_x, self.start_y) then
-				self.curr_animation = self.animations.ground
-				self.state_machine:setState("grounded.at_start")
-			else
-				self.direction = self.start_x > self.x and 1 or -1
-				if self:canJumpToTarget() then
-					self:jump()
-					self.state_machine:setState("airborne.to_start")
-				else
-					local goal_x = self.x + self.speed * self.direction * dt
-					self:move(goal_x, self.y)
+					self.chase_cooldown = self.chase_cooldown_time
+					self.state_machine:setState("grounded.set_target")
 				end
 			end
 		end,
@@ -345,8 +282,8 @@ function KingPig:setupStates()
 			else
 				-- Chase and attack player after all summmonings died
 				if #self.summoned == 0 then
-					self.chase_timer = self.chase_time
-					self.stageCallbacks:setTarget()
+					self.chase_cooldown = self.chase_cooldown_time
+					self.state_machine:setState("grounded.set_target")
 				end
 			end
 		end,
@@ -356,9 +293,9 @@ function KingPig:setupStates()
 		enter = function()
 			Sfx:play("king_pig.summoning")
 			self.summon_count = 1
-			self.max_summon_count = 3
+			self.max_summon_count = 5
 			self.summoned = {}
-			self.summon_cooldown_time = 1
+			self.summon_cooldown_time = 0.5
 			self.summon_cooldown = 0
 		end,
 		update = function(_, dt)
@@ -399,8 +336,66 @@ function KingPig:setupStates()
 			else
 				-- Chase and attack player after all summmonings died
 				if #self.summoned == 0 then
-					self.chase_timer = self.chase_time
-					self.stageCallbacks:setTarget()
+					self.chase_cooldown = self.chase_cooldown_time
+					self.state_machine:setState("grounded.set_target")
+				end
+			end
+		end,
+	})
+
+	self.state_machine:addState("grounded.to_target", {
+		enter = function()
+			self.curr_animation = self.animations.run
+		end,
+		update = function(_, dt)
+			self.chase_cooldown = self.chase_cooldown - dt
+
+			self:chaseTarget(dt, function()
+				self.state_machine:setState("grounded.at_target")
+			end)
+		end,
+	})
+
+	self.state_machine:addState("grounded.at_target", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+		end,
+		update = function(_, dt)
+			self.chase_cooldown = self.chase_cooldown - dt
+
+			self.state_machine:setState("grounded.attacking")
+		end,
+	})
+
+	self.state_machine:addState("grounded.set_target", {
+		enter = function()
+			self:setTarget(self.target.x, self:getTargetY())
+		end,
+		update = function(_, dt)
+			if self.chase_cooldown >= 0 then
+				self.state_machine:setState("grounded.to_target")
+			else
+				self:updateStage()
+			end
+		end,
+	})
+
+	self.state_machine:addState("grounded.to_start", {
+		enter = function()
+			self.curr_animation = self.animations.run
+		end,
+		update = function(_, dt)
+			if self:isAtTarget(self.start_x, self.start_y) then
+				self.curr_animation = self.animations.ground
+				self.state_machine:setState("grounded.at_start")
+			else
+				self.direction = self.start_x > self.x and 1 or -1
+				if self:canJumpToTarget() then
+					self:jump()
+					self.state_machine:setState("airborne.to_start")
+				else
+					local goal_x = self.x + self.speed * self.direction * dt
+					self:move(goal_x, self.y)
 				end
 			end
 		end,
@@ -423,7 +418,7 @@ function KingPig:setupStates()
 			end
 
 			if self.attack_cooldown <= 0 then
-				self.stageCallbacks:setTarget()
+				self.state_machine:setState("grounded.set_target")
 			end
 		end,
 	})
@@ -476,7 +471,7 @@ function KingPig:setupStates()
 				self.hit_cooldown = self.hit_cooldown - dt
 			else
 				self.hit_cooldown = self.hit_cooldown_time
-				self.stageCallbacks:setTarget()
+				self.state_machine:setState("grounded.set_target")
 			end
 		end,
 	})
@@ -564,10 +559,15 @@ function KingPig:chaseTarget(dt, atTarget)
 end
 
 function KingPig:updateStage()
+	-- TODO: add stage switch sfx
 	if self.health <= self.max_health * 0.25 then
 		self.stage = 3
+		self.speed = 180
+		self.chase_cooldown_time = 1
 	elseif self.health <= self.max_health * 0.75 then
 		self.stage = 2
+		self.speed = 150
+		self.chase_cooldown_time = 1.5
 	else
 		self.stage = 1
 	end
@@ -598,7 +598,7 @@ function KingPig:debug()
 	-- print("start_x, start_y", self.start_x, self.start_y)
 	-- print("target_x, target_y", self.target_x, self.target_y)
 	print("state", self.state_machine:getState())
-	print("chase_timer", self.chase_timer)
+	print("chase_cooldown", self.chase_cooldown)
 	print("")
 end
 
