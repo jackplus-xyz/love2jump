@@ -271,17 +271,15 @@ function Enemy:jump()
 end
 
 -- Check if the target can be reached by one jump
--- Check if the target can be reached by one jump
 function Enemy:canJumpToTarget(target_x, target_y)
 	target_x = target_x or self.target_x
 	target_y = target_y or self.target_y
 
-	local dx = target_x - self.x
+	local dx = math.abs(target_x - self.x)
 
-	-- Calculate the time to reach the target horizontally
-	local t = math.abs(dx) / self.speed
-
-	if t > math.abs(2 * self.jump_strength / self.gravity) then
+	-- Total time to complete the jump
+	local t = 2 * self.jump_strength / self.gravity
+	if dx / t > self.speed then
 		return false
 	end
 
@@ -335,6 +333,10 @@ function Enemy:update(dt)
 	if self.curr_animation then
 		self.curr_animation:update(dt)
 	end
+end
+
+function Enemy:debug()
+	PrintTable(self)
 end
 
 return Enemy
