@@ -52,11 +52,11 @@ function KingPig.new(entity)
 
 	self.stage = 1
 	self.stageCallbacks = {
-		atStart = function()
-			self.state_machine:setState("stage_" .. self.stage .. ".at_start")
-		end,
 		setTarget = function()
 			self.state_machine:setState("stage_" .. self.stage .. ".set_target")
+		end,
+		summon = function()
+			self.state_machine:setState("stage_" .. self.stage .. ".summon")
 		end,
 	}
 
@@ -166,11 +166,11 @@ function KingPig:setupStates()
 
 			-- FIXME: hide the dialogue
 			self.dialogue:hide("shock")
-			self.stageCallbacks:atStart()
+			self.state_machine:setState("grounded.at_start")
 		end,
 	})
 
-	self.state_machine:addState("stage_1.at_start", {
+	self.state_machine:addState("grounded.at_start", {
 		enter = function()
 			self.curr_animation = self.animations.idle
 			self.direction = -1
@@ -182,7 +182,7 @@ function KingPig:setupStates()
 				return
 			end
 
-			self.state_machine:setState("stage_1.summon")
+			self.stageCallbacks:summon()
 		end,
 	})
 
@@ -285,7 +285,7 @@ function KingPig:setupStates()
 		update = function(_, dt)
 			if self:isAtTarget(self.start_x, self.start_y) then
 				self.curr_animation = self.animations.ground
-				self:atStartCallback()
+				self.state_machine:setState("grounded.at_start")
 			else
 				self.direction = self.start_x > self.x and 1 or -1
 				if self:canJumpToTarget() then
@@ -296,22 +296,6 @@ function KingPig:setupStates()
 					self:move(goal_x, self.y)
 				end
 			end
-		end,
-	})
-
-	self.state_machine:addState("stage_2.at_start", {
-		enter = function()
-			self.curr_animation = self.animations.idle
-			self.direction = -1
-			self.move_timer = self.move_time
-		end,
-		update = function(_, dt)
-			if self.move_timer >= 0 then
-				self.move_timer = self.move_timer - dt
-				return
-			end
-
-			self.state_machine:setState("stage_2.summon")
 		end,
 	})
 
@@ -403,22 +387,6 @@ function KingPig:setupStates()
 			self.chase_timer = self.chase_timer - dt
 
 			self.state_machine:setState("grounded.attacking")
-		end,
-	})
-
-	self.state_machine:addState("stage_3.at_start", {
-		enter = function()
-			self.curr_animation = self.animations.idle
-			self.direction = -1
-			self.move_timer = self.move_time
-		end,
-		update = function(_, dt)
-			if self.move_timer >= 0 then
-				self.move_timer = self.move_timer - dt
-				return
-			end
-
-			self.state_machine:setState("stage_3.summon")
 		end,
 	})
 
@@ -560,7 +528,7 @@ function KingPig:setupStates()
 				self.curr_animation = self.animations.ground
 				if self:isAtTarget(self.start_x, self.start_y) then
 					self.curr_animation = self.animations.ground
-					self.stageCallbacks:atStart()
+					self.state_machine:setState("grounded.at_start")
 				else
 					self.state_machine:setState(self.state_machine.prevState.name)
 				end
