@@ -193,7 +193,7 @@ function BombPig:throwBomb()
 		return
 	end
 
-	-- TODO: add sfx throwing bomb
+	Sfx:play("bomb_pig:throw")
 	new_bomb.addToWorld = WorldHelpers.addToWorld
 	new_bomb.removeFromWorld = WorldHelpers.removeFromWorld
 	new_bomb:addToWorld(self.world)

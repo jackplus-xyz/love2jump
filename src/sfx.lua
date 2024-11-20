@@ -154,6 +154,7 @@ local soundEffects = {
 			return generateSine(t, freq) * (1 - t / duration) * 0.4
 		end,
 	},
+
 	-- Bomb
 	["bomb.on"] = {
 		duration = 0.6,
@@ -206,6 +207,17 @@ local soundEffects = {
 		end,
 	},
 
+	-- Bomb Pig
+	["bomb_pig.throw"] = {
+		duration = 0.4,
+		generate = function(t, duration)
+			-- Whistling effect with a descending pitch
+			local freq = 800 - 400 * (t / duration)
+			local whistle = generateSine(t, freq) * 0.6 + generateTriangle(t, freq * 0.8) * 0.4
+			return whistle * (1 - t / duration) * 0.7
+		end,
+	},
+
 	-- King Pig
 	["king_pig.attack"] = {
 		duration = 0.4, -- Slightly longer than regular pig
@@ -250,6 +262,16 @@ local soundEffects = {
 			local crackle = generateNoise() * (0.7 + 0.3 * math.sin(t * 120))
 			local buzz = generateSquare(t, baseFreq) * (0.5 + 0.5 * math.sin(t * 60))
 			return (crackle + buzz) * (1 - t / duration) * 0.5
+		end,
+	},
+	["king_pig.stage_change"] = {
+		duration = 0.7,
+		generate = function(t, duration)
+			-- Dramatic rising sound with a hint of chaos
+			local freq = 300 + 500 * (t / duration)
+			local noiseMix = generateNoise() * (1 - t / duration) * 0.3
+			local waveMix = generateSine(t, freq) * 0.7 + generateTriangle(t, freq * 0.5) * 0.3
+			return (noiseMix + waveMix) * (1 - t / duration) * 0.8
 		end,
 	},
 

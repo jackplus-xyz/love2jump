@@ -559,17 +559,16 @@ function KingPig:chaseTarget(dt, atTarget)
 end
 
 function KingPig:updateStage()
-	-- TODO: add stage switch sfx
-	if self.health <= self.max_health * 0.25 then
+	if self.health <= self.max_health * 0.25 and self.stage ~= 3 then
+		Sfx:play("king_pig.stage_change")
 		self.stage = 3
 		self.speed = 180
 		self.chase_cooldown_time = 1
-	elseif self.health <= self.max_health * 0.75 then
+	elseif self.health <= self.max_health * 0.75 and self.stage ~= 2 then
+		Sfx:play("king_pig.stage_change")
 		self.stage = 2
 		self.speed = 150
 		self.chase_cooldown_time = 1.5
-	else
-		self.stage = 1
 	end
 
 	self.state_machine:setState("grounded.to_start")
