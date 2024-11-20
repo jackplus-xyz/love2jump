@@ -50,6 +50,16 @@ function KingPig.new(entity)
 	self.dialogue_timer = 0
 	self.dialogue_time = 0.5
 
+	self.stage = 1
+	self.stageCallbacks = {
+		atStart = function()
+			self.state_machine:setState("stage_" .. self.stage .. ".at_start")
+		end,
+		setTarget = function()
+			self.state_machine:setState("stage_" .. self.stage .. ".set_target")
+		end,
+	}
+
 	self:init()
 	return self
 end
@@ -156,7 +166,7 @@ function KingPig:setupStates()
 
 			-- FIXME: hide the dialogue
 			self.dialogue:hide("shock")
-			self.state_machine:setState("stage_1.at_start")
+			self.stageCallbacks:atStart()
 		end,
 	})
 
@@ -235,10 +245,6 @@ function KingPig:setupStates()
 			self:setTarget(self.target.x, self:getTargetY())
 		end,
 		update = function(_, dt)
-			self.setTargetCallback = function()
-				self.state_machine:setState("stage_1.set_target")
-			end
-
 			if self.chase_timer >= 0 then
 				self.state_machine:setState("stage_1.to_target")
 			else
@@ -368,10 +374,6 @@ function KingPig:setupStates()
 			self:setTarget(self.target.x, self:getTargetY())
 		end,
 		update = function(_, dt)
-			self.setTargetCallback = function()
-				self.state_machine:setState("stage_2.set_target")
-			end
-
 			if self.chase_timer >= 0 then
 				self.state_machine:setState("stage_2.to_target")
 			else
@@ -479,10 +481,6 @@ function KingPig:setupStates()
 			self:setTarget(self.target.x, self:getTargetY())
 		end,
 		update = function(_, dt)
-			self.setTargetCallback = function()
-				self.state_machine:setState("stage_3.set_target")
-			end
-
 			if self.chase_timer >= 0 then
 				self.state_machine:setState("stage_3.to_target")
 			else
@@ -532,7 +530,7 @@ function KingPig:setupStates()
 			end
 
 			if self.attack_cooldown <= 0 then
-				self:setTargetCallback()
+				self.stageCallbacks:setTarget()
 			end
 		end,
 	})
@@ -562,7 +560,7 @@ function KingPig:setupStates()
 				self.curr_animation = self.animations.ground
 				if self:isAtTarget(self.start_x, self.start_y) then
 					self.curr_animation = self.animations.ground
-					self:atStartCallback()
+					self.stageCallbacks:atStart()
 				else
 					self.state_machine:setState(self.state_machine.prevState.name)
 				end
@@ -585,7 +583,7 @@ function KingPig:setupStates()
 				self.hit_cooldown = self.hit_cooldown - dt
 			else
 				self.hit_cooldown = self.hit_cooldown_time
-				self:setTargetCallback()
+				self.stageCallbacks:setTarget()
 			end
 		end,
 	})
@@ -673,18 +671,14 @@ function KingPig:chaseTarget(dt, atTarget)
 end
 
 function KingPig:updateStage()
-	local stage = 1
 	if self.health <= self.max_health * 0.25 then
-		stage = 3
+		self.stage = 3
 	elseif self.health <= self.max_health * 0.75 then
-		stage = 2
+		self.stage = 2
 	else
-		stage = 1
+		self.stage = 1
 	end
 
-	self.atStartCallback = function()
-		self.state_machine:setState("stage_" .. stage .. ".at_start")
-	end
 	self.state_machine:setState("grounded.to_start")
 end
 
