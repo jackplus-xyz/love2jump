@@ -235,16 +235,9 @@ function KingPig:setupStates()
 			self:setTarget(self.target.x, self:getTargetY())
 		end,
 		update = function(_, dt)
-			local function attackCallback()
+			self.setTargetCallback = function()
 				self.state_machine:setState("stage_1.set_target")
 			end
-
-			local function hitCallback()
-				self.state_machine:setState("stage_1.set_target")
-			end
-
-			self.attackCallback = attackCallback
-			self.hitCallback = hitCallback
 
 			if self.chase_timer >= 0 then
 				self.state_machine:setState("stage_1.to_target")
@@ -375,16 +368,9 @@ function KingPig:setupStates()
 			self:setTarget(self.target.x, self:getTargetY())
 		end,
 		update = function(_, dt)
-			local function attackCallback()
+			self.setTargetCallback = function()
 				self.state_machine:setState("stage_2.set_target")
 			end
-
-			local function hitCallback()
-				self.state_machine:setState("stage_2.set_target")
-			end
-
-			self.attackCallback = attackCallback
-			self.hitCallback = hitCallback
 
 			if self.chase_timer >= 0 then
 				self.state_machine:setState("stage_2.to_target")
@@ -418,6 +404,117 @@ function KingPig:setupStates()
 		end,
 	})
 
+	self.state_machine:addState("stage_3.at_start", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+			self.direction = -1
+			self.move_timer = self.move_time
+		end,
+		update = function(_, dt)
+			if self.move_timer >= 0 then
+				self.move_timer = self.move_timer - dt
+				return
+			end
+
+			self.state_machine:setState("stage_3.summon")
+		end,
+	})
+
+	self.state_machine:addState("stage_3.summon", {
+		enter = function()
+			Sfx:play("king_pig.summoning")
+			self.summon_count = 1
+			self.max_summon_count = 3
+			self.summoned = {}
+			self.summon_cooldown_time = 1
+			self.summon_cooldown = 0
+		end,
+		update = function(_, dt)
+			if self.summon_cooldown >= 0 then
+				self.summon_cooldown = self.summon_cooldown - dt
+				return
+			end
+
+			self.summon_cooldown = self.summon_cooldown_time
+
+			if self.summon_count <= self.max_summon_count then
+				local entity = {
+					iid = nil,
+					id = "Enemy",
+					x = self.x + self.direction * GRID_SIZE * 2 * (self.max_summon_count - self.summon_count + 1),
+					y = self.y,
+					props = {
+						Enemy = "BombPig",
+						max_health = 3,
+						atk = 1,
+					},
+				}
+
+				local new_enemy = self:summon(entity)
+				if new_enemy then
+					table.insert(self.summoned, new_enemy)
+					new_enemy.removeFromSummoned = function()
+						for i, enemy in ipairs(self.summoned) do
+							if enemy == new_enemy then
+								table.remove(self.summoned, i)
+								break
+							end
+						end
+					end
+					Sfx:play("pig.summoned")
+					self.summon_count = self.summon_count + 1
+				end
+			else
+				-- Chase and attack player after all summmonings died
+				if #self.summoned == 0 then
+					self.chase_timer = self.chase_time
+					self.state_machine:setState("stage_3.set_target")
+				end
+			end
+		end,
+	})
+
+	self.state_machine:addState("stage_3.set_target", {
+		enter = function()
+			self:setTarget(self.target.x, self:getTargetY())
+		end,
+		update = function(_, dt)
+			self.setTargetCallback = function()
+				self.state_machine:setState("stage_3.set_target")
+			end
+
+			if self.chase_timer >= 0 then
+				self.state_machine:setState("stage_3.to_target")
+			else
+				self:updateStage()
+			end
+		end,
+	})
+
+	self.state_machine:addState("stage_3.to_target", {
+		enter = function()
+			self.curr_animation = self.animations.run
+		end,
+		update = function(_, dt)
+			self.chase_timer = self.chase_timer - dt
+
+			self:chaseTarget(dt, function()
+				self.state_machine:setState("stage_3.at_target")
+			end)
+		end,
+	})
+
+	self.state_machine:addState("stage_3.at_target", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+		end,
+		update = function(_, dt)
+			self.chase_timer = self.chase_timer - dt
+
+			self.state_machine:setState("grounded.attacking")
+		end,
+	})
+
 	self.state_machine:addState("grounded.attacking", {
 		enter = function()
 			self:attack()
@@ -435,7 +532,7 @@ function KingPig:setupStates()
 			end
 
 			if self.attack_cooldown <= 0 then
-				self:attackCallback()
+				self:setTargetCallback()
 			end
 		end,
 	})
@@ -488,7 +585,7 @@ function KingPig:setupStates()
 				self.hit_cooldown = self.hit_cooldown - dt
 			else
 				self.hit_cooldown = self.hit_cooldown_time
-				self:hitCallback()
+				self:setTargetCallback()
 			end
 		end,
 	})
