@@ -155,8 +155,36 @@ local soundEffects = {
 		end,
 	},
 
+	-- Bomb
+	["bomb.on"] = {
+		duration = 0.6,
+		generate = function(t, duration)
+			local freq = 300 + 200 * math.sin(t * 8)
+			local pulse = 0.5 + 0.5 * math.sin(t * 15) -- Creates a pulsing sound as the bomb is armed
+			return (generateTriangle(t, freq) + generateNoise() * 0.2) * pulse * (1 - t / duration) * 0.7
+		end,
+	},
+	["bomb.explode"] = {
+		duration = 0.8,
+		generate = function(t, duration)
+			local baseFreq = 100 + 500 * (1 - t / duration)
+			local rumble = generateNoise() * (1 - t / duration) * 0.6
+			local blast = generateSquare(t, baseFreq) * math.max(0, 1 - t / 0.3) -- Sharp initial blast
+			return (blast + rumble) * 0.8
+		end,
+	},
+
 	-- Enemy
-	["enemy.attack"] = {
+	-- Pig
+	["pig.summoned"] = {
+		duration = 0.5,
+		generate = function(t, duration)
+			local freq = 500 - 300 * (t / duration)
+			local impact = t < 0.1 and 1 or (1 - (t - 0.1) / (duration - 0.1))
+			return (generateNoise() * 0.3 + generateSquare(t, freq) * 0.7) * impact * 0.8
+		end,
+	},
+	["pig.attack"] = {
 		duration = 0.3,
 		generate = function(t, duration)
 			local freq = 200 + 300 * (1 - t / duration)
@@ -164,18 +192,86 @@ local soundEffects = {
 			return generateNoise() * generateSquare(t, freq) * (1 - t / duration) * 0.6
 		end,
 	},
-	["enemy.hit"] = {
+	["pig.hit"] = {
 		duration = 0.15,
 		generate = function(t, duration)
 			local freq = 300 + 200 * (t / duration)
 			return generateNoise() * generateSquare(t, freq) * (1 - t / duration)
 		end,
 	},
-	["enemy.dead"] = {
+	["pig.dead"] = {
 		duration = 0.6,
 		generate = function(t, duration)
 			local freq = 500 * (1 - t / duration) + 150 * math.sin(t * 20)
 			return generateNoise() * generateTriangle(t, freq) * (1 - t / duration) * 0.8
+		end,
+	},
+
+	-- Bomb Pig
+	["bomb_pig.throw"] = {
+		duration = 0.4,
+		generate = function(t, duration)
+			-- Whistling effect with a descending pitch
+			local freq = 800 - 400 * (t / duration)
+			local whistle = generateSine(t, freq) * 0.6 + generateTriangle(t, freq * 0.8) * 0.4
+			return whistle * (1 - t / duration) * 0.7
+		end,
+	},
+
+	-- King Pig
+	["king_pig.attack"] = {
+		duration = 0.4, -- Slightly longer than regular pig
+		generate = function(t, duration)
+			local freq = 150 + 400 * (1 - t / duration) -- Lower base frequency for more menacing sound
+			-- Combine noise, square and sine for a more complex attack sound
+			return (generateNoise() * generateSquare(t, freq) + generateSine(t, freq * 0.5)) * (1 - t / duration) * 0.7
+		end,
+	},
+	["king_pig.hit"] = {
+		duration = 0.2,
+		generate = function(t, duration)
+			local freq = 250 + 300 * (t / duration) -- Deeper hit sound
+			return generateNoise() * generateSquare(t, freq) * (1 - t / duration) * 1.2 -- Slightly louder
+		end,
+	},
+	["king_pig.dead"] = {
+		duration = 0.8, -- Longer death sound
+		generate = function(t, duration)
+			local freq = 400 * (1 - t / duration) + 200 * math.sin(t * 15)
+			-- More complex death sound with multiple waveforms
+			return (generateNoise() * generateTriangle(t, freq) + generateSine(t, freq * 0.3))
+				* (1 - t / duration)
+				* 0.9
+		end,
+	},
+	["king_pig.summoning"] = {
+		duration = 0.6,
+		generate = function(t, duration)
+			-- Rising pitch effect for summoning
+			local freq = 200 + 600 * (t / duration)
+			-- Pulsing effect using sine wave
+			local pulse = 0.5 + 0.5 * math.sin(t * 30)
+			return (generateSine(t, freq) + generateTriangle(t, freq * 0.5) * pulse) * (1 - 0.7 * t / duration) * 0.6
+		end,
+	},
+	["king_pig.shock"] = {
+		duration = 0.45,
+		generate = function(t, duration)
+			-- Electric zap effect
+			local baseFreq = 800 + 400 * math.sin(t * 50)
+			local crackle = generateNoise() * (0.7 + 0.3 * math.sin(t * 120))
+			local buzz = generateSquare(t, baseFreq) * (0.5 + 0.5 * math.sin(t * 60))
+			return (crackle + buzz) * (1 - t / duration) * 0.5
+		end,
+	},
+	["king_pig.stage_change"] = {
+		duration = 0.7,
+		generate = function(t, duration)
+			-- Dramatic rising sound with a hint of chaos
+			local freq = 300 + 500 * (t / duration)
+			local noiseMix = generateNoise() * (1 - t / duration) * 0.3
+			local waveMix = generateSine(t, freq) * 0.7 + generateTriangle(t, freq * 0.5) * 0.3
+			return (noiseMix + waveMix) * (1 - t / duration) * 0.8
 		end,
 	},
 

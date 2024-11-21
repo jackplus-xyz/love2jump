@@ -217,6 +217,7 @@ function ldtk:load(file, level)
 
 	for index, value in ipairs(self.data.levels) do
 		self.levels[value.identifier] = index
+		self.levels[value.iid] = index
 	end
 
 	for key, value in pairs(self.levels) do
@@ -394,6 +395,10 @@ end
 --gets the index of a specific level
 function ldtk.getIndex(name)
 	return ldtk.levels[name]
+end
+
+function ldtk.getIndexByIid(iid)
+	return ldtk.levels[iid]
 end
 
 --get the name of a specific level

@@ -23,11 +23,11 @@ function Coin.new(entity)
 
 	self.w = 12
 	self.h = 10
-	self.x_offset = self.w / 2
-	self.y_offset = self.h
+	self.offset_x = self.w / 2
+	self.offset_y = self.h
 	self.timer = 0.5
-	self.x_velocity = 0
-	self.y_velocity = 0
+	self.velocity_x = 0
+	self.velocity_y = 0
 	self.jump_strength = -250
 	self.friction = 100
 	self.gravity = 800
@@ -66,10 +66,10 @@ function Coin:collect()
 end
 
 function Coin:applyGravity(dt)
-	self.y_velocity = self.y_velocity + self.gravity * dt
+	self.velocity_y = self.velocity_y + self.gravity * dt
 
-	local goal_x = self.x + self.x_velocity * dt
-	local goal_y = self.y + self.y_velocity * dt
+	local goal_x = self.x + self.velocity_x * dt
+	local goal_y = self.y + self.velocity_y * dt
 	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, coinFilter)
 
 	if len > 0 then
@@ -77,8 +77,8 @@ function Coin:applyGravity(dt)
 			local other = cols[i].other
 			if other.id == "Collision" then
 				if cols[i].normal.y < 0 then
-					self.x_velocity = 0
-					self.y_velocity = 0
+					self.velocity_x = 0
+					self.velocity_y = 0
 				end
 			end
 		end
@@ -87,10 +87,10 @@ function Coin:applyGravity(dt)
 	self:move(actual_x, actual_y, coinFilter)
 end
 
-function Coin:spawn(x_velocity)
+function Coin:spawn(velocity_x)
 	self.is_spawn = true
-	self.x_velocity = x_velocity or 0
-	self.y_velocity = self.jump_strength
+	self.velocity_x = velocity_x or 0
+	self.velocity_y = self.jump_strength
 	Sfx:play("coin.spawn")
 end
 

@@ -1,19 +1,20 @@
-local enemy = require("src.enemy.enemy")
-local pig = require("src.enemy.pig")
+local Enemy = require("src.enemy.base_enemy") -- Base enemy class
 
-local enemy_types = {
-	Pig = pig,
+-- Lazily load specific enemies as needed
+local enemies = {
+	Pig = function()
+		return require("src.enemy.pig")
+	end,
+	BombPig = function()
+		return require("src.enemy.bomb_pig")
+	end,
+	KingPig = function()
+		return require("src.enemy.king_pig")
+	end,
 }
 
-local function create_enemy(entity)
-	local enemy_class = enemy_types[entity.props.Enemy]
-	if enemy_class and enemy_class.new then
-		return enemy_class.new(entity)
-	else
-		return nil
-	end
+Enemy.getClass = function(type)
+	return enemies[type] and enemies[type]()
 end
 
-return {
-	create_enemy = create_enemy,
-}
+return Enemy

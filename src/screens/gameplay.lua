@@ -8,7 +8,7 @@ local Keymaps = require("config.keymaps")
 
 -- Utilities
 local GameProgress = require("src.utils.game_progress")
-local world_helpers = require("src.utils.world_helpers")
+local WorldHelpers = require("src.utils.world_helpers")
 
 -- Source Modules
 local Ui = require("src.ui")
@@ -46,7 +46,11 @@ local is_confirm_quit = false
 local is_paused = false
 local is_entering = false
 
---------- LOVE-LDTK CALLBACKS ----------
+--------- Helper Functions  ----------
+
+local function addEntityToGame(entity)
+	table.insert(entities, entity)
+end
 
 local function updateInactiveEntities()
 	inactive_entities = inactive_entities or {}
@@ -57,7 +61,7 @@ local function updateInactiveEntities()
 		end
 	end
 
-	if not inactive_entities[prev_level_index] then
+	if not inactive_entities[prev_level_index] and prev_level_index then
 		inactive_entities[prev_level_index] = {}
 	end
 
@@ -68,88 +72,6 @@ local function updateInactiveEntities()
 		end
 	end
 end
-
--- Called just before any other callback when a new level is about to be created
-local function onLevelLoaded(level)
-	curr_level_index = Ldtk:getCurrent()
-	updateInactiveEntities()
-
-	world = Bump.newWorld(GRID_SIZE)
-	collisions = {}
-	entities = {}
-
-	CameraManager.unsetBounds()
-	CameraManager.unsetDeadzone()
-end
-
-local function onLayer(layer)
-	if layer.id == "Collision" then
-		for _, tile in ipairs(layer.tiles) do
-			local collision = {
-				id = "Collision",
-				x = tile.px[1],
-				y = tile.px[2],
-				w = GRID_SIZE,
-				h = GRID_SIZE,
-			}
-			world:add(collision, collision.x, collision.y, collision.w, collision.h)
-		end
-	end
-	table.insert(layers, layer) -- Addlayer to the table we use to draw
-end
-
-local function onEntity(entity)
-	if inactive_entities[curr_level_index] and inactive_entities[curr_level_index][entity.iid] then
-		return
-	end
-
-	if entity.id == "Player" then
-		player = Player.new(entity)
-	elseif entity.props.Enemy then
-		local new_enemy = EnemyFactory.create(entity)
-		new_enemy.spawnDrop = function(item)
-			item.addToWorld = world_helpers.addToWorld
-			item.removeFromWorld = world_helpers.removeFromWorld
-			item:addToWorld(world)
-			table.insert(entities, item)
-		end
-		table.insert(entities, new_enemy)
-	elseif entity.id == "Door" then
-		local new_door = Entity.Door.new(entity)
-		table.insert(entities, new_door)
-	elseif entity.id == "Coin" then
-		local new_coin = Entity.Coin.new(entity)
-		table.insert(entities, new_coin)
-	end
-end
-
--- Called just after all other callbacks when a new level is created
-local function onLevelCreated(level)
-	player:addToWorld(world) -- update the player to new world
-	for _, entity in pairs(entities) do
-		-- Set player's new location at the door
-		if entity.id == "Door" and not entity.is_next then
-			entity:close()
-			player.x, player.y = entity.x - player.w / 2, entity.y - player.h
-		end
-		entity.addToWorld = world_helpers.addToWorld
-		entity.removeFromWorld = world_helpers.removeFromWorld
-		entity:addToWorld(world)
-	end
-
-	local window_w = love.graphics.getWidth()
-	local window_h = love.graphics.getHeight()
-	CameraManager.setBounds(
-		-window_w / 2 / SCALE,
-		-window_h / 2 / SCALE,
-		level.width + window_w / 2 / SCALE,
-		level.height + window_h / 2 / SCALE
-	)
-
-	love.graphics.setBackgroundColor(level.backgroundColor)
-end
-
---------- Helper Functions  ----------
 
 local function saveGame(slot)
 	updateInactiveEntities()
@@ -194,6 +116,127 @@ local function loadGame(slot)
 	end
 end
 
+--------- LOVE-LDTK CALLBACKS ----------
+
+-- Called just before any other callback when a new level is about to be created
+local function onLevelLoaded(level)
+	curr_level_index = Ldtk:getCurrent()
+	updateInactiveEntities()
+
+	world = Bump.newWorld(GRID_SIZE)
+	layers = {}
+	collisions = {}
+	entities = {}
+
+	CameraManager.unsetBounds()
+	CameraManager.unsetDeadzone()
+end
+
+local function onLayer(layer)
+	if layer.id == "Collision" then
+		for _, tile in ipairs(layer.tiles) do
+			local collision = {
+				id = "Collision",
+				x = tile.px[1],
+				y = tile.px[2],
+				w = GRID_SIZE,
+				h = GRID_SIZE,
+			}
+			world:add(collision, collision.x, collision.y, collision.w, collision.h)
+		end
+	end
+	table.insert(layers, layer) -- Add layer to the table we use to draw
+end
+
+local function onEntity(entity)
+	if inactive_entities[curr_level_index] and inactive_entities[curr_level_index][entity.iid] then
+		return
+	end
+
+	if entity.id == "Player" then
+		player = Player.new(entity)
+	elseif entity.props.Enemy then
+		local new_enemy = EnemyFactory.create(entity)
+		new_enemy.addEntityToGame = addEntityToGame
+		table.insert(entities, new_enemy)
+	elseif entity.id == "Door" then
+		local new_door = Entity.Door.new(entity)
+		table.insert(entities, new_door)
+	elseif entity.id == "Coin" then
+		local new_coin = Entity.Coin.new(entity)
+		table.insert(entities, new_coin)
+	elseif entity.id == "Bomb" then
+		local new_bomb = Entity.Bomb.new(entity)
+		table.insert(entities, new_bomb)
+	end
+end
+
+-- Called just after all other callbacks when a new level is created
+local function onLevelCreated(level)
+	player:addToWorld(world) -- update the player to new world
+
+	for _, entity in pairs(entities) do
+		entity.addToWorld = WorldHelpers.addToWorld
+		entity.removeFromWorld = WorldHelpers.removeFromWorld
+		entity:addToWorld(world)
+
+		-- Set player's new location at the door
+		if player.next_door and player.next_door.entityIid == entity.iid then
+			entity:close()
+			local goal_x = entity.x + entity.w / 2 - player.w / 2
+			local goal_y = entity.y + entity.h - player.h
+			player.x, player.y = goal_x, goal_y
+		end
+	end
+
+	local window_w = love.graphics.getWidth()
+	local window_h = love.graphics.getHeight()
+	CameraManager.setBounds(
+		-window_w / 2 / SCALE,
+		-window_h / 2 / SCALE,
+		level.width + window_w / 2 / SCALE,
+		level.height + window_h / 2 / SCALE
+	)
+
+	love.graphics.setBackgroundColor(level.backgroundColor)
+end
+
+--------- Screen Helper Functions Logic --------
+
+function screen:openDoor(dt)
+	is_entering = true
+	if Ui.fade_in.is_active then
+		Ui.fade_in:update(dt)
+		return
+	else
+		prev_level_index = Ldtk:getCurrent()
+		local next_level_index = Ldtk.getIndexByIid(player.next_door.levelIid)
+		Ldtk:goTo(next_level_index)
+		player.state_machine:setState("door.close")
+	end
+end
+
+function screen:closeDoor(dt)
+	if Ui.fade_out.is_active then
+		Ui.fade_out:update(dt)
+	else
+		is_entering = false
+		player.state_machine:setState("grounded.idle")
+		Ui.fade_in:reset()
+		Ui.fade_out:reset()
+	end
+end
+
+function screen:handleLevelTransition(dt)
+	if player.is_player and player.state_machine:getState("door.open") then
+		self:openDoor(dt)
+	elseif is_entering then
+		self:closeDoor(dt)
+	end
+end
+
+--------- Game Core Logic --------
+
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
 	self.screenManager = ScreenManager
 	local is_load_save = self.screenManager.shared.is_load_save
@@ -206,6 +249,7 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	Ldtk.onLevelLoaded = onLevelLoaded
 	Ldtk.onLevelCreated = onLevelCreated
 
+	-- TODO: add tutorial
 	Ldtk:goTo(default_level_index)
 	if is_load_save then
 		loadGame()
@@ -218,47 +262,11 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	CameraManager.setScale(SCALE)
 	CameraManager.setDeadzone(-GRID_SIZE, -GRID_SIZE, GRID_SIZE, GRID_SIZE)
 	CameraManager.setLerp(0.01)
-	CameraManager.setCoords(player.x + player.w / SCALE, player.y - player.h * SCALE)
 
 	-- TODO: add fade in to bgm
 	Bgm:play()
 
 	Debug:init(world, CameraManager, player)
-end
-
-function screen:openDoor(dt)
-	is_entering = true
-	if Ui.fade_in.is_active then
-		Ui.fade_in:update(dt)
-		return
-	else
-		prev_level_index = Ldtk:getCurrent()
-		if player.is_next_level then
-			Ldtk:next()
-		else
-			Ldtk:previous()
-		end
-		player.state_machine:setState("door.close")
-	end
-end
-
-function screen:closeDoor(dt)
-	if Ui.fade_out.is_active then
-		Ui.fade_out:update(dt)
-	else
-		is_entering = false
-		player.state_machine:setState("grounded")
-		Ui.fade_in:reset()
-		Ui.fade_out:reset()
-	end
-end
-
-function screen:handleLevelTransition(dt)
-	if player.is_player and player.state_machine:getState("door.open") then
-		self:openDoor(dt)
-	elseif is_entering then
-		self:closeDoor(dt)
-	end
 end
 
 function screen:Update(dt)
@@ -273,7 +281,9 @@ function screen:Update(dt)
 	player:update(dt)
 
 	for _, entity in ipairs(entities) do
-		entity:update(dt)
+		if entity.id ~= "Door" or entity.is_visible then
+			entity:update(dt)
+		end
 	end
 
 	for _, collision in ipairs(collisions) do
@@ -288,7 +298,7 @@ function screen:Update(dt)
 		return
 	end
 
-	CameraManager.setTarget(player.x + player.w / 2, player.y + player.h / 2)
+	CameraManager.setTarget(player.x + player.w / SCALE, player.y - player.h * SCALE)
 	CameraManager.update(dt)
 
 	if IsDebug then
@@ -308,7 +318,9 @@ function screen:Draw()
 	end
 
 	for _, entity in ipairs(entities) do
-		entity:draw()
+		if entity.id ~= "Door" or entity.is_visible then
+			entity:draw()
+		end
 	end
 
 	player:draw()
@@ -362,6 +374,12 @@ function screen:Draw()
 end
 
 function screen:KeyPressed(key)
+	if is_paused and key == Keymaps.escape then
+		is_paused = false
+		Bgm:play()
+		return
+	end
+
 	if is_confirm_quit then
 		if key == Keymaps.up or key == Keymaps.down then
 			Ui.menu:selectNextChoice()

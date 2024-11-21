@@ -15,11 +15,12 @@ function Door.new(entity)
 
 	self.w = sprite_w
 	self.h = sprite_h
-	self.x_offset = self.w / SCALE
-	self.y_offset = self.h
+	self.offset_x = self.w / SCALE
+	self.offset_y = self.h
 	self.timer = 3
 
-	self.is_next = entity.props.isNext
+	self.is_visible = entity.props.is_visible
+	self.next_door = entity.props.next_door
 
 	self:init()
 
@@ -55,8 +56,7 @@ end
 function Door:open()
 	self.curr_animation = self.animations.opening
 	Sfx:play("door.open")
-
-	return self.is_next
+	return self.next_door
 end
 
 function Door:close()

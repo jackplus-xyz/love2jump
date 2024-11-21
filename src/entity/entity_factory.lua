@@ -1,5 +1,6 @@
 local entity_classes = {
 	Coin = require("src.entity.coin"),
+	Bomb = require("src.entity.bomb"),
 }
 
 local entity_factory = {}

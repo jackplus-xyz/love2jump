@@ -1,0 +1,39 @@
+{
+	"identifier": "Level_3",
+	"uniqueIdentifer": "af392640-73f0-11ef-9fa8-8f787a0b3a19",
+	"x": -1,
+	"y": -1,
+	"width": 480,
+	"height": 320,
+	"bgColor": "#3F3851",
+	"neighbourLevels": [],
+	"customFields" : {},
+	"layers": [
+		"Bg_textures.png",
+		"Decorations.png",
+		"Collision.png"
+	],
+	"entities": {
+		"Door": [
+			{
+				"id": "Door",
+				"iid": "5d4cf400-73f0-11ef-a005-cb4bba577d64",
+				"layer": "Entities",
+				"x": 88,
+				"y": 256,
+				"width": 16,
+				"height": 16,
+				"color": 15389866,
+				"customFields": {
+					"next_door": {
+						"entityIid": "57455fc0-73f0-11ef-a005-f166b9f138a8",
+						"layerIid": "f524f370-4ce0-11ef-b36d-0d0bd4011885",
+						"levelIid": "b8aad920-4ce0-11ef-abbd-6dcda695e919",
+						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
+					},
+					"is_visible": true
+				}
+			}
+		]
+	}
+}

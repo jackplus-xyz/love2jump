@@ -60,7 +60,7 @@ end
 function Title:draw()
 	local title = "Title"
 	local instruction = "Press Any Key to Begin"
-	local y_offset = Fonts.heading_3:getHeight()
+	local offset_y = Fonts.heading_3:getHeight()
 
 	love.graphics.push("all")
 
@@ -80,7 +80,7 @@ function Title:draw()
 		if self.is_show_options then
 			for i, option in ipairs(self.options) do
 				local is_selected = (self.selected_option == option)
-				local y = self.title_y + (i * y_offset)
+				local y = self.title_y + (i * offset_y)
 				love.graphics.setColor(0.4, 0.4, 0.4)
 				if is_selected then
 					love.graphics.setColor(1, 1, 1) -- Highlight selected option
@@ -92,7 +92,7 @@ function Title:draw()
 				love.graphics.print(
 					instruction,
 					love.graphics.getWidth() / 2 - Fonts.heading_3:getWidth(instruction) / 2,
-					self.title_y + y_offset
+					self.title_y + offset_y
 				)
 			end
 		end

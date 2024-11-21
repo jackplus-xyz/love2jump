@@ -1,42 +1,70 @@
 local Anim8 = require("lib.anim8.anim8")
 local Sfx = require("src.sfx")
-local Enemy = require("src.enemy.enemy")
-local Entity = require("src.entity")
+local BaseEnemy = require("src.enemy.base_enemy")
+local EnemyFactory = require("src.enemy.enemy_factory")
+local EntityFactory = require("src.entity.entity_factory")
+local WorldHelpers = require("src.utils.world_helpers")
 
-local King_Pig = {}
-King_Pig.__index = King_Pig
-setmetatable(King_Pig, Enemy)
+local KingPig = {}
+KingPig.__index = KingPig
+setmetatable(KingPig, BaseEnemy)
 
-function King_Pig.new(entity)
-	local self = Enemy.new(entity)
-	setmetatable(self, King_Pig)
+function KingPig.new(entity)
+	local self = BaseEnemy.new(entity)
+	setmetatable(self, KingPig)
 
 	self.w = 15
 	self.h = 20
+	self.start_x, self.start_y = self.x, self.y
 
+	if entity.props then
+		self.props = entity.props
+	end
+
+	self.direction = -1
+	self.knock_back_offset = 2
 	self.speed = 100
-	self.knock_back_offset = 5
-	self.direction = 0
-	self.y_velocity = 0
-	self.jump_strength = -1300
+	self.velocity_y = 0
+	self.gravity = 1000
+	self.jump_strength = -500
+	self.jump_attempt = 1
+	self.max_jump_attempts = 1
+	self.hitbox_w = 12
+	self.hitbox_h = 10
+
+	-- Timers
+	self.move_timer = 0
+	self.move_time = 3
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
+	self.attack_cooldown = 0
+	self.attack_cooldown_time = 2
 	self.hit_cooldown = 0
-	self.hit_cooldown_time = 0.2
-	self.gravity = 1000
+	self.hit_cooldown_time = 0.4
 	self.drop_cooldown = 0
 	self.drop_cooldown_time = 0.1
+	self.chase_cooldown = 0
+	self.chase_cooldown_time = 2
+	self.dialogue_timer = 0
+	self.dialogue_time = 0.5
+
+	self.stage = 1
+	self.stageCallbacks = {
+		summon = function()
+			self.state_machine:setState("stage_" .. self.stage .. ".summon")
+		end,
+	}
 
 	self:init()
 	return self
 end
 
-function King_Pig:init()
+function KingPig:init()
 	self:loadAnimations()
 	self:setupStates()
 end
 
-function King_Pig:loadAnimations()
+function KingPig:loadAnimations()
 	local sprite_w = 38
 	local sprite_h = 28
 
@@ -71,118 +99,329 @@ function King_Pig:loadAnimations()
 	self.animations.run = Anim8.newAnimation(run_grid("1-6", 1), 0.1)
 
 	self.image_map = {
-		[self.animations.idle] = self.idle_image,
-		[self.animations.run] = self.run_image,
-		[self.animations.jump] = self.jump_image,
+		[self.animations.attack] = self.attack_image,
+		[self.animations.dead] = self.dead_image,
 		[self.animations.fall] = self.fall_image,
 		[self.animations.ground] = self.ground_image,
 		[self.animations.hit] = self.hit_image,
-		[self.animations.dead] = self.dead_image,
+		[self.animations.idle] = self.idle_image,
+		[self.animations.jump] = self.jump_image,
+		[self.animations.run] = self.run_image,
 	}
 
 	-- Set the initial animation to idle
 	self.curr_animation = self.animations.idle
 end
 
-function King_Pig:setupStates()
-	local start_x, start_y = self.x, self.y
-
-	self.state_machine:addState("grounded", {
+function KingPig:setupStates()
+	self.state_machine:addState("grounded.idle", {
 		enter = function()
 			self.curr_animation = self.animations.idle
 		end,
 		update = function(_, dt)
-			if self.y_velocity ~= 0 then
-				self.state_machine:setState("airborne")
-			end
+			self:checkAirborne()
+		end,
+	})
 
-			if self.patrol then
-				self.state_machine:setState("grounded.to_target")
+	self.state_machine:addState("grounded.idle", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+		end,
+		update = function(_, dt)
+			local function playerFilter(item)
+				return item.id == "Player"
+			end
+			local range = 20
+			local items, len = self.world:queryRect(
+				self.x + self.direction * self.w * range,
+				self.y,
+				self.w * range,
+				self.h * range,
+				playerFilter
+			)
+
+			if len > 0 then
+				self.target = items[1]
+				self.state_machine:setState("shocked")
 			end
 		end,
 	})
 
-	if self.patrol then
-		local wait_time = 2
-		local wait_timer = wait_time
-		local target_x, target_y =
-			self.patrol.cx * GRID_SIZE / SCALE + GRID_SIZE / SCALE / SCALE,
-			self.patrol.cy * GRID_SIZE / SCALE + GRID_SIZE / SCALE
+	self.state_machine:addState("shocked", {
+		enter = function()
+			Sfx:play("king_pig.shock")
+			self.dialogue:show("shock")
+			self.shock_timer = 1
+		end,
+		update = function(_, dt)
+			if self.shock_timer >= 0 then
+				self.shock_timer = self.shock_timer - dt
+				return
+			end
 
-		self.state_machine:addState("grounded.to_target", {
-			enter = function()
-				self.curr_animation = self.animations.run
-			end,
-			update = function(_, dt)
-				if self.y_velocity ~= 0 then
-					self.state_machine:setState("airborne")
+			-- FIXME: hide the dialogue
+			self.dialogue:hide("shock")
+			self.state_machine:setState("grounded.at_start")
+		end,
+	})
+
+	self.state_machine:addState("grounded.at_start", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+			self.direction = -1
+			self.move_timer = self.move_time
+		end,
+		update = function(_, dt)
+			if self.move_timer >= 0 then
+				self.move_timer = self.move_timer - dt
+				return
+			end
+
+			self.stageCallbacks:summon()
+		end,
+	})
+
+	self.state_machine:addState("stage_1.summon", {
+		enter = function()
+			Sfx:play("king_pig.summoning")
+			self.summon_count = 1
+			self.max_summon_count = 3
+			self.summoned = {}
+			self.summon_cooldown_time = 1
+			self.summon_cooldown = 0
+		end,
+		update = function(_, dt)
+			if self.summon_cooldown >= 0 then
+				self.summon_cooldown = self.summon_cooldown - dt
+				return
+			end
+
+			self.summon_cooldown = self.summon_cooldown_time
+
+			if self.summon_count <= self.max_summon_count then
+				local entity = {
+					iid = nil,
+					id = "Enemy",
+					x = self.x + self.direction * GRID_SIZE * 2 * (self.max_summon_count - self.summon_count + 1),
+					y = self.y,
+					props = {
+						Enemy = "Pig",
+						max_health = 3,
+						atk = 1,
+					},
+				}
+
+				local new_enemy = self:summon(entity)
+				if new_enemy then
+					table.insert(self.summoned, new_enemy)
+					new_enemy.removeFromSummoned = function()
+						for i, enemy in ipairs(self.summoned) do
+							if enemy == new_enemy then
+								table.remove(self.summoned, i)
+								break
+							end
+						end
+					end
+					Sfx:play("pig.summoned")
+					self.summon_count = self.summon_count + 1
 				end
+			else
+				-- Chase and attack player after all summmonings died
+				if #self.summoned == 0 then
+					self.chase_cooldown = self.chase_cooldown_time
+					self.state_machine:setState("grounded.set_target")
+				end
+			end
+		end,
+	})
 
-				local dx = target_x - self.x
-				local dy = target_y - self.y
-				local distance = math.sqrt(dx * dx + dy * dy)
+	self.state_machine:addState("stage_2.summon", {
+		enter = function()
+			Sfx:play("king_pig.summoning")
+			self.summon_count = 1
+			self.max_summon_count = 3
+			self.summoned = {}
+			self.summon_cooldown_time = 1
+			self.summon_cooldown = 0
+		end,
+		update = function(_, dt)
+			if self.summon_cooldown >= 0 then
+				self.summon_cooldown = self.summon_cooldown - dt
+				return
+			end
 
-				if distance < GRID_SIZE then
-					self.state_machine:setState("grounded.at_target")
+			self.summon_cooldown = self.summon_cooldown_time
+
+			if self.summon_count <= self.max_summon_count then
+				local entity = {
+					iid = nil,
+					id = "Enemy",
+					x = self.x + self.direction * GRID_SIZE * 2 * (self.max_summon_count - self.summon_count + 1),
+					y = self.y,
+					props = {
+						Enemy = "BombPig",
+						max_health = 3,
+						atk = 1,
+					},
+				}
+
+				local new_enemy = self:summon(entity)
+				if new_enemy then
+					table.insert(self.summoned, new_enemy)
+					new_enemy.removeFromSummoned = function()
+						for i, enemy in ipairs(self.summoned) do
+							if enemy == new_enemy then
+								table.remove(self.summoned, i)
+								break
+							end
+						end
+					end
+					Sfx:play("pig.summoned")
+					self.summon_count = self.summon_count + 1
+				end
+			else
+				-- Chase and attack player after all summmonings died
+				if #self.summoned == 0 then
+					self.chase_cooldown = self.chase_cooldown_time
+					self.state_machine:setState("grounded.set_target")
+				end
+			end
+		end,
+	})
+
+	self.state_machine:addState("stage_3.summon", {
+		enter = function()
+			Sfx:play("king_pig.summoning")
+			self.summon_count = 1
+			self.max_summon_count = 5
+			self.summoned = {}
+			self.summon_cooldown_time = 0.5
+			self.summon_cooldown = 0
+		end,
+		update = function(_, dt)
+			if self.summon_cooldown >= 0 then
+				self.summon_cooldown = self.summon_cooldown - dt
+				return
+			end
+
+			self.summon_cooldown = self.summon_cooldown_time
+
+			if self.summon_count <= self.max_summon_count then
+				local entity = {
+					iid = nil,
+					id = "Enemy",
+					x = self.x + self.direction * GRID_SIZE * 2 * (self.max_summon_count - self.summon_count + 1),
+					y = self.y,
+					props = {
+						Enemy = "BombPig",
+						max_health = 3,
+						atk = 1,
+					},
+				}
+
+				local new_enemy = self:summon(entity)
+				if new_enemy then
+					table.insert(self.summoned, new_enemy)
+					new_enemy.removeFromSummoned = function()
+						for i, enemy in ipairs(self.summoned) do
+							if enemy == new_enemy then
+								table.remove(self.summoned, i)
+								break
+							end
+						end
+					end
+					Sfx:play("pig.summoned")
+					self.summon_count = self.summon_count + 1
+				end
+			else
+				-- Chase and attack player after all summmonings died
+				if #self.summoned == 0 then
+					self.chase_cooldown = self.chase_cooldown_time
+					self.state_machine:setState("grounded.set_target")
+				end
+			end
+		end,
+	})
+
+	self.state_machine:addState("grounded.to_target", {
+		enter = function()
+			self.curr_animation = self.animations.run
+		end,
+		update = function(_, dt)
+			self.chase_cooldown = self.chase_cooldown - dt
+
+			self:chaseTarget(dt, function()
+				self.state_machine:setState("grounded.at_target")
+			end)
+		end,
+	})
+
+	self.state_machine:addState("grounded.at_target", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+		end,
+		update = function(_, dt)
+			self.chase_cooldown = self.chase_cooldown - dt
+
+			self.state_machine:setState("grounded.attacking")
+		end,
+	})
+
+	self.state_machine:addState("grounded.set_target", {
+		enter = function()
+			self:setTarget(self.target.x, self:getTargetY())
+		end,
+		update = function(_, dt)
+			if self.chase_cooldown >= 0 then
+				self.state_machine:setState("grounded.to_target")
+			else
+				self:updateStage()
+			end
+		end,
+	})
+
+	self.state_machine:addState("grounded.to_start", {
+		enter = function()
+			self.curr_animation = self.animations.run
+		end,
+		update = function(_, dt)
+			if self:isAtTarget(self.start_x, self.start_y) then
+				self.curr_animation = self.animations.ground
+				self.state_machine:setState("grounded.at_start")
+			else
+				self.direction = self.start_x > self.x and 1 or -1
+				if self:canJumpToTarget() then
+					self:jump()
+					self.state_machine:setState("airborne.to_start")
 				else
-					local goal_x = self.x + (dx / distance) * self.speed * dt
-					local goal_y = self.y + (dy / distance) * self.speed * dt
-					self:move(goal_x, goal_y)
+					local goal_x = self.x + self.speed * self.direction * dt
+					self:move(goal_x, self.y)
 				end
-			end,
-		})
+			end
+		end,
+	})
 
-		self.state_machine:addState("grounded.at_target", {
-			enter = function()
+	self.state_machine:addState("grounded.attacking", {
+		enter = function()
+			self:attack()
+			self.attack_cooldown = self.attack_cooldown_time
+		end,
+		update = function(_, dt)
+			self.attack_cooldown = self.attack_cooldown - dt
+
+			if self.hitbox.is_active then
+				self.hitbox:update()
+			end
+
+			if self.curr_animation.status == "paused" then
 				self.curr_animation = self.animations.idle
-			end,
-			update = function(_, dt)
-				wait_timer = wait_timer - dt
+			end
 
-				if wait_timer <= 0 then
-					wait_timer = wait_time
-					self.state_machine:setState("grounded.to_start")
-				end
-			end,
-		})
-
-		self.state_machine:addState("grounded.to_start", {
-			enter = function()
-				self.curr_animation = self.animations.run
-			end,
-			update = function(_, dt)
-				if self.y_velocity ~= 0 then
-					self.state_machine:setState("airborne")
-				end
-
-				local dx = start_x - self.x
-				local dy = start_y - self.y
-				local distance = math.sqrt(dx * dx + dy * dy)
-
-				if distance < GRID_SIZE then
-					self.state_machine:setState("grounded.at_start")
-				else
-					local move_x = (dx / distance) * self.speed * dt
-					local move_y = (dy / distance) * self.speed * dt
-					self:move(self.x + move_x, self.y + move_y)
-				end
-			end,
-		})
-
-		self.state_machine:addState("grounded.at_start", {
-			enter = function()
-				self.curr_animation = self.animations.idle
-			end,
-			update = function(_, dt)
-				wait_timer = wait_timer - dt
-
-				if wait_timer <= 0 then
-					wait_timer = wait_time
-					self.state_machine:setState("grounded.to_target")
-				end
-			end,
-		})
-	end
+			if self.attack_cooldown <= 0 then
+				self.state_machine:setState("grounded.set_target")
+			end
+		end,
+	})
 
 	self.state_machine:addState("airborne", {
 		enter = function()
@@ -191,28 +430,48 @@ function King_Pig:setupStates()
 		update = function(_, dt)
 			self:setAirborneAnimation()
 
-			if self.y_velocity == 0 then
+			if self.velocity_y == 0 then
 				self.curr_animation = self.animations.ground
 				self.state_machine:setState(self.state_machine.prevState.name)
 			end
 		end,
 	})
 
+	self.state_machine:addState("airborne.to_start", {
+		enter = function()
+			self:setAirborneAnimation()
+		end,
+		update = function(_, dt)
+			self:setAirborneAnimation()
+
+			if self.velocity_y == 0 then
+				self.curr_animation = self.animations.ground
+				if self:isAtTarget(self.start_x, self.start_y) then
+					self.curr_animation = self.animations.ground
+					self.state_machine:setState("grounded.at_start")
+				else
+					self.state_machine:setState(self.state_machine.prevState.name)
+				end
+			else
+				local goal_x = self.x + self.speed * self.direction * dt
+				self:move(goal_x, self.y)
+			end
+		end,
+	})
+
+	-- TODO: add healthbar?
 	self.state_machine:addState("hit", {
 		enter = function()
 			self.curr_animation = self.animations.hit
 			self.hit_cooldown = self.hit_cooldown_time
-			Sfx:play("enemy.hit")
-			self:applyKnockback(self.knock_back_offset)
+			Sfx:play("king_pig.hit")
 		end,
 		update = function(_, dt)
 			if self.hit_cooldown > 0 then
 				self.hit_cooldown = self.hit_cooldown - dt
-			end
-
-			if self.hit_cooldown <= 0 then
-				self.state_machine:setState("grounded")
+			else
 				self.hit_cooldown = self.hit_cooldown_time
+				self.state_machine:setState("grounded.set_target")
 			end
 		end,
 	})
@@ -220,51 +479,133 @@ function King_Pig:setupStates()
 	self.state_machine:addState("dead", {
 		enter = function()
 			self.curr_animation = self.animations.dead
-			Sfx:play("enemy.dead")
-			self.drop_cooldown = self.drop_cooldown_time
-			self.drop_count = 3
+			Sfx:play("pig.dead")
+			self.dialogue:hide("shock")
+			self.drop_timer = 0.2
+			self.drop_interval = 0.2
+			self.dead_timer = 0.2 -- make the body stay for while
+			self.current_drop_index = 1 -- Track which loot we're currently dropping
+			self.world:remove(self)
 		end,
 		update = function(_, dt)
-			if self.drop_count > 0 then
-				if self.drop_cooldown > 0 then
-					self.drop_cooldown = self.drop_cooldown - dt
+			-- wait for death animation to complete
+			self.curr_animation:update(dt)
+
+			if self.props.Loot and self.current_drop_index <= #self.props.Loot then
+				if self.drop_timer > 0 then
+					self.drop_timer = self.drop_timer - dt
 				else
-					local entity = {
-						id = "Coin",
+					local loot = self.props.Loot[self.current_drop_index]
+					local loot_entity = {
+						id = loot,
 						x = self.x + self.w / 2,
 						y = self.y,
 						world = self.world,
 					}
-					local new_coin = Entity.Coin.new(entity)
-					self:dropItem(new_coin, 25)
+					local new_loot = EntityFactory.create(loot_entity)
+					self:dropItem(new_loot, 100)
 
-					self.drop_cooldown = self.drop_cooldown_time
-					self.drop_count = self.drop_count - 1
+					self.current_drop_index = self.current_drop_index + 1
+					self.drop_timer = self.drop_interval -- Reset timer for next drop
 				end
-			else
-				if self.curr_animation and self.curr_animation.status == "paused" then
+			-- remove the entity after all the loots are dropped
+			elseif self.curr_animation.status == "paused" then
+				if self.dead_timer > 0 then
+					self.dead_timer = self.dead_timer - dt
+				else
 					self:removeFromWorld()
-					self.curr_animation = nil
-					return
 				end
 			end
 		end,
 	})
 
 	-- Set default state
-	self.state_machine:setState("grounded")
+	self.state_machine:setState("grounded.idle")
 end
 
--- TODO: improve patrol logic to check if target is reachable
-function King_Pig:isPathTo(goal_x, goal_y)
-	local actual_x, actual_y, cols, len = self.world:check(self, goal_x, goal_y, self.enemyFilter)
-	if self.y == goal_y and len == 0 then
-		return true
+function KingPig:getTargetY()
+	local target_y = self.target.y + self.target.h - self.h
+	-- Use the floor under the target if not on the same floor
+	local is_same_height = (self.target.y + self.target.h) == (self.y + self.h)
+	if not is_same_height then
+		local items, len = self.world:querySegment(
+			self.target.x,
+			self.target.y,
+			self.target.x,
+			self.target.y + love.graphics.getHeight(),
+			function(item)
+				return item.id == "Collision"
+			end
+		)
+
+		if len > 0 then
+			target_y = items[1].y - self.h
+		end
 	end
-	return false
+
+	return target_y
 end
 
-function King_Pig:draw()
+function KingPig:chaseTarget(dt, atTarget)
+	atTarget = atTarget or function() end
+
+	if self:isAtTarget(self.target_x, self.target_y) then
+		atTarget()
+	else
+		local direction = self.target_x > self.x and 1 or -1
+		local goal_x = self.x + self.speed * dt * direction
+		self:move(goal_x, self.y)
+	end
+end
+
+function KingPig:updateStage()
+	if self.health <= self.max_health * 0.25 and self.stage ~= 3 then
+		Sfx:play("king_pig.stage_change")
+		self.stage = 3
+		self.speed = 180
+		self.chase_cooldown_time = 1
+	elseif self.health <= self.max_health * 0.75 and self.stage ~= 2 then
+		Sfx:play("king_pig.stage_change")
+		self.stage = 2
+		self.speed = 150
+		self.chase_cooldown_time = 1.5
+	end
+
+	self.state_machine:setState("grounded.to_start")
+end
+
+function KingPig:summon(entity)
+	local new_enemy = EnemyFactory.create(entity)
+	if not new_enemy then
+		return
+	end
+
+	-- TODO: add summon vfx at summoning location
+	new_enemy.addToWorld = WorldHelpers.addToWorld
+	new_enemy.removeFromWorld = WorldHelpers.removeFromWorld
+	new_enemy:addToWorld(self.world)
+	new_enemy:setTarget(self.target.x, self.target.y)
+	self.addEntityToGame(new_enemy)
+	new_enemy.addEntityToGame = self.addEntityToGame
+
+	return new_enemy
+end
+
+function KingPig:update(dt)
+	if not self.is_active then
+		return
+	end
+
+	if not self.state_machine:getState("dead") then
+		self:applyGravity(dt)
+	end
+
+	self.state_machine:update(dt)
+	self.curr_animation:update(dt)
+	self.dialogue:update(dt)
+end
+
+function KingPig:draw()
 	local scale_x = (self.direction == -1) and 1 or -1
 	local offset_x = (self.direction == -1) and 12 or 28
 	local offset_y = 8
@@ -272,11 +613,12 @@ function King_Pig:draw()
 
 	love.graphics.push()
 
-	if self.curr_animation then
+	if self.is_active then
 		self.curr_animation:draw(curr_image, self.x, self.y, 0, scale_x, 1, offset_x, offset_y)
+		self.dialogue:draw("shock", self.x - 8, self.y - self.h)
 	end
 
 	love.graphics.pop()
 end
 
-return King_Pig
+return KingPig
