@@ -150,6 +150,8 @@ function KingPig:setupStates()
 	self.state_machine:addState("shocked", {
 		enter = function()
 			Sfx:play("king_pig.shock")
+			-- TODO: move to level entering
+			Bgm:play("boss_fight_king_pig")
 			self.dialogue:show("shock")
 			self.shock_timer = 1
 		end,

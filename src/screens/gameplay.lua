@@ -12,7 +12,7 @@ local WorldHelpers = require("src.utils.world_helpers")
 
 -- Source Modules
 local Ui = require("src.ui")
-local Bgm = require("src.bgm")
+Bgm = require("src.utils.bgm.init")
 local Sfx = require("src.sfx")
 local Debug = require("src.debug")
 local Player = require("src.player")
@@ -263,8 +263,7 @@ function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Av
 	CameraManager.setDeadzone(-GRID_SIZE, -GRID_SIZE, GRID_SIZE, GRID_SIZE)
 	CameraManager.setLerp(0.01)
 
-	-- TODO: add fade in to bgm
-	Bgm:play()
+	Bgm:play("title")
 
 	Debug:init(world, CameraManager, player)
 end
@@ -376,7 +375,7 @@ end
 function screen:KeyPressed(key)
 	if is_paused and key == Keymaps.escape then
 		is_paused = false
-		Bgm:play()
+		Bgm:play("title")()
 		return
 	end
 
@@ -397,7 +396,7 @@ function screen:KeyPressed(key)
 		if key == Keymaps.confirm then
 			if Ui.menu.selected_option == "Resume" then
 				is_paused = false
-				Bgm:play()
+				Bgm:play("title")()
 			elseif Ui.menu.selected_option == "Settings" then
 			-- TODO: add settings UI
 			elseif Ui.menu.selected_option == "Save Game" then
