@@ -174,7 +174,7 @@ stateDiagram-v2
 
 ### 09/20/2024
 
-#### Added
+**Added:**
 
 - Implemented camera control for dynamic views
 - Created gravity simulation
@@ -184,13 +184,13 @@ stateDiagram-v2
 - Enabled level switching functionality
 - Added basic enemy entities
 
-#### Fixed
+**Fixed:**
 
 - Resolved player movement inconsistencies
 
 ### 10/04/2024
 
-#### Added
+**Added:**
 
 - Defined strategy for player-enemy interaction
 - Introduced enemy patrol behaviors
@@ -200,17 +200,17 @@ stateDiagram-v2
 - Added sound effects (SFX) for attacks
 - Developed a scoring system with collectible coins
 
-#### Changed
+**Changed:**
 
 - Offset animations for health bar updates
 
-#### Fixed
+**Fixed:**
 
 - Corrected enemy animation errors
 
 ### 10/11/2024
 
-#### Added
+**Added:**
 
 - Designed main game screens: title, landing, and gameplay
 - Developed level transition animations
@@ -218,13 +218,13 @@ stateDiagram-v2
 - Implemented interactions between player and enemies (attack logic)
 - Added interactions for coins and doors
 
-#### Changed
+**Changed:**
 
 - Updated debugging information for collision handling
 - Restructured UI module
 - Enhanced gravity calculations
 
-#### Fixed
+**Fixed:**
 
 - Addressed level transition issues
 - Resolved `love.graphics.setColor()` interference with animation layers
@@ -235,27 +235,27 @@ stateDiagram-v2
 
 ### 10/18/2024
 
-#### Added
+**Added:**
 
 - Added player-enemy interaction (damage logic)
 - Implemented knockback effect on enemies
 
 ### 10/25/2024
 
-#### Added
+**Added:**
 
 - Enabled game state saving and loading
 - Preserved entity status across level transitions
 - Saved player status across sessions
 - Added quit button to main menu
 
-#### Changed
+**Changed:**
 
 - Made `Enemy` class extendable for future enemy types
 
 ### 11/01/2024
 
-#### Added
+**Added:**
 
 - Item drops from defeated enemies
 - Enemy chases player behaviors
@@ -265,31 +265,31 @@ stateDiagram-v2
 - Gameover Screen
 - Dynamic patrol route adjustments for enemies
 
-#### Changed
+**Changed:**
 
 - Improved enemy patrol to account for unreachable destinations
 
-#### Fixed
+**Fixed:**
 
 - Resolve door collision issues
 - Adjust hitbox logic for consistent enemy collision handling
 
 ### 11/08/2024
 
-#### Added
+**Added:**
 
 - Invisible door for better level flow control
 - Boss fight encounter
 - Boss moves: summon minions
 - Bomb
 
-#### Changed
+**Changed:**
 
 - Enemy can jump when it needs to
 
 ### 11/15/2024
 
-#### Added
+**Added:**
 
 - Invisible door for better level flow control
 - Boss fight encounter
@@ -298,29 +298,36 @@ stateDiagram-v2
 - Bomb-Pig
 - Boss Stage 2 cycle
 
-#### Changed
+**Changed:**
 
 - Use `canJumpToTarget()` to check if the entity can jump to a desired point
 - Improve enemy's chasing logic
 
-#### Fixed
+**Fixed:**
 
 - Enemy states may be updated and changed after death
 - Summoned bomb pig can't throw bomb
 
 ### 11/21/2024
 
-#### Added
+**Added:**
 
 - Boss Stage 3 cycle
 - Sfx: Boss stage switch
 - Sfx: Bomb Throw
-- [ ] Power-ups and experience points (EXP)
-- [ ] Settings menu for in-game options
 
-#### Changed
+### 1/10/2025
 
-- Improve Boss stage management
-- Improve Boss jump logic
+**Added:**
 
-#### Fixed
+- [ ] 3 Level Design
+- [ ] End game screen
+- [ ] Packaging
+- [ ] Distribution
+- [ ] Boss Health Bar (Optional)
+- [ ] Power-ups and experience points (EXP) (Optional)
+- [ ] Settings menu for in-game options (Optional)
+
+**Changed:**
+
+**Fixed:**

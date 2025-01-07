@@ -11,7 +11,6 @@ local bump = require("lib.bump.bump")
 
 -- Source
 local Ui = require("src.ui")
-local Bgm = require("src.bgm")
 local Sfx = require("src.sfx")
 
 --- Helper function to print the content of a table
@@ -29,7 +28,6 @@ function love.load()
 	-- load the data and resources
 	Ui:init()
 	Sfx:load()
-	Bgm:load()
 
 	ScreenManager:SwitchStates("title")
 end
