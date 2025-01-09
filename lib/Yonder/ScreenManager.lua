@@ -37,6 +37,7 @@ local screens = {
 	"loading",
 	"gameplay",
 	"gameover",
+	"credits",
 }
 
 for _, screen in pairs(screens) do

@@ -515,6 +515,8 @@ function KingPig:setupStates()
 				if self.dead_timer > 0 then
 					self.dead_timer = self.dead_timer - dt
 				else
+					-- TODO: fade out to credits screen
+					self.target.state_machine:setState("victory")
 					self:removeFromWorld()
 				end
 			end

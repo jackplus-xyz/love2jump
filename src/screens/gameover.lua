@@ -29,20 +29,7 @@ function screen:KeyPressed(key)
 		return
 	end
 
-	if key == Keymaps.up or key == Keymaps.left then
-		ui:selectNextOption(-1)
-	elseif key == Keymaps.down or key == Keymaps.right then
-		ui:selectNextOption()
-	elseif key == Keymaps.confirm then
-		Sfx:play("ui.confirm")
-		if ui.selected_option == "Restart" then
-			-- TODO: add restart logic
-			self.screenManager.shared = { is_load_save = true }
-			self.screenManager:SwitchStates("gameplay")
-		elseif ui.selected_option == "Quit" then
-			love.event.quit()
-		end
-	end
+	-- TODO: end game
 end
 
 function screen:KeyReleased(key) end

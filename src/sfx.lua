@@ -122,6 +122,19 @@ local soundEffects = {
 			return generateTriangle(t, freq) * (1 - t / duration) * 0.5
 		end,
 	},
+	["player.victory"] = {
+		duration = 0.6,
+		generate = function(t, duration)
+			-- Create an ascending arpeggio-like effect
+			local baseFreq = 300
+			local step = math.floor(t * 8) -- Creates 4-5 distinct steps
+			local freq = baseFreq * (1 + step * 0.2) -- Ascending frequency steps
+			-- Mix sine and triangle waves for a pleasant, musical tone
+			local sound = generateSine(t, freq) * 0.5 + generateTriangle(t, freq * 1.5) * 0.5
+			-- Add a slight decay at the end
+			return sound * (1 - (t / duration) ^ 0.5) * 0.6
+		end,
+	},
 
 	-- Entities
 	["door.open"] = {

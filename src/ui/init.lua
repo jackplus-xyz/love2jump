@@ -7,6 +7,7 @@ UI.modules = {
 	"loading",
 	"gameplay",
 	"gameover",
+	"credits",
 	"fade",
 	"menu",
 }

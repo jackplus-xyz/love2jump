@@ -297,6 +297,11 @@ function screen:Update(dt)
 		return
 	end
 
+	if player.state_machine:getState("credits") then
+		self.screenManager:SwitchStates("credits")
+		return
+	end
+
 	CameraManager.setTarget(player.x + player.w / SCALE, player.y - player.h * SCALE)
 	CameraManager.update(dt)
 
