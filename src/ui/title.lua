@@ -58,7 +58,7 @@ function Title:selectNextOption(direction)
 end
 
 function Title:draw()
-	local title = "Title"
+	local title = "Love2Jump"
 	local instruction = "Press Any Key to Begin"
 	local offset_y = Fonts.heading_3:getHeight()
 

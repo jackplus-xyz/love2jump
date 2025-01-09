@@ -321,8 +321,8 @@ stateDiagram-v2
 **Added:**
 
 - [ ] 3 Level Design
-- [ ] End game screen
-- [ ] Packaging
+- [x] End game screen
+- [x] Packaging
 - [ ] Distribution
 - [ ] Boss Health Bar (Optional)
 - [ ] Power-ups and experience points (EXP) (Optional)

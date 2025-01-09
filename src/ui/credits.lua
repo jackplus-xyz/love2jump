@@ -18,7 +18,7 @@ function Credits:init()
 	self.scroll_position = love.graphics.getHeight() / 2 -- initial print position
 	self.credits = {
 		{
-			heading = "Love Arcade",
+			heading = "Love2Jump",
 			content = {
 				"A Personal Game Development Project",
 				"Created with LÖVE (Love2D)",
