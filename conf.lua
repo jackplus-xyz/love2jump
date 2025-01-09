@@ -1,5 +1,5 @@
 function love.conf(t)
-	t.title = "Love Platformer"
+	t.title = "Love2Jump"
 	t.version = "11.5"
 	t.console = true
 	t.window.width = 960

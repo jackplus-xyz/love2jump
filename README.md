@@ -1,20 +1,20 @@
-# Love Arcade
+# Love2Jump
 
 ## Introduction
 
-"Love Arcade" is a personal project focused on learning the fundamentals of game development. It provides an opportunity to deepen my understanding of game logic with building, deploying, and publishing a playable game. For this project, I'm focusing on implementing game logics and developing a clean and scalable Lua program
+"Love2Jump" is a personal project focused on learning the fundamentals of game development. It provides an opportunity to deepen my understanding of game logic with building, deploying, and publishing a playable game. For this project, I'm focusing on implementing game logics and developing a clean and scalable Lua program
 
 Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlong.org/wezterm/index.html), I developed an appreciation for Lua's simplicity and flexibility, which is why I chose it for this project. LÖVE, commonly known as Love2D, offers a lightweight yet powerful framework with a supportive community, making it a great choice for 2D game creation.
 
 ## Project Overview
 
-**Project Name:** Love Arcade
+**Project Name:** Love2Jump
 
 **Engine:** [LÖVE - Free 2D Game Engine](https://love2d.org/)
 
 **Genre:** 2D Platformer
 
-**Target Platforms:** macOS, Web
+**Target Platforms:** macOS
 
 ## Project Goals
 
@@ -52,7 +52,7 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
 ### Level Design
 
 - [x] LDTK integration
-- [ ] 3 unique levels
+- [x] 3 unique levels
 - [x] Boss Fight
 - [x] Level transition system
 
@@ -66,6 +66,10 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
 
 - [x] Basic sound effects
 - [x] Background music
+
+### Distribution
+
+- [ ] Release a macOS Application
 
 ## Resources
 
