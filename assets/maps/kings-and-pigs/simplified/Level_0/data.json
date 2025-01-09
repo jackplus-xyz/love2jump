@@ -11,6 +11,7 @@
 	"layers": [
 		"Bg_textures.png",
 		"Decorations.png",
+		"NonCollision.png",
 		"Collision.png"
 	],
 	"entities": {
@@ -29,25 +30,6 @@
 						"entityIid": "8014f4b0-73f0-11ef-86a8-51eed0f4b0be",
 						"layerIid": "f524cc60-4ce0-11ef-b36d-fb203e774c7d",
 						"levelIid": "b4d85180-4ce0-11ef-bef9-855b2d68e758",
-						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
-					},
-					"is_visible": true
-				}
-			},
-			{
-				"id": "Door",
-				"iid": "a7d5ad90-9b00-11ef-966c-f3b28113f8ba",
-				"layer": "Entities",
-				"x": 360,
-				"y": 192,
-				"width": 16,
-				"height": 16,
-				"color": 15389866,
-				"customFields": {
-					"next_door": {
-						"entityIid": "9dac3500-9b00-11ef-966c-8b2b13560d7f",
-						"layerIid": "f6f09a41-9b00-11ef-966c-932d6582939e",
-						"levelIid": "f6f09a40-9b00-11ef-966c-0d6a52f08851",
 						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
 					},
 					"is_visible": true
@@ -82,7 +64,7 @@
 				"id": "Player",
 				"iid": "8cb78a10-9b00-11ef-966c-3f08f544f581",
 				"layer": "Entities",
-				"x": 280,
+				"x": 184,
 				"y": 112,
 				"width": 16,
 				"height": 16,
@@ -90,26 +72,116 @@
 				"customFields" : {}
 			}
 		],
-		"BombPig": [
+		"Coin": [
 			{
-				"id": "BombPig",
-				"iid": "54535670-9b00-11ef-8a0f-0fc0be2ecdde",
+				"id": "Coin",
+				"iid": "82839120-c210-11ef-b880-553527c0d9ee",
 				"layer": "Entities",
-				"x": 152,
+				"x": 568,
+				"y": 192,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "837f0820-c210-11ef-b880-f1dd780cfb88",
+				"layer": "Entities",
+				"x": 600,
+				"y": 192,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "83ece520-c210-11ef-b880-b5c7400472c9",
+				"layer": "Entities",
+				"x": 632,
+				"y": 192,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "85d77710-c210-11ef-b880-e51f16917895",
+				"layer": "Entities",
+				"x": 840,
+				"y": 144,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "878a7e40-c210-11ef-b880-eb52cad5984f",
+				"layer": "Entities",
+				"x": 872,
+				"y": 112,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "8a996bf0-c210-11ef-b880-0f76aacc0c22",
+				"layer": "Entities",
+				"x": 280,
 				"y": 160,
 				"width": 16,
 				"height": 16,
-				"color": 4904771,
-				"customFields": {
-					"patrol": null,
-					"max_health": 3,
-					"Enemy": "BombPig",
-					"Loot": [
-						"Coin"
-					],
-					"atk": 1,
-					"is_visible": true
-				}
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "8b626140-c210-11ef-b880-13faebae62ee",
+				"layer": "Entities",
+				"x": 328,
+				"y": 160,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "8bcac000-c210-11ef-b880-ad7684959b66",
+				"layer": "Entities",
+				"x": 376,
+				"y": 160,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "931a1680-c210-11ef-b880-79dbda357b53",
+				"layer": "Entities",
+				"x": 504,
+				"y": 128,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
+			},
+			{
+				"id": "Coin",
+				"iid": "9734cee0-c210-11ef-b880-790ed9a500f0",
+				"layer": "Entities",
+				"x": 136,
+				"y": 160,
+				"width": 16,
+				"height": 16,
+				"color": 14984818,
+				"customFields" : {}
 			}
 		]
 	}

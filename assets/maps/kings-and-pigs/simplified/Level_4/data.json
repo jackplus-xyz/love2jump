@@ -11,6 +11,7 @@
 	"layers": [
 		"Bg_textures.png",
 		"Decorations.png",
+		"NonCollision.png",
 		"Collision.png"
 	],
 	"entities": {
@@ -26,9 +27,9 @@
 				"color": 15389866,
 				"customFields": {
 					"next_door": {
-						"entityIid": "a7d5ad90-9b00-11ef-966c-f3b28113f8ba",
-						"layerIid": "104728b1-9b00-11ef-8b05-8749c6bbcb8d",
-						"levelIid": "104728b0-9b00-11ef-8b05-b9844f904db3",
+						"entityIid": "60e06c00-c210-11ef-b880-414e50a0585a",
+						"layerIid": "af392641-73f0-11ef-9fa8-c962df80e47d",
+						"levelIid": "af392640-73f0-11ef-9fa8-8f787a0b3a19",
 						"worldIid": "b4d82a70-4ce0-11ef-bef9-fd4447fb5264"
 					},
 					"is_visible": false
