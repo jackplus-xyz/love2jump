@@ -2,7 +2,7 @@
 
 ## Introduction
 
-"Love2Jump" is a personal project focused on learning the fundamentals of game development. It provides an opportunity to deepen my understanding of game logic with building, deploying, and publishing a playable game. For this project, I'm focusing on implementing game logics and developing a clean and scalable Lua program
+"Love2Jump" is a personal project focused on learning the fundamentals of game development. It provides an opportunity to deepen my understanding of game logic with building, deploying, and publishing a playable game. For this project, I'm focusing on implementing game logics and developing a clean and scalable Lua program.
 
 Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlong.org/wezterm/index.html), I developed an appreciation for Lua's simplicity and flexibility, which is why I chose it for this project. LÖVE, commonly known as Love2D, offers a lightweight yet powerful framework with a supportive community, making it a great choice for 2D game creation.
 
@@ -38,6 +38,8 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
   - [kikito/bump.lua: A collision detection library for Lua](https://github.com/kikito/bump.lua)
   - [V3X3D/CameraMgr: A highly dynamic and robust camera library in around 200 lines of code.](https://gitlab.com/V3X3D/love-libs/-/tree/master/CameraMgr)
   - [thenerdie/Yonder: A ridiculously easy to use game state management library written in Lua, for the LOVE2D framework.](https://github.com/thenerdie/Yonder)
+- **Assets:**
+  - [Kings and Pigs by Pixel Frog](https://pixelfrog-assets.itch.io/kings-and-pigs)
 
 ## MVP (Minimum Viable Product) Checklist
 
