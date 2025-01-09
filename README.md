@@ -1,5 +1,7 @@
 # Love2Jump
 
+<img width="1072" alt="Screenshot 2025-01-09 at 14 31 26" src="https://github.com/user-attachments/assets/ebf9afe3-70a3-4d3a-8e17-b81a4953760b" />
+
 ## Introduction
 
 "Love2Jump" is a personal project focused on learning the fundamentals of game development. It provides an opportunity to deepen my understanding of game logic with building, deploying, and publishing a playable game. For this project, I'm focusing on implementing game logics and developing a clean and scalable Lua program.
@@ -71,7 +73,7 @@ Through configuring [Neovim](https://neovim.io/) and [WezTerm](https://wezfurlon
 
 ### Distribution
 
-- [ ] Release a macOS Application
+- [x] Release a macOS Application
 
 ## Resources
 
