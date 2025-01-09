@@ -1,5 +1,4 @@
 local Fonts = require("src.assets.fonts")
-local Sfx = require("src.sfx")
 
 local Credits = {}
 Credits.__index = Credits
@@ -11,6 +10,8 @@ function Credits:new()
 end
 
 function Credits:init()
+	self.fade_time = 2.5
+	self.fade_timer = self.fade_time
 	self.is_done_scrolling = false
 	self.is_last_line = false
 	self.pause_timer = 2
@@ -62,7 +63,11 @@ function Credits:init()
 end
 
 function Credits:update(dt)
-	local scroll_speed = -400
+	if self.fade_timer > 0 then
+		self.fade_timer = self.fade_timer - dt
+	end
+
+	local scroll_speed = -50
 	if not self.scroll_position then
 		self.scroll_position = love.graphics.getHeight() / 2 -- initial print position
 	end
@@ -78,6 +83,7 @@ function Credits:update(dt)
 end
 
 function Credits:draw()
+	local opacity = (self.fade_time - self.fade_timer) / self.fade_time
 	local title = "Credits"
 	-- Calculate the maximum scroll position
 	local max_scroll = self:getTotalContentHeight() + love.graphics.getHeight() / 2 - Fonts.heading_2:getHeight()
@@ -91,7 +97,7 @@ function Credits:draw()
 	love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
 
 	if center_y > -self:getTotalContentHeight() then
-		love.graphics.setColor(1, 1, 1)
+		love.graphics.setColor(1, 1, 1, opacity)
 		love.graphics.setFont(Fonts.heading_1)
 		love.graphics.printf(title, 0, center_y, love.graphics.getWidth(), "center")
 
@@ -99,12 +105,12 @@ function Credits:draw()
 
 		for _, section in ipairs(self.credits) do
 			love.graphics.setFont(Fonts.heading_2)
-			love.graphics.setColor(1, 0.8, 0.2)
+			love.graphics.setColor(1, 0.8, 0.2, opacity)
 			love.graphics.printf(section.heading, 0, y_offset, love.graphics.getWidth(), "center")
 			y_offset = y_offset + Fonts.heading_2:getHeight() + 10
 
 			love.graphics.setFont(Fonts.heading_3)
-			love.graphics.setColor(1, 1, 1)
+			love.graphics.setColor(1, 1, 1, opacity)
 			for _, line in ipairs(section.content) do
 				love.graphics.printf(line, 0, y_offset, love.graphics.getWidth(), "center")
 				y_offset = y_offset + Fonts.heading_3:getHeight() + 5
