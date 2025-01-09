@@ -15,6 +15,7 @@ function Credits:init()
 	self.is_done_scrolling = false
 	self.is_last_line = false
 	self.pause_timer = 2
+	self.scroll_position = love.graphics.getHeight() / 2 -- initial print position
 	self.credits = {
 		{
 			heading = "Love Arcade",
@@ -68,9 +69,6 @@ function Credits:update(dt)
 	end
 
 	local scroll_speed = -50
-	if not self.scroll_position then
-		self.scroll_position = love.graphics.getHeight() / 2 -- initial print position
-	end
 	self.scroll_position = self.scroll_position - (scroll_speed * dt)
 
 	if self.is_done_scrolling then
