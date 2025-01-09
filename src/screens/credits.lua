@@ -4,12 +4,14 @@ local Sfx = require("src.sfx")
 
 local ui = {}
 local screen = {}
+Bgm = require("src.utils.bgm.init")
 
 function screen:Load(ScreenManager) -- pass a reference to the ScreenManager. Avoids circlular require()
-	Ui.gameover:init()
-	ui = Ui.gameover
+	Ui.credits:init()
+	ui = Ui.credits
 	self.screenManager = ScreenManager
 	self.screenManager.shared = { is_load_save = true }
+	Bgm:play("credits")
 end
 
 function screen:Draw()
@@ -25,11 +27,9 @@ function screen:MousePressed(x, y, button) end
 function screen:MouseReleased(x, y, button) end
 
 function screen:KeyPressed(key)
-	if ui.timer > 0 then
-		return
+	if ui.is_last_line then
+		love.event.quit()
 	end
-
-	-- TODO: end game
 end
 
 function screen:KeyReleased(key) end

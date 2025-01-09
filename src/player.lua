@@ -55,7 +55,6 @@ function Player.new(entity)
 	self.gravity = 1200
 	self.knock_back_offset = 5
 
-	-- Timers
 	self.jump_cooldown = 0
 	self.jump_cooldown_time = 0.1
 	self.attack_cooldown = 0
@@ -301,6 +300,30 @@ function Player:setupStates()
 				self.curr_animation = nil
 			end
 		end,
+	})
+
+	self.state_machine:addState("victory", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+			Sfx:play("player.victory")
+			self.victory_timer = 2
+		end,
+		update = function(_, dt)
+			if self.victory_timer <= 0 then
+				self.state_machine:setState("credits")
+			end
+			self.victory_timer = self.victory_timer - dt
+			if self.curr_animation then
+				self.curr_animation:update(dt)
+			end
+		end,
+	})
+
+	self.state_machine:addState("credits", {
+		enter = function()
+			self.curr_animation = self.animations.idle
+		end,
+		update = function(_, dt) end,
 	})
 	-- Set default state
 	self.state_machine:setState("grounded.idle")
